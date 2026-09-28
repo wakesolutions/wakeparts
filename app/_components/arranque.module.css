@@ -1,0 +1,382 @@
+/* Instrumento de arranque: tacómetro + botón start/stop */
+
+.instrumento {
+  --tam: clamp(290px, 34vw, 470px);
+  display: grid;
+  justify-items: center;
+  gap: 1.5rem;
+}
+
+.cluster {
+  position: relative;
+  width: var(--tam);
+  aspect-ratio: 1;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  /* Bisel cromado del instrumento */
+  padding: calc(var(--tam) * 0.035);
+  background: conic-gradient(
+    from 200deg,
+    var(--wp-metal-lo),
+    var(--wp-metal-hi) 18%,
+    var(--wp-metal-lo) 34%,
+    var(--wp-metal-hi) 55%,
+    var(--wp-metal-lo) 72%,
+    var(--wp-metal-hi) 88%,
+    var(--wp-metal-lo)
+  );
+  box-shadow:
+    0 40px 80px -30px rgb(0 0 0 / 0.75),
+    0 12px 24px -8px rgb(0 0 0 / 0.5),
+    inset 0 2px 1px var(--wp-bevel-light),
+    inset 0 -2px 2px var(--wp-bevel-dark);
+  animation: aparecerCluster 1100ms var(--ease-expo) 150ms both;
+}
+
+.cluster::before {
+  /* Hueco oscuro donde se asienta la esfera */
+  content: "";
+  position: absolute;
+  inset: calc(var(--tam) * 0.035);
+  border-radius: 50%;
+  box-shadow:
+    inset 0 10px 24px rgb(0 0 0 / 0.75),
+    inset 0 0 0 1px rgb(0 0 0 / 0.6);
+  z-index: 1;
+  pointer-events: none;
+}
+
+@keyframes aparecerCluster {
+  from {
+    opacity: 0;
+    transform: scale(0.94) rotate(-6deg);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) rotate(0);
+  }
+}
+
+/* ------------------------------------------------------------- esfera ---- */
+
+.dial {
+  position: absolute;
+  inset: calc(var(--tam) * 0.035);
+  width: calc(100% - var(--tam) * 0.07);
+  height: calc(100% - var(--tam) * 0.07);
+  border-radius: 50%;
+  overflow: visible;
+}
+
+.marca {
+  stroke: var(--wp-dial-ink);
+  stroke-linecap: round;
+  opacity: 0.85;
+}
+
+.marcaRoja {
+  stroke: var(--wp-accent-hi);
+  stroke-linecap: round;
+}
+
+.zonaRoja {
+  fill: none;
+  stroke: var(--wp-accent);
+  stroke-width: 7;
+  opacity: 0.9;
+  filter: drop-shadow(0 0 6px var(--wp-accent-glow));
+}
+
+.numero,
+.numeroRojo {
+  font-family: var(--font-sans);
+  font-size: 30px;
+  font-weight: 700;
+  font-variation-settings: "wdth" 70;
+  text-anchor: middle;
+  dominant-baseline: central;
+  fill: var(--wp-dial-ink);
+}
+
+.numeroRojo {
+  fill: var(--wp-accent-hi);
+}
+
+.unidad {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.18em;
+  text-anchor: middle;
+  fill: var(--wp-dial-ink);
+  opacity: 0.5;
+  text-transform: uppercase;
+}
+
+/* -------------------------------------------------------------- aguja ---- */
+
+.aguja {
+  transform-box: view-box;
+  transform-origin: 200px 200px;
+  transform: rotate(-104deg);
+  /* Barrido de encendido: al tope y de vuelta a ralentí */
+  animation: barrido 2100ms var(--ease-inout) 650ms both;
+}
+
+.agujaCuerpo {
+  fill: var(--wp-accent-hi);
+  filter: drop-shadow(0 0 5px var(--wp-accent-glow))
+    drop-shadow(0 4px 3px rgb(0 0 0 / 0.5));
+}
+
+.vibracion {
+  transform-box: view-box;
+  transform-origin: 200px 200px;
+  animation: ralenti 140ms cubic-bezier(0.45, 0, 0.55, 1) 2800ms infinite
+    alternate;
+}
+
+@keyframes barrido {
+  0% {
+    transform: rotate(-120deg);
+  }
+  48% {
+    transform: rotate(118deg);
+  }
+  100% {
+    transform: rotate(-104deg);
+  }
+}
+
+@keyframes ralenti {
+  from {
+    transform: rotate(-0.7deg);
+  }
+  to {
+    transform: rotate(0.7deg);
+  }
+}
+
+.dial[data-revolucionando] .aguja {
+  animation: acelerar 900ms var(--ease-expo) both;
+}
+
+.dial[data-revolucionando] .vibracion {
+  animation-duration: 70ms;
+  animation-delay: 0ms;
+}
+
+@keyframes acelerar {
+  from {
+    transform: rotate(-104deg);
+  }
+  to {
+    transform: rotate(38deg);
+  }
+}
+
+/* ------------------------------------------------------ botón arranque ---- */
+
+.boton {
+  --b: calc(var(--tam) * 0.36);
+  position: relative;
+  z-index: 2;
+  width: var(--b);
+  aspect-ratio: 1;
+  border: 0;
+  border-radius: 50%;
+  padding: 0;
+  cursor: pointer;
+  background: transparent;
+  color: var(--wp-ink);
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 180ms var(--ease-quart);
+}
+
+.boton:focus-visible {
+  outline-offset: 6px;
+  border-radius: 50%;
+}
+
+.bisel {
+  /* Aro cromado del botón */
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 30deg,
+    #f4f1ec,
+    #6d6663 20%,
+    #d9d4ce 38%,
+    #4a4442 58%,
+    #efebe6 78%,
+    #7a7370 90%,
+    #f4f1ec
+  );
+  box-shadow:
+    0 14px 28px -8px rgb(0 0 0 / 0.8),
+    0 0 0 1px rgb(0 0 0 / 0.6);
+}
+
+.anillo {
+  /* LED rojo alrededor de la tapa */
+  position: absolute;
+  inset: 7%;
+  border-radius: 50%;
+  background: var(--wp-accent-lo);
+  box-shadow:
+    inset 0 0 0 2px rgb(0 0 0 / 0.55),
+    0 0 0 0 transparent;
+  animation: respirar 3200ms cubic-bezier(0.45, 0, 0.55, 1) 2600ms infinite;
+}
+
+@keyframes respirar {
+  0%,
+  100% {
+    background: var(--wp-accent-lo);
+    box-shadow:
+      inset 0 0 0 2px rgb(0 0 0 / 0.55),
+      0 0 0 0 transparent;
+  }
+  50% {
+    background: var(--wp-accent);
+    box-shadow:
+      inset 0 0 0 2px rgb(0 0 0 / 0.35),
+      0 0 22px 2px var(--wp-accent-glow);
+  }
+}
+
+.tapa {
+  /* Tapa convexa de goma negra */
+  position: absolute;
+  inset: 13%;
+  border-radius: 50%;
+  display: grid;
+  place-content: center;
+  gap: 0.35em;
+  background:
+    radial-gradient(90% 70% at 50% 18%, rgb(255 255 255 / 0.2), transparent 55%),
+    radial-gradient(circle at 50% 60%, #2a2626, #0b0a0a 75%);
+  box-shadow:
+    inset 0 2px 1px rgb(255 255 255 / 0.18),
+    inset 0 -6px 12px rgb(0 0 0 / 0.8),
+    0 2px 3px rgb(0 0 0 / 0.6);
+  color: #f3eee8;
+  transition:
+    box-shadow 160ms var(--ease-quart),
+    transform 160ms var(--ease-quart);
+}
+
+.etiqueta {
+  font-size: calc(var(--b) * 0.115);
+  font-weight: 800;
+  font-variation-settings: "wdth" 72;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1;
+  color: var(--wp-accent-hi);
+  text-shadow: 0 0 10px var(--wp-accent-glow);
+}
+
+.google {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4em;
+  font-size: calc(var(--b) * 0.075);
+  font-weight: 500;
+  letter-spacing: 0.04em;
+  color: rgb(243 238 232 / 0.72);
+}
+
+.boton:hover .anillo {
+  animation-play-state: paused;
+  background: var(--wp-accent);
+  box-shadow:
+    inset 0 0 0 2px rgb(0 0 0 / 0.3),
+    0 0 26px 4px var(--wp-accent-glow);
+}
+
+.boton:active .tapa {
+  transform: scale(0.965);
+  box-shadow:
+    inset 0 4px 10px rgb(0 0 0 / 0.9),
+    inset 0 -1px 1px rgb(255 255 255 / 0.1);
+}
+
+.boton:disabled {
+  cursor: progress;
+}
+
+.boton:disabled .anillo {
+  animation: parpadeo 420ms cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+}
+
+@keyframes parpadeo {
+  from {
+    background: var(--wp-accent);
+    box-shadow: 0 0 14px 1px var(--wp-accent-glow);
+  }
+  to {
+    background: var(--wp-accent-hi);
+    box-shadow: 0 0 34px 6px var(--wp-accent-glow);
+  }
+}
+
+/* ------------------------------------------------------------- lectura ---- */
+
+.lcd {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.6rem 1rem;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wp-lcd-ink);
+  text-shadow: 0 0 8px var(--wp-accent-glow);
+  background:
+    repeating-linear-gradient(
+      0deg,
+      rgb(0 0 0 / 0.18) 0 1px,
+      transparent 1px 3px
+    ),
+    var(--wp-lcd);
+  box-shadow:
+    inset 0 2px 6px rgb(0 0 0 / 0.8),
+    0 1px 0 var(--wp-bevel-light);
+  animation: aparecerLcd 800ms var(--ease-expo) 1100ms both;
+}
+
+.led {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--wp-lcd-ink);
+  box-shadow: 0 0 6px var(--wp-lcd-ink);
+  opacity: 0.45;
+}
+
+.led[data-activo] {
+  opacity: 1;
+}
+
+@keyframes aparecerLcd {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.error {
+  max-width: 32ch;
+  text-align: center;
+  font-size: 0.9rem;
+  color: var(--wp-accent-hi);
+}

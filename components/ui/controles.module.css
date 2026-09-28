@@ -1,0 +1,247 @@
+/* Controles skeuomórficos compartidos: botones de metal, campos hundidos,
+   interruptores con LED. Usar desde cualquier componente. */
+
+/* ------------------------------------------------------------- botones ---- */
+
+.boton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  height: 30px;
+  padding: 0 0.8rem;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  white-space: nowrap;
+  color: var(--wp-ink);
+  cursor: pointer;
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 -1px 0 var(--wp-bevel-dark),
+    0 0 0 1px rgb(0 0 0 / 0.28),
+    0 1px 2px rgb(0 0 0 / 0.25);
+  transition:
+    transform 120ms var(--ease-quart),
+    box-shadow 160ms var(--ease-quart),
+    color 160ms var(--ease-quart);
+}
+
+.boton:hover {
+  color: var(--wp-accent-hi);
+}
+
+.boton:active {
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 2px 4px rgb(0 0 0 / 0.35),
+    0 0 0 1px rgb(0 0 0 / 0.3);
+}
+
+.boton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.boton[aria-pressed="true"],
+.boton[aria-expanded="true"] {
+  color: var(--wp-accent-hi);
+  box-shadow:
+    inset 0 2px 5px rgb(0 0 0 / 0.35),
+    0 0 0 1px rgb(0 0 0 / 0.3);
+  background: linear-gradient(180deg, var(--wp-metal-lo), var(--wp-metal-hi));
+}
+
+.primario {
+  color: var(--wp-on-accent);
+  background: linear-gradient(180deg, var(--wp-accent-hi), var(--wp-accent) 55%, var(--wp-accent-lo));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    inset 0 -1px 1px rgb(0 0 0 / 0.35),
+    0 0 0 1px rgb(0 0 0 / 0.35),
+    0 2px 6px -2px var(--wp-accent-glow);
+}
+
+.primario:hover {
+  color: var(--wp-on-accent);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    inset 0 -1px 1px rgb(0 0 0 / 0.35),
+    0 0 0 1px rgb(0 0 0 / 0.35),
+    0 0 16px var(--wp-accent-glow);
+}
+
+.peligro {
+  color: var(--wp-accent-hi);
+}
+
+.fantasma {
+  background: transparent;
+  box-shadow: none;
+}
+
+.fantasma:hover {
+  background: var(--wp-hover);
+}
+
+.icono {
+  width: 30px;
+  padding: 0;
+}
+
+.contador {
+  min-width: 18px;
+  height: 16px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  line-height: 16px;
+  color: var(--wp-on-accent);
+  background: var(--wp-accent);
+  box-shadow: 0 0 8px var(--wp-accent-glow);
+}
+
+/* ---------------------------------------------------------------- campos ---- */
+
+.campo {
+  width: 100%;
+  height: 32px;
+  padding: 0 0.7rem;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.84rem;
+  color: var(--wp-ink);
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 2px 4px rgb(0 0 0 / 0.35),
+    inset 0 0 0 1px var(--wp-line),
+    0 1px 0 var(--wp-bevel-light);
+  transition: box-shadow 160ms var(--ease-quart);
+  outline: none;
+}
+
+textarea.campo {
+  height: auto;
+  min-height: 72px;
+  padding: 0.55rem 0.7rem;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.campo::placeholder {
+  color: var(--wp-ink-3);
+}
+
+.campo:focus,
+.campo:focus-visible {
+  outline: none;
+  box-shadow:
+    inset 0 2px 4px rgb(0 0 0 / 0.35),
+    inset 0 0 0 1px var(--wp-accent),
+    0 0 0 3px color-mix(in oklab, var(--wp-accent) 22%, transparent);
+}
+
+.campo[aria-invalid="true"] {
+  box-shadow:
+    inset 0 2px 4px rgb(0 0 0 / 0.35),
+    inset 0 0 0 1px var(--wp-accent-hi);
+}
+
+.campoMono {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+select.campo {
+  appearance: none;
+  padding-right: 1.9rem;
+  background-image:
+    linear-gradient(45deg, transparent 50%, var(--wp-ink-2) 50%),
+    linear-gradient(135deg, var(--wp-ink-2) 50%, transparent 50%);
+  background-position:
+    calc(100% - 15px) 50%,
+    calc(100% - 10px) 50%;
+  background-size:
+    5px 5px,
+    5px 5px;
+  background-repeat: no-repeat;
+  cursor: pointer;
+}
+
+/* Casilla tipo interruptor con LED */
+.casilla {
+  appearance: none;
+  flex: none;
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  border-radius: 4px;
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 1px 3px rgb(0 0 0 / 0.5),
+    inset 0 0 0 1px var(--wp-line);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: background 140ms var(--ease-quart);
+}
+
+.casilla::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: transparent;
+  transition:
+    background 140ms var(--ease-quart),
+    box-shadow 140ms var(--ease-quart);
+}
+
+.casilla:checked::after {
+  background: var(--wp-accent-hi);
+  box-shadow: 0 0 6px var(--wp-accent-glow);
+}
+
+/* --------------------------------------------------------------- popover ---- */
+
+.popover {
+  position: absolute;
+  z-index: 40;
+  top: calc(100% + 8px);
+  min-width: 260px;
+  padding: 0.6rem;
+  border-radius: 12px;
+  background: var(--wp-panel);
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px rgb(0 0 0 / 0.3),
+    0 18px 40px -12px rgb(0 0 0 / 0.6);
+  animation: aparecerPopover 220ms var(--ease-expo) both;
+  transform-origin: top left;
+}
+
+@keyframes aparecerPopover {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -4px, 0) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.etiquetaSeccion {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}

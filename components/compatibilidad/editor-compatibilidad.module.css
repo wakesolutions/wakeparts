@@ -1,0 +1,590 @@
+/* Editor de compatibilidad: columnas tipo Finder (Marca › Modelo › Año › Motor)
+   con LEDs de asignación y un resumen «Le queda a». */
+
+.editor {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  min-height: 0;
+  container-type: inline-size;
+}
+
+.barra {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+}
+
+/* ---------------------------------------------------------------- salto --- */
+
+.salto {
+  position: relative;
+  flex: 1;
+  max-width: 460px;
+  color: var(--wp-ink-3);
+}
+
+.salto > svg {
+  position: absolute;
+  left: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.saltoCampo {
+  height: 36px;
+  padding-left: 2.1rem;
+  font-size: 0.86rem;
+}
+
+.saltoLista {
+  position: absolute;
+  z-index: 30;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  margin: 0;
+  padding: 0.3rem;
+  list-style: none;
+  border-radius: 10px;
+  background: var(--wp-panel);
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px rgb(0 0 0 / 0.3),
+    0 16px 34px -10px rgb(0 0 0 / 0.65);
+  animation: caer 220ms var(--ease-expo) both;
+}
+
+.saltoLista li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  padding: 0.45rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--wp-ink);
+  cursor: pointer;
+}
+
+.saltoLista li[aria-selected="true"] {
+  background: var(--wp-sel);
+}
+
+.saltoMarca {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  color: var(--wp-ink-3);
+}
+
+.saltoAnio {
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--wp-accent-hi);
+}
+
+@keyframes caer {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -4px, 0);
+  }
+}
+
+/* --------------------------------------------------------------- estado --- */
+
+.estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin-left: auto;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.led {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--wp-ok);
+  box-shadow: 0 0 6px var(--wp-ok);
+}
+
+.estado[data-activo] .led {
+  background: var(--wp-aviso);
+  box-shadow: 0 0 8px var(--wp-aviso);
+  animation: parpadeo 700ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@keyframes parpadeo {
+  50% {
+    opacity: 0.3;
+  }
+}
+
+.error {
+  padding: 0.5rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  background: var(--wp-sel);
+  box-shadow: inset 3px 0 0 var(--wp-accent-hi);
+}
+
+/* --------------------------------------------------------------- cuerpo --- */
+
+.cuerpo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 250px;
+  gap: 0.9rem;
+  min-height: 0;
+}
+
+.columnas {
+  display: grid;
+  grid-template-columns: 1fr 1.15fr 0.75fr 1.25fr;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.columna {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  height: 420px;
+  border-radius: 12px;
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 2px 6px rgb(0 0 0 / 0.35),
+    inset 0 0 0 1px var(--wp-line),
+    0 1px 0 var(--wp-bevel-light);
+  overflow: hidden;
+}
+
+.columnaCabeza {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0.6rem 0.6rem 0.5rem;
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 -1px 0 rgb(0 0 0 / 0.35);
+}
+
+.columnaEtiqueta {
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.columnaTitulo {
+  overflow: hidden;
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-variation-settings: "wdth" 62;
+  line-height: 1;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 0 var(--wp-engrave);
+}
+
+.columnaFiltro {
+  height: 28px;
+  font-size: 0.76rem;
+}
+
+.todos {
+  justify-self: start;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--wp-accent-hi);
+  cursor: pointer;
+}
+
+.todos:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.columnaVacia {
+  margin: auto;
+  padding: 1rem;
+  font-size: 0.76rem;
+  text-align: center;
+  color: var(--wp-ink-3);
+  list-style: none;
+}
+
+.columnaCargando {
+  flex: 1;
+  margin: 0.6rem;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--wp-hover), transparent, var(--wp-hover));
+  background-size: 200% 100%;
+  animation: brillo 1400ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@keyframes brillo {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+.items {
+  flex: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0.3rem;
+  list-style: none;
+  overscroll-behavior: contain;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  border-radius: 7px;
+  transition: background-color 120ms var(--ease-quart);
+}
+
+.item:hover {
+  background: var(--wp-hover);
+}
+
+.item[data-activo] {
+  background: var(--wp-sel);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-accent) 30%, transparent);
+}
+
+/* LED de asignación (tres estados + incluido) */
+.check {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  cursor: pointer;
+}
+
+.check::before {
+  content: "";
+  width: 14px;
+  height: 14px;
+  border-radius: 4px;
+  background: var(--wp-panel);
+  box-shadow:
+    inset 0 1px 3px rgb(0 0 0 / 0.5),
+    inset 0 0 0 1px var(--wp-line);
+  transition:
+    background 160ms var(--ease-quart),
+    box-shadow 200ms var(--ease-quart);
+}
+
+.check:hover::before {
+  box-shadow:
+    inset 0 1px 3px rgb(0 0 0 / 0.5),
+    inset 0 0 0 1px var(--wp-accent);
+}
+
+.check[data-estado="asignado"]::before {
+  background: radial-gradient(circle at 50% 40%, var(--wp-accent-hi), var(--wp-accent) 70%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    0 0 10px var(--wp-accent-glow);
+  animation: encender 420ms var(--ease-expo);
+}
+
+.check[data-estado="parcial"]::before {
+  background: linear-gradient(135deg, var(--wp-accent) 0 50%, var(--wp-panel) 50%);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--wp-accent) 60%, transparent),
+    0 0 6px color-mix(in oklab, var(--wp-accent-glow) 50%, transparent);
+}
+
+.check[data-estado="incluido"]::before {
+  background: color-mix(in oklab, var(--wp-accent) 35%, var(--wp-panel));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-accent) 40%, transparent);
+}
+
+.check:disabled {
+  cursor: default;
+}
+
+.check:focus-visible {
+  outline: 2px solid var(--wp-accent-hi);
+  outline-offset: -2px;
+}
+
+@keyframes encender {
+  0% {
+    transform: scale(0.7);
+    box-shadow: 0 0 0 var(--wp-accent-glow);
+  }
+  50% {
+    box-shadow: 0 0 18px var(--wp-accent-glow);
+  }
+}
+
+.nombre {
+  position: relative;
+  display: grid;
+  align-content: center;
+  flex: 1;
+  min-width: 0;
+  min-height: 36px;
+  padding: 0.2rem 1.2rem 0.2rem 0.1rem;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.15;
+  text-align: left;
+  color: var(--wp-ink);
+  cursor: pointer;
+}
+
+.nombre:disabled {
+  cursor: default;
+}
+
+.nombre:focus-visible {
+  outline: 2px solid var(--wp-accent-hi);
+  outline-offset: -2px;
+}
+
+.item[data-estado="incluido"] .nombre {
+  color: var(--wp-ink-2);
+}
+
+.nombreTexto {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.detalle {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 500;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--wp-ink-3);
+}
+
+.detalle:empty {
+  display: none;
+}
+
+.flecha {
+  position: absolute;
+  right: 0.3rem;
+  top: 50%;
+  margin-top: -6px;
+  color: var(--wp-ink-3);
+  transition: transform 160ms var(--ease-quart);
+}
+
+.item:hover .flecha,
+.item[data-activo] .flecha {
+  color: var(--wp-accent-hi);
+  transform: translateX(2px);
+}
+
+/* -------------------------------------------------------------- resumen --- */
+
+.resumen {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  min-height: 0;
+  max-height: 420px;
+  padding: 0.8rem;
+  border-radius: 12px;
+  background: linear-gradient(180deg, var(--wp-panel-2), var(--wp-panel));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px rgb(0 0 0 / 0.25);
+}
+
+.resumenCabeza {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+}
+
+.resumenTotal {
+  font-family: var(--font-mono);
+  font-size: 1.4rem;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--wp-accent-hi);
+  text-shadow: 0 0 12px var(--wp-accent-glow);
+}
+
+.universal {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.6rem;
+  padding: 0.7rem;
+  border-radius: 9px;
+  font-size: 0.76rem;
+  line-height: 1.45;
+  color: var(--wp-ink-2);
+  background: var(--wp-hover);
+}
+
+.universal svg {
+  color: var(--wp-ink-3);
+}
+
+.grupos {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  overscroll-behavior: contain;
+}
+
+.grupo {
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--wp-line);
+  animation: entrarGrupo 380ms var(--ease-expo) both;
+}
+
+@keyframes entrarGrupo {
+  from {
+    opacity: 0;
+    transform: translate3d(8px, 0, 0);
+  }
+}
+
+.grupoIr {
+  display: grid;
+  gap: 0.1rem;
+  flex: 1;
+  min-width: 0;
+  padding: 0.45rem 0.2rem;
+  border: 0;
+  background: none;
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.grupoTitulo {
+  overflow: hidden;
+  font-size: 0.8rem;
+  font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--wp-ink);
+}
+
+.grupoDetalle {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--wp-accent-hi);
+}
+
+.grupoIr:hover .grupoTitulo {
+  color: var(--wp-accent-hi);
+}
+
+.grupoQuitar {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--wp-ink-3);
+  cursor: pointer;
+}
+
+.grupoQuitar:hover {
+  color: var(--wp-accent-hi);
+  background: var(--wp-hover);
+}
+
+.copiar {
+  display: grid;
+  gap: 0.45rem;
+  padding-top: 0.7rem;
+  border-top: 1px solid var(--wp-line);
+}
+
+.copiarEstado {
+  font-size: 0.74rem;
+  color: var(--wp-ink-2);
+}
+
+.pista {
+  font-size: 0.72rem;
+  line-height: 1.5;
+  color: var(--wp-ink-3);
+}
+
+.pista kbd {
+  padding: 0 0.3rem;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  background: var(--wp-hover);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+/* -------------------------------------------------------------- estrecho -- */
+
+@container (max-width: 860px) {
+  .cuerpo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .resumen {
+    max-height: none;
+  }
+}
+
+@container (max-width: 640px) {
+  .columnas {
+    grid-template-columns: repeat(4, 78%);
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 0.3rem;
+  }
+  .columna {
+    scroll-snap-align: start;
+    height: 360px;
+  }
+  .barra {
+    flex-wrap: wrap;
+  }
+}

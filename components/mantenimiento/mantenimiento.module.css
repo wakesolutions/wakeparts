@@ -1,0 +1,141 @@
+.mantenimiento {
+  position: relative;
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
+  container-type: inline-size;
+}
+
+/* Contenido de la ventana hija del formulario */
+.hoja {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  height: 100%;
+  padding: 1.2rem 1.3rem 1.3rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.hojaEncabezado {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.hojaTitulo {
+  font-size: clamp(1.7rem, 7cqi, 2.4rem);
+  line-height: 0.9;
+  font-weight: 800;
+  font-variation-settings: "wdth" 62;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+  text-wrap: balance;
+  text-shadow: 0 1px 0 var(--wp-engrave);
+  animation: subir 600ms var(--ease-expo) both;
+}
+
+.hojaTitulo::first-letter {
+  color: var(--wp-accent);
+}
+
+@keyframes subir {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ------------------------------------------------ pestañas de la ficha --- */
+
+.pestanas {
+  position: sticky;
+  top: -1.2rem;
+  z-index: 5;
+  display: flex;
+  gap: 0.25rem;
+  margin: 0 -1.3rem;
+  padding: 0.4rem 1.3rem 0;
+  background: linear-gradient(180deg, var(--wp-panel) 70%, transparent);
+  box-shadow: inset 0 -1px 0 var(--wp-line);
+}
+
+.pestana {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  height: 34px;
+  padding: 0 0.9rem;
+  border: 0;
+  border-radius: 8px 8px 0 0;
+  font: inherit;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+  background: none;
+  cursor: pointer;
+  transition: color 160ms var(--ease-quart);
+}
+
+.pestana:hover {
+  color: var(--wp-ink);
+}
+
+.pestana[aria-selected="true"] {
+  color: var(--wp-ink);
+}
+
+/* LED bajo la pestaña activa */
+.pestana[aria-selected="true"]::after {
+  content: "";
+  position: absolute;
+  left: 0.9rem;
+  right: 0.9rem;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--wp-accent-hi);
+  box-shadow: 0 0 8px var(--wp-accent-glow);
+  animation: encender 320ms var(--ease-expo) both;
+}
+
+@keyframes encender {
+  from {
+    transform: scaleX(0.3);
+    opacity: 0;
+  }
+}
+
+.pestanaContador {
+  min-width: 18px;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  font-size: 0.6rem;
+  line-height: 16px;
+  text-align: center;
+  color: var(--wp-ink-2);
+  background: var(--wp-hover);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.panelPestana {
+  min-height: 0;
+  animation: subir 420ms var(--ease-expo) both;
+}
+
+.sugerencia {
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: var(--wp-ink);
+  background: var(--wp-hover);
+  box-shadow: inset 3px 0 0 var(--wp-ok);
+  animation: subir 420ms var(--ease-expo) both;
+}

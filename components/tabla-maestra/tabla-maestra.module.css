@@ -1,0 +1,742 @@
+/* Tabla maestra: toolbar metálica, grilla con encabezado grabado, pie con
+   paginación. Ocupa todo el alto de su contenedor. */
+
+.tabla {
+  --alto-fila: 36px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  font-size: 0.82rem;
+}
+
+.tabla[data-densidad="compacta"] {
+  --alto-fila: 28px;
+}
+
+/* ---------------------------------------------------------------- barra ---- */
+
+.barra {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.7rem 0.9rem;
+}
+
+.buscar {
+  position: relative;
+  flex: 1 1 220px;
+  max-width: 360px;
+  color: var(--wp-ink-3);
+}
+
+.buscar > svg {
+  position: absolute;
+  left: 0.65rem;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.buscarCampo {
+  padding-left: 2rem;
+}
+
+.buscarCampo::-webkit-search-cancel-button {
+  filter: grayscale(1);
+}
+
+.grupo,
+.derecha {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.derecha {
+  margin-left: auto;
+}
+
+/* Los popovers se anclan a la barra (no al botón) para no salirse de la ventana. */
+.anclaPopover {
+  position: static;
+}
+
+.popoverFiltros {
+  top: calc(100% - 4px);
+  left: 0.9rem;
+  width: min(660px, calc(100% - 1.8rem));
+}
+
+.popoverColumnas {
+  top: calc(100% - 4px);
+  left: auto;
+  right: 0.9rem;
+  width: min(300px, calc(100% - 1.8rem));
+  transform-origin: top right;
+}
+
+/* ---------------------------------------------------------------- chips ---- */
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0 0.9rem 0.6rem;
+  list-style: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  color: var(--wp-ink);
+  background: var(--wp-sel);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-accent) 40%, transparent);
+  animation: entrarChip 280ms var(--ease-expo) both;
+}
+
+.chip button {
+  border: 0;
+  background: none;
+  color: inherit;
+  font: inherit;
+  cursor: pointer;
+  padding: 0.22rem 0.25rem 0.22rem 0.65rem;
+}
+
+.chip button + button {
+  display: grid;
+  place-items: center;
+  padding: 0.22rem 0.5rem 0.22rem 0.25rem;
+  color: var(--wp-ink-2);
+}
+
+.chip button + button:hover {
+  color: var(--wp-accent-hi);
+}
+
+@keyframes entrarChip {
+  from {
+    opacity: 0;
+    transform: scale(0.9);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* ---------------------------------------------------------------- marco ---- */
+
+.marco {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  margin: 0 0.9rem;
+  border-radius: 10px;
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 2px 6px rgb(0 0 0 / 0.35),
+    inset 0 0 0 1px var(--wp-line),
+    0 1px 0 var(--wp-bevel-light);
+  outline: none;
+  overscroll-behavior: contain;
+}
+
+.marco:focus-visible {
+  box-shadow:
+    inset 0 2px 6px rgb(0 0 0 / 0.35),
+    inset 0 0 0 1px var(--wp-accent),
+    0 0 0 3px color-mix(in oklab, var(--wp-accent) 20%, transparent);
+}
+
+/* LED de carga que recorre el borde superior */
+.progreso {
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  display: block;
+  height: 2px;
+  margin-bottom: -2px;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.progreso::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  width: 35%;
+  background: linear-gradient(90deg, transparent, var(--wp-accent-hi), transparent);
+  box-shadow: 0 0 10px var(--wp-accent-glow);
+  transform: translateX(-110%);
+  opacity: 0;
+}
+
+.marco[data-cargando] .progreso::after {
+  opacity: 1;
+  animation: barrer 1100ms cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes barrer {
+  to {
+    transform: translateX(300%);
+  }
+}
+
+.marco[data-cargando] tbody {
+  opacity: 0.55;
+  transition: opacity 200ms var(--ease-quart) 120ms;
+}
+
+/* ---------------------------------------------------------------- grilla --- */
+
+.grilla {
+  table-layout: fixed;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.grilla thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  padding: 0;
+  text-align: left;
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 -1px 0 rgb(0 0 0 / 0.35);
+}
+
+.grilla thead th + th {
+  border-left: 1px solid rgb(0 0 0 / 0.18);
+}
+
+.encabezado {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+  height: 32px;
+  padding: 0 0.75rem;
+  border: 0;
+  background: none;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink-2);
+  text-shadow: 0 1px 0 var(--wp-engrave);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.encabezado:disabled {
+  cursor: default;
+}
+
+.encabezado:not(:disabled):hover {
+  color: var(--wp-ink);
+}
+
+th[aria-sort] .encabezado {
+  color: var(--wp-accent-hi);
+}
+
+th[data-numerica] .encabezado {
+  justify-content: flex-end;
+}
+
+.encabezadoTexto {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.indicadorOrden {
+  display: inline-flex;
+  align-items: center;
+  gap: 1px;
+  transition: transform 220ms var(--ease-expo);
+}
+
+.indicadorOrden[data-dir="desc"] svg {
+  transform: rotate(180deg);
+}
+
+.indicadorOrden small {
+  font-size: 0.56rem;
+}
+
+.redimensionar {
+  position: absolute;
+  top: 0;
+  right: -4px;
+  z-index: 1;
+  width: 8px;
+  height: 100%;
+  cursor: col-resize;
+  touch-action: none;
+}
+
+.redimensionar::after {
+  content: "";
+  position: absolute;
+  top: 25%;
+  left: 3px;
+  width: 2px;
+  height: 50%;
+  border-radius: 1px;
+  background: var(--wp-accent);
+  opacity: 0;
+  transition: opacity 140ms var(--ease-quart);
+}
+
+.redimensionar:hover::after,
+.redimensionar:active::after {
+  opacity: 1;
+}
+
+.grilla td {
+  height: var(--alto-fila);
+  padding: 0 0.75rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--wp-line);
+  color: var(--wp-ink);
+}
+
+.grilla td[data-numerica] {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.grilla td[data-formato="codigo"] {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  color: var(--wp-ink-2);
+}
+
+.grilla tbody tr {
+  position: relative;
+  cursor: default;
+  transition: background-color 120ms var(--ease-quart);
+}
+
+.grilla tbody tr:nth-child(even) {
+  background: color-mix(in oklab, var(--wp-panel-2) 45%, transparent);
+}
+
+.grilla tbody tr:hover {
+  background: var(--wp-hover);
+}
+
+.grilla tbody tr[aria-selected="true"] {
+  background: var(--wp-sel);
+}
+
+.grilla tbody tr[aria-selected="true"] td:first-child {
+  box-shadow: inset 3px 0 0 var(--wp-accent-hi);
+}
+
+.grilla tbody tr[data-resaltada] {
+  animation: resaltar 1600ms var(--ease-quart) both;
+}
+
+@keyframes resaltar {
+  0%,
+  30% {
+    background: color-mix(in oklab, var(--wp-accent) 28%, transparent);
+  }
+}
+
+.nulo {
+  color: var(--wp-ink-3);
+}
+
+/* Valor fuera de rango (p. ej. existencia bajo el mínimo): LED de aviso */
+.grilla td[data-alerta] {
+  color: var(--wp-aviso);
+  font-weight: 700;
+}
+
+.grilla td[data-alerta]::before {
+  content: "";
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-right: 0.45rem;
+  border-radius: 50%;
+  vertical-align: 1px;
+  background: var(--wp-aviso);
+  box-shadow: 0 0 6px var(--wp-aviso);
+  animation: respirar 1800ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@keyframes respirar {
+  50% {
+    opacity: 0.35;
+  }
+}
+
+.grilla td[data-vacio] {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.grilla td[data-formato="imagen"] {
+  padding: 0 0.4rem;
+}
+
+.miniatura,
+.sinImagen {
+  display: block;
+  width: calc(var(--alto-fila) - 8px);
+  height: calc(var(--alto-fila) - 8px);
+  border-radius: 5px;
+  object-fit: cover;
+  background: var(--wp-hover);
+  box-shadow: 0 0 0 1px var(--wp-line);
+}
+
+.sinImagen {
+  background:
+    repeating-linear-gradient(135deg, transparent 0 4px, var(--wp-line) 4px 5px),
+    var(--wp-hover);
+}
+
+.celdaAccion {
+  padding: 0 !important;
+  text-align: center;
+}
+
+.editar {
+  display: inline-grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--wp-ink-3);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 140ms var(--ease-quart),
+    color 140ms var(--ease-quart);
+}
+
+tr:hover .editar,
+tr[aria-selected="true"] .editar,
+.editar:focus-visible {
+  opacity: 1;
+}
+
+.editar:hover {
+  color: var(--wp-accent-hi);
+  background: var(--wp-hover);
+}
+
+/* ---------------------------------------------------------------- estados -- */
+
+.estado {
+  position: sticky;
+  left: 0;
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  max-width: 100cqw;
+  padding: 3.5rem 1rem;
+  text-align: center;
+  color: var(--wp-ink-2);
+}
+
+.estadoTitulo {
+  font-size: 1.6rem;
+  font-weight: 800;
+  font-variation-settings: "wdth" 70;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+  text-shadow: 0 1px 0 var(--wp-engrave);
+}
+
+/* ---------------------------------------------------------------- pie ------ */
+
+.pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.6rem 0.9rem 0.75rem;
+}
+
+.conteo {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--wp-ink-2);
+}
+
+.conteo strong {
+  color: var(--wp-ink);
+  font-weight: 600;
+}
+
+.paginacion {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.paginaActual {
+  min-width: 5.5ch;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--wp-ink-2);
+}
+
+.tamano {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  margin-right: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.tamano select {
+  width: 72px;
+  height: 28px;
+}
+
+/* ---------------------------------------------------------------- paneles -- */
+
+.panelEncabezado {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 30px;
+  margin-bottom: 0.4rem;
+}
+
+.panelVacio {
+  padding: 0.5rem 0.2rem 0.8rem;
+  font-size: 0.78rem;
+  color: var(--wp-ink-3);
+}
+
+.nota {
+  margin-top: 0.5rem;
+  font-size: 0.7rem;
+  color: var(--wp-ink-3);
+}
+
+.listaFiltros {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0 0 0.6rem;
+  padding: 0;
+  list-style: none;
+}
+
+.filaFiltro {
+  display: grid;
+  grid-template-columns: 3.4rem 9.5rem 9.5rem minmax(0, 1fr) 30px;
+  align-items: center;
+  gap: 0.4rem;
+  animation: entrarChip 240ms var(--ease-expo) both;
+}
+
+.conector {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+  text-align: right;
+}
+
+.selColumna,
+.selOperador {
+  height: 30px;
+  font-size: 0.78rem;
+}
+
+.valorFiltro {
+  min-width: 0;
+}
+
+.valorFiltro input {
+  height: 30px;
+}
+
+.rango {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--wp-ink-3);
+}
+
+.agregarFiltro {
+  height: 28px;
+}
+
+.multiple {
+  position: relative;
+}
+
+.multipleResumen {
+  height: 30px;
+  text-align: left;
+  cursor: pointer;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.multipleLista {
+  position: absolute;
+  z-index: 5;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  min-width: 220px;
+  padding: 0.4rem;
+  border-radius: 10px;
+  background: var(--wp-panel);
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px rgb(0 0 0 / 0.3),
+    0 14px 30px -10px rgb(0 0 0 / 0.6);
+}
+
+.multipleLista ul {
+  max-height: 240px;
+  overflow: auto;
+  margin: 0.3rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.multipleBuscar {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0 0.5rem;
+  height: 30px;
+  border-radius: 7px;
+  color: var(--wp-ink-3);
+  background: var(--wp-field);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.35);
+}
+
+.multipleBuscar input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.8rem;
+  color: var(--wp-ink);
+  outline: none;
+}
+
+.opcionCheck {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  flex: 1;
+  min-width: 0;
+  padding: 0.3rem 0.4rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.opcionCheck:hover {
+  background: var(--wp-hover);
+}
+
+.listaColumnas {
+  display: grid;
+  gap: 2px;
+  max-height: 340px;
+  overflow: auto;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.itemColumna {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  border-radius: 8px;
+  transition: background-color 120ms var(--ease-quart);
+}
+
+.itemColumna[data-arrastrando] {
+  background: var(--wp-sel);
+}
+
+.agarre {
+  display: grid;
+  place-items: center;
+  width: 18px;
+  color: var(--wp-ink-3);
+  cursor: grab;
+}
+
+.moverBotones {
+  display: flex;
+  opacity: 0;
+  transition: opacity 140ms var(--ease-quart);
+}
+
+.itemColumna:hover .moverBotones,
+.moverBotones:focus-within {
+  opacity: 1;
+}
+
+.moverBotones button {
+  width: 24px;
+  height: 24px;
+}
+
+@media (max-width: 640px) {
+  .filaFiltro {
+    grid-template-columns: 1fr 1fr 30px;
+  }
+  .conector {
+    display: none;
+  }
+  .valorFiltro {
+    grid-column: 1 / 3;
+  }
+  .derecha {
+    margin-left: 0;
+  }
+}

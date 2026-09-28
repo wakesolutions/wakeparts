@@ -1,0 +1,311 @@
+.galeria {
+  position: relative;
+  display: grid;
+  gap: 0.9rem;
+}
+
+/* Zona de carga: bandeja hundida con borde de costura */
+.zona {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  padding: 1.4rem 1rem;
+  border: 0;
+  border-radius: 14px;
+  font: inherit;
+  color: var(--wp-ink-2);
+  background:
+    repeating-linear-gradient(90deg, var(--wp-line) 0 6px, transparent 6px 11px) top / 100% 1px no-repeat,
+    repeating-linear-gradient(90deg, var(--wp-line) 0 6px, transparent 6px 11px) bottom / 100% 1px no-repeat,
+    repeating-linear-gradient(180deg, var(--wp-line) 0 6px, transparent 6px 11px) left / 1px 100% no-repeat,
+    repeating-linear-gradient(180deg, var(--wp-line) 0 6px, transparent 6px 11px) right / 1px 100% no-repeat,
+    var(--wp-field);
+  box-shadow: inset 0 2px 8px rgb(0 0 0 / 0.35);
+  cursor: pointer;
+  transition:
+    box-shadow 200ms var(--ease-quart),
+    color 200ms var(--ease-quart);
+}
+
+.zona:hover,
+.zona[data-encima] {
+  color: var(--wp-ink);
+  box-shadow:
+    inset 0 2px 8px rgb(0 0 0 / 0.35),
+    inset 0 0 0 1.5px var(--wp-accent),
+    0 0 18px -4px var(--wp-accent-glow);
+}
+
+.zona:focus-visible {
+  outline: 2px solid var(--wp-accent-hi);
+  outline-offset: 3px;
+}
+
+.zonaIcono {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  color: var(--wp-on-accent);
+  background: linear-gradient(180deg, var(--wp-accent-hi), var(--wp-accent-lo));
+  box-shadow:
+    0 0 0 3px var(--wp-metal-lo),
+    0 0 14px var(--wp-accent-glow);
+  transition: transform 260ms var(--ease-expo);
+}
+
+.zona[data-encima] .zonaIcono {
+  transform: scale(1.12);
+}
+
+.zonaTexto {
+  font-size: 0.86rem;
+}
+
+.zonaNota {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.error,
+.vacio {
+  padding: 0.55rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  background: var(--wp-hover);
+}
+
+.error {
+  background: var(--wp-sel);
+  box-shadow: inset 3px 0 0 var(--wp-accent-hi);
+}
+
+.vacio {
+  color: var(--wp-ink-3);
+}
+
+.cargando {
+  height: 150px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, var(--wp-hover), transparent, var(--wp-hover));
+  background-size: 200% 100%;
+  animation: brillo 1400ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@keyframes brillo {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+.grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.foto {
+  position: relative;
+  aspect-ratio: 1;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--wp-field);
+  box-shadow:
+    0 0 0 1px var(--wp-line),
+    0 8px 18px -12px rgb(0 0 0 / 0.7);
+  animation: aparecer 460ms var(--ease-expo) both;
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: scale(0.94);
+  }
+}
+
+.foto[data-principal] {
+  grid-column: span 2;
+  grid-row: span 2;
+  box-shadow:
+    0 0 0 1.5px var(--wp-accent),
+    0 12px 26px -14px var(--wp-accent-glow);
+}
+
+.foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.fotoVer {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: zoom-in;
+}
+
+.principal {
+  position: absolute;
+  top: 0.5rem;
+  left: 0.5rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-on-accent);
+  background: var(--wp-accent);
+  box-shadow: 0 0 10px var(--wp-accent-glow);
+}
+
+.fotoAcciones {
+  position: absolute;
+  inset: auto 0.4rem 0.4rem;
+  display: flex;
+  justify-content: center;
+  gap: 0.2rem;
+  padding: 0.25rem;
+  border-radius: 9px;
+  background: color-mix(in oklab, var(--wp-panel) 88%, transparent);
+  backdrop-filter: blur(6px);
+  box-shadow: 0 0 0 1px var(--wp-line);
+  opacity: 0;
+  transform: translate3d(0, 6px, 0);
+  transition:
+    opacity 180ms var(--ease-quart),
+    transform 220ms var(--ease-expo);
+}
+
+.foto:hover .fotoAcciones,
+.foto:focus-within .fotoAcciones {
+  opacity: 1;
+  transform: none;
+}
+
+@media (pointer: coarse) {
+  .fotoAcciones {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.fotoAcciones button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 26px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--wp-ink-2);
+  cursor: pointer;
+}
+
+.fotoAcciones button:hover:not(:disabled) {
+  color: var(--wp-ink);
+  background: var(--wp-hover);
+}
+
+.fotoAcciones button[data-peligro]:hover {
+  color: var(--wp-accent-hi);
+}
+
+.fotoAcciones button:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+.foto[data-subiendo] img {
+  opacity: 0.4;
+  filter: grayscale(0.6);
+}
+
+.foto[data-error] img {
+  opacity: 0.25;
+}
+
+.progreso {
+  position: absolute;
+  inset: auto 0 0;
+  padding: 0.4rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--wp-ink);
+  background: linear-gradient(0deg, color-mix(in oklab, var(--wp-panel) 90%, transparent), transparent);
+}
+
+.foto[data-subiendo]::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--wp-accent-hi), transparent);
+  box-shadow: 0 0 8px var(--wp-accent-glow);
+  animation: barrer 1000ms cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes barrer {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.descartar {
+  position: absolute;
+  top: 0.4rem;
+  right: 0.4rem;
+  height: 24px;
+  font-size: 0.7rem;
+}
+
+.visor {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 2rem;
+  background: color-mix(in oklab, var(--wp-bg-deep) 85%, transparent);
+  backdrop-filter: blur(8px);
+  cursor: zoom-out;
+  animation: aparecer 260ms var(--ease-expo) both;
+}
+
+.visor img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 12px;
+  box-shadow: 0 30px 80px -20px rgb(0 0 0 / 0.9);
+}
+
+@container (max-width: 520px) {
+  .foto[data-principal] {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+}

@@ -1,0 +1,717 @@
+/* Mostrador «Cotizar y facturar»: pestañas de carritos arriba, búsqueda a la
+   izquierda y ticket a la derecha. Se adapta al ancho de la ventana. */
+
+.mostrador {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) clamp(340px, 34%, 440px);
+  grid-template-rows: auto minmax(0, 1fr);
+  grid-template-areas:
+    "carritos carritos"
+    "busqueda lado";
+  gap: 0.8rem 1rem;
+  height: 100%;
+  min-height: 0;
+  padding: 0.7rem 0.9rem 0.9rem;
+  container-type: inline-size;
+}
+
+/* ------------------------------------------------------------ carritos ---- */
+
+.carritos {
+  grid-area: carritos;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.carritos ul {
+  display: flex;
+  gap: 0.35rem;
+  min-width: 0;
+  margin: 0;
+  padding: 0 0 2px;
+  overflow-x: auto;
+  list-style: none;
+  scrollbar-width: none;
+}
+
+.pestana {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  max-width: 280px;
+  height: 34px;
+  padding: 0 0.75rem;
+  border: 0;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--wp-ink-2);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px rgb(0 0 0 / 0.28);
+  cursor: pointer;
+  transition:
+    color 140ms var(--ease-quart),
+    box-shadow 160ms var(--ease-quart);
+}
+
+.pestana:hover {
+  color: var(--wp-ink);
+}
+
+.pestana[aria-current] {
+  color: var(--wp-ink);
+  background: linear-gradient(180deg, var(--wp-metal-lo), var(--wp-metal-hi));
+  box-shadow:
+    inset 0 2px 5px rgb(0 0 0 / 0.35),
+    0 0 0 1.5px var(--wp-accent);
+}
+
+.pestana[aria-current] svg {
+  color: var(--wp-accent-hi);
+}
+
+.pestanaNombre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+}
+
+.pestanaVehiculo {
+  overflow: hidden;
+  max-width: 120px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 500;
+  text-overflow: ellipsis;
+  color: var(--wp-ink-3);
+}
+
+.pestanaCuenta {
+  min-width: 18px;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  line-height: 16px;
+  text-align: center;
+  color: var(--wp-ink-2);
+  background: var(--wp-field);
+}
+
+.pestana[aria-current] .pestanaCuenta {
+  color: var(--wp-on-accent);
+  background: var(--wp-accent);
+  box-shadow: 0 0 8px var(--wp-accent-glow);
+}
+
+.nuevo {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 0;
+  border-radius: 9px;
+  color: var(--wp-ink-2);
+  background: var(--wp-hover);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  cursor: pointer;
+}
+
+.nuevo:hover {
+  color: var(--wp-accent-hi);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-accent) 50%, transparent);
+}
+
+.segmento {
+  display: none;
+  margin-left: auto;
+  padding: 2px;
+  border-radius: 9px;
+  background: var(--wp-field);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.4);
+}
+
+.segmento button {
+  height: 30px;
+  padding: 0 0.7rem;
+  border: 0;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 700;
+  white-space: nowrap;
+  color: var(--wp-ink-3);
+  background: none;
+  cursor: pointer;
+}
+
+.segmento button[aria-selected="true"] {
+  color: var(--wp-ink);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px rgb(0 0 0 / 0.3);
+}
+
+/* ------------------------------------------------------------ búsqueda ---- */
+
+.busqueda {
+  grid-area: busqueda;
+  display: grid;
+  grid-template-rows: auto auto minmax(0, 1fr);
+  gap: 0.7rem;
+  min-width: 0;
+  min-height: 0;
+}
+
+.buscar {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  height: 52px;
+  padding: 0 1rem;
+  overflow: hidden;
+  border-radius: 14px;
+  color: var(--wp-ink-3);
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 3px 8px rgb(0 0 0 / 0.4),
+    inset 0 0 0 1px var(--wp-line),
+    0 1px 0 var(--wp-bevel-light);
+  transition: box-shadow 180ms var(--ease-quart);
+}
+
+.buscar:focus-within {
+  color: var(--wp-accent-hi);
+  box-shadow:
+    inset 0 3px 8px rgb(0 0 0 / 0.4),
+    inset 0 0 0 1.5px var(--wp-accent),
+    0 0 0 4px color-mix(in oklab, var(--wp-accent) 18%, transparent);
+}
+
+.buscarCampo {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  border: 0;
+  font: inherit;
+  font-size: 1.08rem;
+  font-weight: 600;
+  color: var(--wp-ink);
+  background: none;
+  outline: none;
+}
+
+.buscarCampo::placeholder {
+  font-weight: 400;
+  color: var(--wp-ink-3);
+}
+
+.atajos {
+  flex: none;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.06em;
+  color: var(--wp-ink-3);
+}
+
+.atajos kbd {
+  padding: 0 0.3rem;
+  border-radius: 4px;
+  background: var(--wp-hover);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+@media (pointer: coarse) {
+  .atajos {
+    display: none;
+  }
+}
+
+/* LED que barre el borde inferior mientras busca */
+.barrido {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  opacity: 0;
+  background: linear-gradient(90deg, transparent, var(--wp-accent-hi), transparent);
+  box-shadow: 0 0 10px var(--wp-accent-glow);
+  transform: translateX(-100%);
+}
+
+.buscar[data-cargando] .barrido {
+  opacity: 1;
+  animation: barrer 900ms cubic-bezier(0.65, 0, 0.35, 1) infinite;
+}
+
+@keyframes barrer {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.resultados {
+  min-height: 0;
+  overflow-y: auto;
+  margin-right: -0.4rem;
+  padding-right: 0.4rem;
+  overscroll-behavior: contain;
+}
+
+.sinResultados {
+  display: grid;
+  gap: 0.4rem;
+  align-content: center;
+  max-width: 460px;
+  min-height: 260px;
+  margin: 0 auto;
+  font-size: 0.86rem;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--wp-ink-3);
+}
+
+.sinTitulo {
+  font-size: clamp(1.6rem, 4cqi, 2.4rem);
+  font-weight: 800;
+  font-variation-settings: "wdth" 60;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--wp-ink-2);
+  text-shadow: 0 1px 0 var(--wp-engrave);
+}
+
+/* ------------------------------------------------------------ bloques ----- */
+
+.bloques {
+  display: grid;
+  gap: 1.1rem;
+  padding-bottom: 1rem;
+}
+
+.bloqueCabeza {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.6rem;
+  padding: 0.35rem 0.2rem 0.45rem;
+  background: linear-gradient(180deg, var(--wp-panel) 75%, transparent);
+}
+
+.bloqueTitulo {
+  font-size: 0.96rem;
+  font-weight: 800;
+  font-variation-settings: "wdth" 66;
+  letter-spacing: 0.01em;
+  text-transform: uppercase;
+}
+
+.bloque[data-grupo="exacto"] .bloqueTitulo {
+  color: var(--wp-ink);
+}
+
+.bloque[data-grupo="exacto"] .bloqueTitulo::before {
+  content: "";
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  margin-right: 0.5rem;
+  border-radius: 50%;
+  vertical-align: 2px;
+  background: var(--wp-ok);
+  box-shadow: 0 0 8px var(--wp-ok);
+}
+
+.bloque[data-grupo="verificar"] .bloqueTitulo {
+  color: var(--wp-aviso);
+}
+
+.bloque[data-grupo="general"] .bloqueTitulo,
+.bloque[data-grupo="complemento"] .bloqueTitulo {
+  color: var(--wp-ink-2);
+}
+
+.bloqueCuenta {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--wp-ink-3);
+}
+
+.bloqueNota {
+  flex-basis: 100%;
+  font-size: 0.72rem;
+  color: var(--wp-ink-3);
+}
+
+.filas {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.fila {
+  display: grid;
+  grid-template-columns: 46px minmax(0, 1fr) auto auto auto 34px;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 58px;
+  padding: 0.4rem 0.5rem 0.4rem 0.4rem;
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    background-color 120ms var(--ease-quart),
+    box-shadow 160ms var(--ease-quart);
+  animation: entrarFila 380ms var(--ease-expo) both;
+}
+
+@keyframes entrarFila {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+}
+
+.fila:nth-child(even) {
+  background: color-mix(in oklab, var(--wp-panel-2) 50%, transparent);
+}
+
+.fila[data-activo] {
+  background: var(--wp-sel);
+  box-shadow: inset 3px 0 0 var(--wp-accent-hi);
+}
+
+.bloque[data-grupo="general"] .fila,
+.bloque[data-grupo="complemento"] .fila {
+  opacity: 0.92;
+}
+
+.foto img,
+.sinFoto {
+  display: block;
+  width: 46px;
+  height: 46px;
+  border-radius: 8px;
+  object-fit: cover;
+  background:
+    repeating-linear-gradient(135deg, transparent 0 4px, var(--wp-line) 4px 5px),
+    var(--wp-hover);
+  box-shadow: 0 0 0 1px var(--wp-line);
+}
+
+.info {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.nombre {
+  overflow: hidden;
+  font-size: 0.9rem;
+  font-weight: 700;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.nombre mark {
+  color: var(--wp-accent-hi);
+  background: none;
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--wp-accent) 50%, transparent);
+  text-underline-offset: 3px;
+}
+
+.meta {
+  display: flex;
+  gap: 0.3rem 0.7rem;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  white-space: nowrap;
+  color: var(--wp-ink-3);
+}
+
+.marca {
+  font-weight: 700;
+  color: var(--wp-ink-2);
+}
+
+.categoria {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.condicion {
+  text-transform: uppercase;
+  color: var(--wp-aviso);
+}
+
+/* Etiqueta de ajuste: qué tan seguro es que le queda */
+.ajuste {
+  padding: 0.18rem 0.5rem;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--wp-ok);
+  background: color-mix(in oklab, var(--wp-ok) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-ok) 35%, transparent);
+}
+
+.ajuste[data-ajuste="verificar"] {
+  color: var(--wp-aviso);
+  background: color-mix(in oklab, var(--wp-aviso) 12%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-aviso) 35%, transparent);
+}
+
+.existencia {
+  display: grid;
+  grid-template-columns: auto auto;
+  align-items: center;
+  justify-items: start;
+  gap: 0 0.4rem;
+  min-width: 70px;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.existencia small {
+  grid-column: 2;
+  font-size: 0.56rem;
+  font-weight: 500;
+  color: var(--wp-ink-3);
+}
+
+.led {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--wp-ok);
+  box-shadow: 0 0 6px var(--wp-ok);
+}
+
+.existencia[data-nivel="justo"] .led {
+  background: var(--wp-aviso);
+  box-shadow: 0 0 6px var(--wp-aviso);
+}
+
+.existencia[data-nivel="agotado"] {
+  color: var(--wp-ink-3);
+}
+
+.existencia[data-nivel="agotado"] .led {
+  background: var(--wp-accent);
+  box-shadow: 0 0 6px var(--wp-accent-glow);
+}
+
+.existencia[data-nivel="servicio"] .led {
+  background: var(--wp-ink-3);
+  box-shadow: none;
+}
+
+.precio {
+  display: grid;
+  justify-items: end;
+  min-width: 96px;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.precio strong {
+  font-size: 0.96rem;
+}
+
+.precio small {
+  font-size: 0.58rem;
+  color: var(--wp-ink-3);
+}
+
+.agregar {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
+  color: var(--wp-ink-2);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px rgb(0 0 0 / 0.3);
+  transition:
+    color 140ms var(--ease-quart),
+    transform 160ms var(--ease-quart);
+}
+
+.fila:hover .agregar,
+.fila[data-activo] .agregar {
+  color: var(--wp-on-accent);
+  background: linear-gradient(180deg, var(--wp-accent-hi), var(--wp-accent) 55%, var(--wp-accent-lo));
+}
+
+.fila:active .agregar {
+  transform: scale(0.92);
+}
+
+.llevados {
+  font-family: var(--font-mono);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+/* -------------------------------------------------------------- lado ----- */
+
+.lado {
+  grid-area: lado;
+  min-height: 0;
+}
+
+.sinCarrito {
+  display: grid;
+  gap: 0.8rem;
+  place-content: center;
+  justify-items: center;
+  height: 100%;
+  border-radius: 16px;
+  font-size: 0.84rem;
+  color: var(--wp-ink-3);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+/* ------------------------------------------------------------ emitido ----- */
+
+.emitido {
+  position: relative;
+  display: grid;
+  gap: 1.4rem;
+  justify-items: center;
+  align-content: center;
+  min-height: 100%;
+  padding: 2rem 1rem;
+}
+
+.emitidoCerrar {
+  position: absolute;
+  top: 0;
+  right: 0;
+}
+
+/* Sello de goma: cae girado y se asienta */
+.sello {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  padding: 1.2rem 2rem 1.3rem;
+  border-radius: 14px;
+  color: var(--wp-accent-hi);
+  box-shadow:
+    inset 0 0 0 3px currentColor,
+    inset 0 0 0 7px transparent,
+    inset 0 0 0 8px color-mix(in oklab, currentColor 60%, transparent);
+  transform: rotate(-6deg);
+  animation: sellar 700ms var(--ease-expo) both;
+}
+
+@keyframes sellar {
+  0% {
+    opacity: 0;
+    transform: rotate(-14deg) scale(1.8);
+  }
+  55% {
+    opacity: 1;
+    transform: rotate(-5deg) scale(0.96);
+  }
+  100% {
+    transform: rotate(-6deg) scale(1);
+  }
+}
+
+.selloTipo {
+  font-size: clamp(2.4rem, 8cqi, 4.4rem);
+  font-weight: 800;
+  font-variation-settings: "wdth" 58;
+  line-height: 0.85;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.selloNumero {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.selloTotal {
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  color: var(--wp-ink-2);
+}
+
+.emitidoAcciones {
+  display: flex;
+  gap: 0.5rem;
+  animation: entrarFila 500ms var(--ease-expo) 350ms both;
+}
+
+.emitidoAcciones a {
+  text-decoration: none;
+}
+
+/* ------------------------------------------------------------ estrecho ---- */
+
+@container (max-width: 980px) {
+  .mostrador {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: auto minmax(0, 1fr);
+    grid-template-areas:
+      "carritos"
+      "busqueda";
+  }
+  .mostrador[data-vista="carrito"] {
+    grid-template-areas:
+      "carritos"
+      "lado";
+  }
+  .mostrador[data-vista="buscar"] .lado,
+  .mostrador[data-vista="carrito"] .busqueda {
+    display: none;
+  }
+  .segmento {
+    display: inline-flex;
+  }
+}
+
+@container (max-width: 640px) {
+  .fila {
+    grid-template-columns: 40px minmax(0, 1fr) auto 30px;
+    gap: 0.5rem;
+  }
+  .ajuste,
+  .existencia small {
+    display: none;
+  }
+  .existencia {
+    display: none;
+  }
+  .pestanaVehiculo {
+    display: none;
+  }
+}

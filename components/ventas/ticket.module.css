@@ -1,0 +1,525 @@
+/* Ticket del carrito: panel de cuero con costura, líneas, totales y visor LCD. */
+
+.ticket {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 0.7rem;
+  min-height: 0;
+  height: 100%;
+  padding: 0.8rem;
+  border-radius: 16px;
+  background: linear-gradient(180deg, var(--wp-panel-2), var(--wp-panel));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 0 0 1px var(--wp-line),
+    0 18px 40px -24px rgb(0 0 0 / 0.8);
+}
+
+/* ---------------------------------------------------------------- cliente -- */
+
+.cliente {
+  display: grid;
+  gap: 0.1rem;
+  padding: 0.55rem 0.75rem;
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  text-align: left;
+  color: var(--wp-ink);
+  background: var(--wp-hover);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  cursor: pointer;
+  transition: box-shadow 160ms var(--ease-quart);
+}
+
+.cliente:hover {
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-accent) 50%, transparent);
+}
+
+.clienteEtiqueta {
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.clienteNombre {
+  overflow: hidden;
+  font-size: 1rem;
+  font-weight: 800;
+  font-variation-settings: "wdth" 72;
+  text-transform: uppercase;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.clienteRtn {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--wp-ink-2);
+}
+
+.clienteForm {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.6rem;
+  border-radius: 10px;
+  background: var(--wp-hover);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-accent) 40%, transparent);
+  animation: abrir 280ms var(--ease-expo) both;
+}
+
+@keyframes abrir {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -4px, 0);
+  }
+}
+
+.clienteCampos {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 0.4rem;
+}
+
+.clienteSugerencias {
+  display: grid;
+  gap: 1px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.clienteSugerencias button {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.35rem 0.5rem;
+  border: 0;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-align: left;
+  color: var(--wp-ink);
+  background: none;
+  cursor: pointer;
+}
+
+.clienteSugerencias button:hover {
+  background: var(--wp-sel);
+}
+
+.clienteSugerencias small {
+  font-family: var(--font-mono);
+  font-weight: 400;
+  color: var(--wp-ink-3);
+}
+
+/* ----------------------------------------------------------------- líneas -- */
+
+.lineas {
+  min-height: 0;
+  overflow-y: auto;
+  margin: 0 -0.3rem;
+  padding: 0 0.3rem;
+  overscroll-behavior: contain;
+}
+
+.lineas ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vacio {
+  display: grid;
+  gap: 0.3rem;
+  place-content: center;
+  min-height: 140px;
+  padding: 1rem;
+  border-radius: 12px;
+  font-size: 0.78rem;
+  text-align: center;
+  color: var(--wp-ink-3);
+  background:
+    repeating-linear-gradient(135deg, transparent 0 8px, var(--wp-hover) 8px 9px);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.vacioTitulo {
+  font-size: 1.1rem;
+  font-weight: 800;
+  font-variation-settings: "wdth" 64;
+  text-transform: uppercase;
+  color: var(--wp-ink-2);
+}
+
+.linea {
+  display: grid;
+  grid-template-columns: 38px minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  align-items: start;
+  padding: 0.55rem 0;
+  border-bottom: 1px solid var(--wp-line);
+  animation: entrarLinea 420ms var(--ease-expo) both;
+}
+
+@keyframes entrarLinea {
+  from {
+    opacity: 0;
+    transform: translate3d(-10px, 0, 0);
+  }
+}
+
+.lineaFoto img,
+.sinFoto {
+  display: block;
+  width: 38px;
+  height: 38px;
+  border-radius: 7px;
+  object-fit: cover;
+  background:
+    repeating-linear-gradient(135deg, transparent 0 4px, var(--wp-line) 4px 5px),
+    var(--wp-hover);
+  box-shadow: 0 0 0 1px var(--wp-line);
+}
+
+.lineaInfo {
+  min-width: 0;
+}
+
+.lineaNombre {
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.25;
+}
+
+.lineaMeta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.2rem 0.5rem;
+  margin-top: 0.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  color: var(--wp-ink-3);
+}
+
+.lineaPrecio {
+  display: inline-flex;
+  gap: 0.3rem;
+  padding: 0 0.3rem;
+  border: 0;
+  border-radius: 4px;
+  font: inherit;
+  color: var(--wp-ink-2);
+  background: var(--wp-hover);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  cursor: pointer;
+}
+
+.lineaPrecio:hover,
+.lineaPrecio[aria-expanded="true"] {
+  color: var(--wp-accent-hi);
+}
+
+.lineaDescuento {
+  color: var(--wp-ok);
+}
+
+.falta {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  color: var(--wp-aviso);
+}
+
+.lineaDerecha {
+  display: grid;
+  justify-items: end;
+  gap: 0.35rem;
+}
+
+.lineaTotal {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.cantidad {
+  display: inline-flex;
+  align-items: center;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 1px 3px rgb(0 0 0 / 0.4),
+    inset 0 0 0 1px var(--wp-line);
+}
+
+.cantidad button {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 26px;
+  border: 0;
+  background: none;
+  color: var(--wp-ink-2);
+  cursor: pointer;
+}
+
+.cantidad button:hover {
+  color: var(--wp-accent-hi);
+}
+
+.cantidad input {
+  width: 38px;
+  height: 26px;
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--wp-ink);
+  background: none;
+  outline: none;
+}
+
+.cantidad input:focus {
+  color: var(--wp-accent-hi);
+}
+
+.editorLinea {
+  display: grid;
+  grid-template-columns: 1fr 0.8fr auto;
+  align-items: end;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+  animation: abrir 240ms var(--ease-expo) both;
+}
+
+.editorLinea label {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.editorLinea span {
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.editorLinea .falta {
+  grid-column: 1 / -1;
+}
+
+.agregarLibre {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin: 0.6rem 0 0.2rem;
+  padding: 0;
+  border: 0;
+  background: none;
+  font: inherit;
+  font-size: 0.72rem;
+  color: var(--wp-ink-3);
+  cursor: pointer;
+}
+
+.agregarLibre:hover {
+  color: var(--wp-accent-hi);
+}
+
+.libre {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 110px;
+  gap: 0.4rem;
+  margin-top: 0.6rem;
+  animation: abrir 240ms var(--ease-expo) both;
+}
+
+.libre > :first-child {
+  grid-column: 1 / -1;
+}
+
+.libreExento {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.76rem;
+  color: var(--wp-ink-2);
+}
+
+/* ----------------------------------------------------------------- cierre -- */
+
+.cierre {
+  display: grid;
+  gap: 0.6rem;
+  padding-top: 0.6rem;
+  border-top: 1px dashed var(--wp-line);
+}
+
+.descuento {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.descuentoEtiqueta {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.descuentoActual {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.1rem 0.5rem;
+  border: 0;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--wp-ok);
+  background: color-mix(in oklab, var(--wp-ok) 14%, transparent);
+  cursor: pointer;
+}
+
+.descuentoControl {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 0.4rem;
+}
+
+.segmento {
+  display: inline-flex;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--wp-field);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.4);
+}
+
+.segmento button {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 700;
+  color: var(--wp-ink-3);
+  background: none;
+  cursor: pointer;
+}
+
+.segmento button[aria-checked="true"] {
+  color: var(--wp-ink);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px rgb(0 0 0 / 0.3);
+}
+
+.totales {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+}
+
+.totales div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.76rem;
+  color: var(--wp-ink-2);
+}
+
+.totales dd {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ink);
+}
+
+.totales [data-tono="descuento"] dd,
+.totales [data-tono="utilidad"] dd {
+  color: var(--wp-ok);
+}
+
+.totales [data-tono="negativo"] dd {
+  color: var(--wp-accent-hi);
+}
+
+.error {
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  background: var(--wp-sel);
+  box-shadow: inset 3px 0 0 var(--wp-accent-hi);
+}
+
+.botones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.descartar {
+  margin-right: auto;
+  width: 32px;
+  padding: 0;
+  color: var(--wp-ink-3);
+}
+
+.descartar:hover {
+  color: var(--wp-accent-hi);
+}
+
+.facturar {
+  height: 38px;
+  padding: 0 1.2rem;
+  font-size: 0.86rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.facturar kbd {
+  padding: 0 0.3rem;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.04em;
+  background: rgb(0 0 0 / 0.2);
+}
+
+.confirmar {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0.7rem;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  line-height: 1.4;
+  background: var(--wp-sel);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-accent) 50%, transparent);
+  animation: abrir 240ms var(--ease-expo) both;
+}
+
+.confirmarNota {
+  font-size: 0.72rem;
+  color: var(--wp-ink-2);
+}
+
+@media (pointer: coarse) {
+  .facturar kbd {
+    display: none;
+  }
+}

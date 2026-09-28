@@ -1,0 +1,290 @@
+@import "tailwindcss";
+
+/* =============================================================================
+   Wake Parts · sistema visual skeuomórfico
+   Cada paleta redefine los mismos tokens. Los componentes solo usan tokens.
+   ========================================================================== */
+
+:root,
+[data-paleta="rojo-negro"] {
+  color-scheme: dark;
+
+  /* Fondo: cuero/carbono */
+  --wp-bg: #121010;
+  --wp-bg-deep: #070606;
+  --wp-bg-glow: rgb(213 18 30 / 0.16);
+
+  /* Metal (paneles, dock, barra) */
+  --wp-metal-hi: #3a3534;
+  --wp-metal-lo: #1b1818;
+  --wp-metal-edge: rgb(255 255 255 / 0.1);
+  --wp-bevel-light: rgb(255 255 255 / 0.12);
+  --wp-bevel-dark: rgb(0 0 0 / 0.7);
+
+  /* Tinta */
+  --wp-ink: #f1ece6;
+  --wp-ink-2: rgb(241 236 230 / 0.62);
+  --wp-ink-3: rgb(241 236 230 / 0.36);
+  --wp-engrave: rgb(0 0 0 / 0.85);
+
+  /* Acento */
+  --wp-accent: #d5121e;
+  --wp-accent-hi: #ff3b3f;
+  --wp-accent-lo: #7a0a10;
+  --wp-accent-glow: rgb(255 40 48 / 0.55);
+  --wp-on-accent: #fff6f2;
+
+  /* Instrumentos */
+  --wp-dial: #0c0b0b;
+  --wp-dial-ink: #efe9e2;
+  --wp-lcd: #1a0405;
+  --wp-lcd-ink: #ff4a4f;
+
+  --wp-stitch: rgb(213 18 30 / 0.55);
+  --wp-grain-opacity: 0.07;
+
+  /* Ventanas, tablas y formularios */
+  --wp-panel: #1b1818;
+  --wp-panel-2: #201c1c;
+  --wp-field: #0d0b0b;
+  --wp-line: rgb(255 255 255 / 0.075);
+  --wp-hover: rgb(255 255 255 / 0.04);
+  --wp-sel: rgb(213 18 30 / 0.16);
+  --wp-ok: #3ccf7a;
+  /* Ámbar de tablero: avisos (existencia baja, «verificar»). */
+  --wp-aviso: #f2a93b;
+  --wp-sombra-ventana: 0 30px 70px -20px rgb(0 0 0 / 0.85), 0 10px 24px -8px rgb(0 0 0 / 0.6);
+}
+
+[data-paleta="rojo-blanco"] {
+  color-scheme: light;
+
+  --wp-bg: #e9e5de;
+  --wp-bg-deep: #d6d0c7;
+  --wp-bg-glow: rgb(200 16 46 / 0.1);
+
+  --wp-metal-hi: #fbfaf7;
+  --wp-metal-lo: #cfc9bf;
+  --wp-metal-edge: rgb(255 255 255 / 0.9);
+  --wp-bevel-light: rgb(255 255 255 / 0.95);
+  --wp-bevel-dark: rgb(60 40 30 / 0.28);
+
+  --wp-ink: #1a1514;
+  --wp-ink-2: rgb(26 21 20 / 0.64);
+  --wp-ink-3: rgb(26 21 20 / 0.4);
+  --wp-engrave: rgb(255 255 255 / 0.85);
+
+  --wp-accent: #c8102e;
+  --wp-accent-hi: #ec2a45;
+  --wp-accent-lo: #7d0819;
+  --wp-accent-glow: rgb(236 42 69 / 0.45);
+  --wp-on-accent: #fff6f2;
+
+  --wp-dial: #f7f4ee;
+  --wp-dial-ink: #1a1514;
+  --wp-lcd: #26070b;
+  --wp-lcd-ink: #ff5a63;
+
+  --wp-stitch: rgb(200 16 46 / 0.5);
+  --wp-grain-opacity: 0.05;
+
+  --wp-panel: #f7f4ef;
+  --wp-panel-2: #efebe4;
+  --wp-field: #fffdf9;
+  --wp-line: rgb(50 35 30 / 0.12);
+  --wp-hover: rgb(50 35 30 / 0.045);
+  --wp-sel: rgb(200 16 46 / 0.1);
+  --wp-ok: #17904b;
+  --wp-aviso: #b86a00;
+  --wp-sombra-ventana: 0 30px 70px -24px rgb(60 40 30 / 0.45), 0 10px 24px -10px rgb(60 40 30 / 0.3);
+}
+
+/* Papel: documentos impresos (facturas, cotizaciones). Igual en todas las paletas. */
+:root {
+  --wp-papel: #fbfaf6;
+  --wp-papel-2: #f1eee7;
+  --wp-papel-tinta: #1b1614;
+  --wp-papel-tinta-2: #6b625c;
+  --wp-papel-linea: rgb(40 30 25 / 0.14);
+}
+
+@theme inline {
+  --font-sans: var(--font-saira), "Saira", sans-serif;
+  --font-mono: var(--font-mono-wp), ui-monospace, monospace;
+
+  --color-wp-bg: var(--wp-bg);
+  --color-wp-ink: var(--wp-ink);
+  --color-wp-ink-2: var(--wp-ink-2);
+  --color-wp-ink-3: var(--wp-ink-3);
+  --color-wp-accent: var(--wp-accent);
+
+  --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-quart: cubic-bezier(0.25, 1, 0.5, 1);
+  --ease-inout: cubic-bezier(0.87, 0, 0.13, 1);
+}
+
+/* ---------------------------------------------------------------- base ---- */
+
+html {
+  background: var(--wp-bg-deep);
+}
+
+body {
+  background: var(--wp-bg);
+  color: var(--wp-ink);
+  font-family: var(--font-sans);
+  font-variation-settings: "wdth" 100;
+  transition:
+    background-color 500ms cubic-bezier(0.25, 1, 0.5, 1),
+    color 500ms cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+::selection {
+  background: var(--wp-accent);
+  color: var(--wp-on-accent);
+}
+
+:focus-visible {
+  outline: 2px solid var(--wp-accent-hi);
+  outline-offset: 4px;
+  border-radius: 6px;
+}
+
+/* ------------------------------------------------------------ texturas ---- */
+
+/* Fondo tipo cuero perforado + viñeta roja */
+.wp-cabina {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(120% 90% at 78% 40%, var(--wp-bg-glow), transparent 60%),
+    radial-gradient(140% 120% at 50% 50%, var(--wp-bg) 40%, var(--wp-bg-deep));
+}
+
+.wp-cabina::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: var(--wp-grain-opacity);
+  background-image:
+    radial-gradient(circle at 50% 50%, var(--wp-ink) 0.9px, transparent 1.4px);
+  background-size: 9px 9px;
+  mask-image: radial-gradient(120% 100% at 50% 50%, #000 30%, transparent 90%);
+}
+
+/* Fibra de carbono para el escritorio */
+.wp-carbono {
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(90% 70% at 50% 0%, var(--wp-bg-glow), transparent 70%),
+    var(--wp-bg);
+}
+
+.wp-carbono::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: calc(var(--wp-grain-opacity) * 1.6);
+  background:
+    linear-gradient(45deg, var(--wp-ink) 25%, transparent 25%, transparent 75%, var(--wp-ink) 75%) 0 0 / 8px 8px,
+    linear-gradient(45deg, var(--wp-ink) 25%, transparent 25%, transparent 75%, var(--wp-ink) 75%) 4px 4px / 8px 8px;
+  mask-image: linear-gradient(to bottom, #000, transparent 85%);
+}
+
+/* Metal cepillado */
+.wp-metal {
+  background:
+    repeating-linear-gradient(
+      90deg,
+      rgb(255 255 255 / 0.025) 0 1px,
+      transparent 1px 3px
+    ),
+    linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 -1px 0 var(--wp-bevel-dark),
+    0 1px 0 var(--wp-metal-edge);
+}
+
+/* Texto grabado en el material */
+.wp-grabado {
+  text-shadow:
+    0 1px 0 var(--wp-engrave),
+    0 -1px 0 rgb(0 0 0 / 0.15);
+}
+
+/* Costura */
+.wp-costura {
+  position: relative;
+}
+.wp-costura::after {
+  content: "";
+  position: absolute;
+  inset: 10px;
+  border: 1.5px dashed var(--wp-stitch);
+  border-radius: inherit;
+  pointer-events: none;
+}
+
+/* ---------------------------------------------------- coreografía carga ---- */
+
+@keyframes wp-subir {
+  from {
+    transform: translate3d(0, 110%, 0);
+  }
+  to {
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes wp-aparecer {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.wp-linea {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.04em;
+}
+.wp-linea > span {
+  display: block;
+  animation: wp-subir 1000ms var(--ease-expo) both;
+}
+
+.wp-entra {
+  animation: wp-aparecer 900ms var(--ease-expo) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 1ms !important;
+    animation-delay: 0ms !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+/* Impresión: solo el documento, en papel. */
+@media print {
+  @page {
+    size: letter;
+    margin: 12mm;
+  }
+  html,
+  body {
+    background: var(--wp-papel) !important;
+  }
+}

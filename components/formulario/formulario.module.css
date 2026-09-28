@@ -1,0 +1,378 @@
+.formulario {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.campos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem 1rem;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.campos:disabled {
+  opacity: 0.8;
+}
+
+.campo {
+  position: relative;
+  display: grid;
+  gap: 0.4rem;
+  align-content: start;
+  min-width: 0;
+  animation: entrar 520ms var(--ease-expo) both;
+}
+
+/* La animación de entrada deja a cada campo en su propio contexto de
+   apilamiento: el campo activo sube para que su lista desplegable quede
+   por encima de los campos siguientes. */
+.campo:focus-within {
+  z-index: 30;
+}
+
+.campo[data-ancho="completo"] {
+  grid-column: 1 / -1;
+}
+
+@keyframes entrar {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .campos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink-2);
+}
+
+.requerido {
+  color: var(--wp-accent-hi);
+  text-shadow: 0 0 6px var(--wp-accent-glow);
+}
+
+.ayuda,
+.error {
+  font-size: 0.74rem;
+  line-height: 1.4;
+  color: var(--wp-ink-3);
+}
+
+.error {
+  color: var(--wp-accent-hi);
+}
+
+.errorGeneral {
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: var(--wp-ink);
+  background: var(--wp-sel);
+  box-shadow: inset 3px 0 0 var(--wp-accent-hi);
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--wp-line);
+}
+
+.espacio {
+  flex: 1;
+}
+
+.confirmar {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  color: var(--wp-accent-hi);
+}
+
+.atajo {
+  margin-left: 0.2rem;
+  padding: 0 0.3rem;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  line-height: 1.5;
+  background: rgb(0 0 0 / 0.18);
+  opacity: 0.8;
+}
+
+@media (pointer: coarse) {
+  .atajo {
+    display: none;
+  }
+}
+
+/* ------------------------------------------------------- número + sufijo -- */
+
+.conSufijo {
+  position: relative;
+}
+
+.conSufijo input {
+  padding-right: 2.6rem;
+}
+
+.sufijo {
+  position: absolute;
+  right: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--wp-ink-3);
+  pointer-events: none;
+}
+
+.conSufijo[data-prefijo] input {
+  padding-left: 1.7rem;
+}
+
+.prefijo {
+  position: absolute;
+  left: 0.7rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--wp-ink-3);
+  pointer-events: none;
+}
+
+/* Campo calculado: lectura tipo instrumento, no editable */
+.calculado {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 0.7rem;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ink);
+  background: repeating-linear-gradient(135deg, transparent 0 6px, var(--wp-hover) 6px 7px);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  transition: color 200ms var(--ease-quart);
+}
+
+.calculado[data-signo="positivo"] {
+  color: var(--wp-ok);
+}
+
+.calculado[data-signo="negativo"] {
+  color: var(--wp-accent-hi);
+}
+
+/* Título de sección dentro del formulario */
+.seccion {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  margin-top: 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--wp-accent-hi);
+  animation: entrar 520ms var(--ease-expo) both;
+}
+
+.seccion::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--wp-line), transparent);
+}
+
+.seccion:first-child {
+  margin-top: 0;
+}
+
+.conSufijo input::-webkit-outer-spin-button,
+.conSufijo input::-webkit-inner-spin-button {
+  appearance: none;
+  margin: 0;
+}
+
+/* --------------------------------------------------------------- tarjetas -- */
+
+.tarjetas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tarjeta {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 36px;
+  padding: 0.35rem 0.8rem;
+  border-radius: 9px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px rgb(0 0 0 / 0.25),
+    0 1px 2px rgb(0 0 0 / 0.25);
+  transition:
+    box-shadow 160ms var(--ease-quart),
+    transform 120ms var(--ease-quart);
+}
+
+.tarjeta input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tarjeta:has(input:focus-visible) {
+  outline: 2px solid var(--wp-accent-hi);
+  outline-offset: 3px;
+}
+
+.tarjeta[data-activa] {
+  background: linear-gradient(180deg, var(--wp-metal-lo), var(--wp-metal-hi));
+  box-shadow:
+    inset 0 2px 5px rgb(0 0 0 / 0.35),
+    0 0 0 1.5px var(--wp-accent);
+}
+
+.tarjeta[data-activa]::after {
+  content: "";
+  width: 6px;
+  height: 6px;
+  margin-left: 0.2rem;
+  border-radius: 50%;
+  background: var(--wp-accent-hi);
+  box-shadow: 0 0 8px var(--wp-accent-glow);
+}
+
+.tarjetaTexto {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.tarjetaCodigo {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: var(--wp-accent-hi);
+}
+
+.muestra {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  box-shadow:
+    inset 0 1px 2px rgb(255 255 255 / 0.35),
+    inset 0 -1px 2px rgb(0 0 0 / 0.4),
+    0 0 0 1px rgb(0 0 0 / 0.3);
+}
+
+.interruptor {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 32px;
+  font-size: 0.82rem;
+}
+
+/* ------------------------------------------------------------------ combo -- */
+
+.combo {
+  position: relative;
+}
+
+.combo input {
+  padding-right: 2rem;
+  text-overflow: ellipsis;
+}
+
+.combo input:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.comboFlecha {
+  position: absolute;
+  right: 0.6rem;
+  top: 50%;
+  transform: translateY(-50%);
+  display: grid;
+  color: var(--wp-ink-3);
+  pointer-events: none;
+}
+
+.comboLista {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  max-height: 260px;
+  overflow: auto;
+  margin: 0;
+  padding: 0.3rem;
+  list-style: none;
+  border-radius: 10px;
+  background: var(--wp-panel);
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px rgb(0 0 0 / 0.3),
+    0 16px 34px -10px rgb(0 0 0 / 0.65);
+  animation: entrar 200ms var(--ease-expo) both;
+}
+
+.comboLista li {
+  padding: 0.4rem 0.6rem;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+}
+
+.comboLista li[data-activa] {
+  background: var(--wp-hover);
+}
+
+.comboLista li[aria-selected="true"] {
+  color: var(--wp-accent-hi);
+}
+
+.comboVacio {
+  color: var(--wp-ink-3);
+  cursor: default !important;
+}
