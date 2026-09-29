@@ -59,6 +59,20 @@ export const CAMPOS_EMPRESA: readonly DefCampo[] = [
   },
 ];
 
+/** Registro de una empresa nueva: los datos del negocio + la opción de datos de ejemplo. */
+export const CAMPOS_REGISTRO: readonly DefCampo[] = [
+  ...CAMPOS_EMPRESA,
+  {
+    nombre: "datos_ejemplo",
+    etiqueta: "Cargar productos de ejemplo",
+    tipo: "booleano",
+    porDefecto: false,
+    ayuda:
+      "45 repuestos, lubricantes y servicios con vehículos asignados y 3 clientes, para practicar en el mostrador. Se pueden cargar después desde Taller.",
+    ancho: "completo",
+  },
+];
+
 /** Campos del módulo Taller: los del onboarding + reglas de venta. */
 export const CAMPOS_TALLER: readonly DefCampo[] = [
   ...CAMPOS_EMPRESA,

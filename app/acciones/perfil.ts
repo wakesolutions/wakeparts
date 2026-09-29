@@ -43,6 +43,35 @@ export async function actualizarPerfil(valores: Valores): Promise<ResultadoGuard
   return { ok: true, id: sesion.usuario.id };
 }
 
+/**
+ * ¿Falta mostrarle el recorrido guiado? null = no se sabe (migración 0008
+ * sin aplicar): el cliente decide con su memoria local.
+ */
+export async function recorridoPendiente(): Promise<boolean | null> {
+  const sesion = await obtenerSesion();
+  if (!sesion) return null;
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("usuarios")
+    .select("recorrido_visto_en")
+    .eq("id", sesion.usuario.id)
+    .maybeSingle();
+  if (error || !data) return null;
+  return data.recorrido_visto_en === null;
+}
+
+/** Marca el recorrido como visto (al terminarlo o saltarlo) o lo deja pendiente para repetirlo. */
+export async function marcarRecorrido(visto: boolean) {
+  const sesion = await obtenerSesion();
+  if (!sesion) return { ok: false as const };
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("usuarios")
+    .update({ recorrido_visto_en: visto ? new Date().toISOString() : null })
+    .eq("id", sesion.usuario.id);
+  return { ok: !error };
+}
+
 /** Borra la configuración guardada de todas las tablas del usuario. */
 export async function restablecerTablas() {
   const sesion = await obtenerSesion();

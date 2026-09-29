@@ -175,7 +175,7 @@ export function SelectorVehiculo({ valor, onCambiar, abrirSenal }: Props) {
   const etiquetaPaso = { marca: "Marca", modelo: "Modelo", anio: "Año", motor: "Motor" };
 
   return (
-    <div className={styles.selector} ref={contenedor}>
+    <div className={styles.selector} ref={contenedor} data-recorrido="vehiculo">
       <button
         type="button"
         className={styles.placa}

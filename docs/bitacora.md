@@ -2,8 +2,10 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
-## 2026-09-29 · Ventanas maximizadas por defecto, datos de ejemplo y manual
+## 2026-09-29 · Ventanas maximizadas por defecto, datos de ejemplo, manual y recorrido
 
+- **Recorrido guiado** (pedido del usuario: «sale una vez y ya»): 15 pasos que abren el mostrador y señalan placa, búsqueda, resultados, carrito, cliente y emitir; luego el dock. No bloquea: se puede tocar lo señalado y avanza solo al abrir Cotizar o minimizar. La marca de visto va en la base (`usuarios.recorrido_visto_en`, 0008) para que no se repita en otra computadora; sin la migración cae a `localStorage`. Se repite desde Mi usuario.
+- **Datos de ejemplo al registrar la empresa**: casilla apagada por defecto (un taller real no debería arrancar con productos inventados); si falla la carga, la empresa igual se crea.
 - **Manual del propietario en `/ayuda`** (pedido del usuario): página pública (sirve a quien todavía no entra) con 10 capítulos, índice con LED que sigue la lectura, y figuras hechas con las piezas reales (piel de ventana, íconos del dock, odómetro del mostrador, LEDs) para que el manual se vea como la app. Enlaces: portada y barra de menú (pestaña nueva). Los íconos de módulos se movieron a `modulos/iconos-modulos.tsx` para compartirlos.
 - **Botón «Cargar datos de ejemplo» en Taller** (pedido del usuario, para que otros talleres prueben): función `cargar_datos_demo` en la base (0007) en vez de un script con la llave secreta, así cualquier dueño/admin la corre sobre su propia empresa con sus permisos (RLS). Idempotente y sin borrar nada. No crea CAI porque es un dato fiscal real.
 

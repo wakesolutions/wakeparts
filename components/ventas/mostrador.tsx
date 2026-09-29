@@ -377,7 +377,7 @@ export function Mostrador({ veMargen }: { veMargen: boolean }) {
   return (
     <div className={styles.mostrador} data-mostrador={activoId ?? ""} data-vista={vista}>
       {/* ------------------------------------------------ carritos ---- */}
-      <nav className={styles.carritos} aria-label="Carritos abiertos">
+      <nav className={styles.carritos} aria-label="Carritos abiertos" data-recorrido="carritos">
         <ul>
           {(carritos ?? []).map((c, i) => {
             const nombre = c.cliente_nombre ?? c.nombre ?? `Carrito ${i + 1}`;
@@ -421,7 +421,7 @@ export function Mostrador({ veMargen }: { veMargen: boolean }) {
       <section className={styles.busqueda} aria-label="Búsqueda de productos">
         <SelectorVehiculo valor={vehiculo} onCambiar={cambiarVehiculo} abrirSenal={senalVehiculo} />
 
-        <label className={styles.buscar} data-cargando={buscando || undefined}>
+        <label className={styles.buscar} data-cargando={buscando || undefined} data-recorrido="buscar">
           <IconoBuscar tamano={18} />
           <input
             ref={buscador}
@@ -444,7 +444,7 @@ export function Mostrador({ veMargen }: { veMargen: boolean }) {
           <span className={styles.barrido} aria-hidden="true" />
         </label>
 
-        <div className={styles.resultados}>
+        <div className={styles.resultados} data-recorrido="resultados">
           {emitido ? (
             <Sello emitido={emitido} onNuevo={nuevoCarrito} onCerrar={() => setEmitido(null)} urlImpresion={api.urlImpresion(emitido.id)} />
           ) : resultados.length ? (

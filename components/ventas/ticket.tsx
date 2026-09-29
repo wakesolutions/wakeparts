@@ -53,7 +53,7 @@ export function Ticket({
   const utilidad = totales.gravado + totales.exento - totales.costo;
 
   return (
-    <aside className={styles.ticket} aria-label="Carrito">
+    <aside className={styles.ticket} aria-label="Carrito" data-recorrido="ticket">
       <Cliente carrito={carrito} onCambiar={onCambiarCarrito} />
 
       <div className={styles.lineas}>
@@ -161,7 +161,7 @@ export function Ticket({
             </div>
           </div>
         ) : (
-          <div className={styles.botones}>
+          <div className={styles.botones} data-recorrido="emitir">
             <button
               type="button"
               className={`${ui.boton} ${ui.fantasma} ${styles.descartar}`}
@@ -436,7 +436,7 @@ function Cliente({ carrito, onCambiar }: { carrito: Carrito; onCambiar: (c: Camb
 
   if (!editando) {
     return (
-      <button type="button" className={styles.cliente} onClick={abrir}>
+      <button type="button" className={styles.cliente} onClick={abrir} data-recorrido="cliente">
         <span className={styles.clienteEtiqueta}>Cliente</span>
         <span className={styles.clienteNombre}>{carrito.cliente_nombre ?? "Consumidor final"}</span>
         <span className={styles.clienteRtn}>

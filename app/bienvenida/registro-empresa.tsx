@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import { crearEmpresa } from "@/app/acciones/empresa";
 import { Formulario } from "@/components/formulario/formulario";
-import { CAMPOS_EMPRESA } from "@/lib/empresa";
+import { CAMPOS_REGISTRO } from "@/lib/empresa";
 import { paletaValida } from "@/lib/paletas";
 import { aplicarPaleta } from "@/lib/paletas-cliente";
 import styles from "./bienvenida.module.css";
@@ -22,7 +22,7 @@ export function RegistroEmpresa() {
       </div>
 
       <Formulario
-        campos={CAMPOS_EMPRESA}
+        campos={CAMPOS_REGISTRO}
         textoGuardar="Encender tablero"
         // Vista previa en vivo de la paleta elegida
         onCambio={(v) => aplicarPaleta(paletaValida(String(v.paleta)))}

@@ -10,6 +10,7 @@ import ui from "@/components/ui/controles.module.css";
 import { CAMPOS_PERFIL } from "@/lib/perfil";
 import { ROLES } from "@/lib/recursos/equipo";
 import type { DefCampo } from "@/lib/recursos/tipos";
+import { useRecorrido } from "../recorrido/recorrido";
 import { useSesion } from "../sesion-contexto";
 import styles from "./modulos.module.css";
 
@@ -24,6 +25,7 @@ export function ModuloMiUsuario() {
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [aviso, setAviso] = useState<string | null>(null);
   const [trabajando, iniciar] = useTransition();
+  const recorrido = useRecorrido();
 
   useEffect(() => {
     let vivo = true;
@@ -132,6 +134,21 @@ export function ModuloMiUsuario() {
               }
             >
               Restablecer
+            </button>
+          </div>
+          <div className={styles.bloqueFila}>
+            <div>
+              <p className={styles.bloqueTitulo}>Recorrido guiado</p>
+              <p className={styles.bloqueTexto}>
+                Volver a ver el paseo por lo básico: cotizar, facturar, inventario y ventas. ¿Dudas puntuales? Leé el{" "}
+                <a href="/ayuda" target="_blank" rel="noopener" className="underline underline-offset-2">
+                  manual
+                </a>
+                .
+              </p>
+            </div>
+            <button type="button" className={ui.boton} onClick={recorrido.iniciar}>
+              Repetir recorrido
             </button>
           </div>
           <div className={styles.bloqueFila}>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
+import { recorridoPendiente } from "@/app/acciones/perfil";
 import { aceptarInvitaciones, obtenerSesion } from "@/lib/sesion";
 import { Escritorio } from "./_components/escritorio";
 
@@ -25,9 +26,10 @@ export default async function Inicio() {
   if (!sesion.empresa) redirect("/bienvenida");
 
   const primerNombre = sesion.usuario.nombre.split(" ")[0];
+  const recorrido = await recorridoPendiente();
 
   return (
-    <Escritorio sesion={sesion}>
+    <Escritorio sesion={sesion} recorrido={recorrido}>
       <main className="flex flex-1 items-center px-4 pb-40 sm:px-10 lg:px-20">
         <div>
           <p
@@ -48,8 +50,7 @@ export default async function Inicio() {
             className="wp-entra mt-6 max-w-[40ch] text-base leading-relaxed text-wp-ink-2 sm:text-lg"
             style={{ animationDelay: "450ms" }}
           >
-            Abrí un módulo desde el dock. Mantenimiento ya está disponible; inventario, catálogo y
-            facturación vienen en camino.
+            Abrí un módulo desde el dock. Para atender a un cliente, empezá por Cotizar y facturar.
           </p>
         </div>
       </main>

@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { CAMPOS_EMPRESA, CAMPOS_TALLER } from "@/lib/empresa";
+import { CAMPOS_REGISTRO, CAMPOS_TALLER } from "@/lib/empresa";
 import { COOKIE_PALETA, PALETAS, type PaletaId } from "@/lib/paletas";
 import type { ResultadoGuardar, Valores } from "@/lib/recursos/tipos";
 import { validarValores } from "@/lib/recursos/validar";
@@ -17,7 +17,7 @@ async function recordarPaleta(paleta: PaletaId) {
 }
 
 export async function crearEmpresa(valores: Valores): Promise<ResultadoGuardar> {
-  const validacion = validarValores(CAMPOS_EMPRESA, valores);
+  const validacion = validarValores(CAMPOS_REGISTRO, valores);
   if (!validacion.ok) {
     return { ok: false, error: "Revisá los campos marcados.", errores: validacion.errores };
   }
@@ -43,6 +43,12 @@ export async function crearEmpresa(valores: Valores): Promise<ResultadoGuardar> 
           ? "Tu sesión expiró. Volvé a entrar."
           : "No se pudo crear la empresa. Revisá los datos e intentá de nuevo.",
     };
+  }
+
+  // Datos de ejemplo (0007): si fallan, la empresa igual queda creada; se pueden cargar desde Taller.
+  if ((validacion.datos as Record<string, unknown>).datos_ejemplo === true) {
+    const demo = await supabase.rpc("cargar_datos_demo", { p_empresa: data });
+    if (demo.error) console.error("[crearEmpresa] datos de ejemplo", demo.error);
   }
 
   await recordarPaleta((d.paleta as PaletaId) ?? "rojo-negro");

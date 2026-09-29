@@ -63,8 +63,9 @@ Perfil 1:1 con `auth.users`. Lo crea y actualiza el trigger `wp_sincronizar_usua
 | `telefono` | text | sí | |
 | `id_empresa_activa` | uuid | sí | Empresa con la que trabaja; debe ser miembro |
 | `es_admin_plataforma` | bool | no | Puede editar datos globales. **Solo por SQL/migración.** |
+| `recorrido_visto_en` | timestamptz | sí | (0008) Cuándo terminó o saltó el recorrido guiado. Null = se le muestra al entrar |
 
-RLS: cada uno se ve a sí mismo y a quienes comparten empresa. Solo puede actualizar `id_empresa_activa`, `nombre` y `telefono` (privilegio por columna).
+RLS: cada uno se ve a sí mismo y a quienes comparten empresa. Solo puede actualizar `id_empresa_activa`, `nombre`, `telefono` y `recorrido_visto_en` (privilegio por columna).
 
 Admin de plataforma actual: `miltonbarrientos2@gmail.com`.
 

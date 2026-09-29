@@ -94,11 +94,16 @@ export default function Manual() {
               </li>
               <li>
                 <strong>Registrá tu taller.</strong> La primera vez te pide nombre comercial y, si querés, razón social,
-                RTN, teléfono, correo, dirección y paleta de colores. Quedás como <em>dueño</em>.
+                RTN, teléfono, correo, dirección y paleta de colores. Quedás como <em>dueño</em>. Si marcás{" "}
+                <em>Cargar productos de ejemplo</em>, arrancás con datos para practicar.
               </li>
               <li>
                 <strong>¿Te invitaron?</strong> Si un dueño o administrador invitó tu correo, al entrar quedás dentro de
                 su taller con el rol que te dio, sin registrar nada.
+              </li>
+              <li>
+                <strong>Seguí el recorrido.</strong> La primera vez que entrás, un recorrido guiado te lleva por el
+                mostrador y el dock. Se repite cuando querás desde <em>Mi usuario</em>.
               </li>
               <li>
                 <strong>Cargá datos de ejemplo.</strong> En <em>Taller › Datos de ejemplo</em> hay un botón que agrega
@@ -522,7 +527,7 @@ export default function Manual() {
                 <h3 className={styles.subtitulo}>Mi usuario</h3>
                 <p>
                   Se abre tocando tu nombre en la barra de menú. Cambiá cómo te llamás en el sistema, reiniciá las
-                  columnas de todas las tablas o cerrá la sesión.
+                  columnas de todas las tablas, repetí el recorrido guiado o cerrá la sesión.
                 </p>
               </div>
             </div>

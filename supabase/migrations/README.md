@@ -77,3 +77,4 @@ Con Node y [PGlite](https://pglite.dev) (Postgres en WASM), en una carpeta tempo
 | 0005 | `0005_ventas_carritos_cotizaciones_facturas.sql` | Clientes, CAI, carritos y líneas, documentos (cotizaciones y facturas), `emitir_documento()`, `anular_documento()`, `carrito_desde_documento()`, tope de descuento de vendedores | Ya aplicada |
 | 0006 | `0006_busqueda_complementos.sql` | `buscar_productos()`: complementos solo de las categorías de los 4 primeros resultados y de subcategorías nombradas en el texto; máximo 6 | **Pendiente** |
 | 0007 | `0007_datos_demo.sql` | `cargar_datos_demo(empresa)`: 45 productos, compatibilidades y 3 clientes de ejemplo (botón en Taller; dueño/admin; idempotente; sin CAI) | **Pendiente** |
+| 0008 | `0008_recorrido_guiado.sql` | `usuarios.recorrido_visto_en`: el recorrido guiado del escritorio sale una sola vez por usuario | **Pendiente** |
