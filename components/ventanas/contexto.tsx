@@ -4,7 +4,6 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
   useRef,
   useState,
@@ -72,7 +71,7 @@ const CLAVE_GEOMETRIA = "wp:ventanas";
 
 const esMovil = () => typeof window !== "undefined" && window.innerWidth < ANCHO_MOVIL;
 
-function leerGeometrias(): Record<string, Geometria & { max?: boolean }> {
+function leerGeometrias(): Record<string, Geometria> {
   try {
     return JSON.parse(localStorage.getItem(CLAVE_GEOMETRIA) ?? "{}");
   } catch {
@@ -80,10 +79,10 @@ function leerGeometrias(): Record<string, Geometria & { max?: boolean }> {
   }
 }
 
-function guardarGeometria(id: string, g: Geometria, max: boolean) {
+function guardarGeometria(id: string, g: Geometria) {
   try {
     const todas = leerGeometrias();
-    todas[id] = { x: g.x, y: g.y, w: g.w, h: g.h, max };
+    todas[id] = { x: g.x, y: g.y, w: g.w, h: g.h };
     localStorage.setItem(CLAVE_GEOMETRIA, JSON.stringify(todas));
   } catch {
     // Sin almacenamiento: la ventana abre en la posición por defecto.
@@ -105,27 +104,10 @@ export function acotar(g: Geometria): Geometria {
   };
 }
 
-// ------------------------------------------------------ pantalla completa ---
-
-function entrarPantallaCompleta() {
-  const raiz = document.documentElement;
-  if (!document.fullscreenElement && raiz.requestFullscreen) {
-    raiz.requestFullscreen({ navigationUI: "hide" }).catch(() => {});
-    return true;
-  }
-  return false;
-}
-
-function salirPantallaCompleta() {
-  if (document.fullscreenElement && document.exitFullscreen) document.exitFullscreen().catch(() => {});
-}
-
 export function VentanasProvider({ modulos, children }: { modulos: DefModulo[]; children: ReactNode }) {
   const [ventanas, setVentanas] = useState<Ventana[]>([]);
   const [capa, registrarCapa] = useState<HTMLElement | null>(null);
   const zTope = useRef(10);
-  // Solo salimos de pantalla completa si fuimos nosotros quienes entramos.
-  const pantallaCompletaPropia = useRef(false);
 
   const actualizar = useCallback((fn: (v: Ventana) => Ventana) => {
     setVentanas((vs) => vs.map(fn));
@@ -182,8 +164,9 @@ export function VentanasProvider({ modulos, children }: { modulos: DefModulo[]; 
         const g = acotar({ ...base, h: Math.min(base.h, vh - BARRA_ALTO - DOCK_ALTO - 16) });
         const y = Math.min(g.y, Math.max(BARRA_ALTO + 6, vh - DOCK_ALTO - g.h - 8));
         const z = ++zTope.current;
-        // Pantalla completa no se restaura sola: necesita un gesto del usuario.
-        return [...vs, { id, ...g, y, z, estado: esMovil() ? "maximizada" : "normal" }];
+        // Los módulos abren maximizados (tapan barra y dock; queda solo el semáforo).
+        // La geometría calculada es la que usa al pasar a ventana flotante.
+        return [...vs, { id, ...g, y, z, estado: "maximizada" }];
       });
     },
     [modulos],
@@ -233,24 +216,17 @@ export function VentanasProvider({ modulos, children }: { modulos: DefModulo[]; 
   const restaurar = useCallback((id: string) => setVentanas((vs) => restaurarEn(vs, id)), []);
 
   const alternarMaximizar = useCallback(
-    (id: string) => {
-      const actual = ventanas.find((v) => v.id === id);
-      if (!actual) return;
-      const maximizar = actual.estado !== "maximizada";
-      // La API de pantalla completa exige llamarse dentro del gesto del usuario.
-      if (!esMovil()) {
-        if (maximizar) pantallaCompletaPropia.current = entrarPantallaCompleta() || pantallaCompletaPropia.current;
-        else if (!ventanas.some((v) => v.id !== id && v.estado === "maximizada")) salirPantallaCompleta();
-      }
-      if (!actual.titulo) guardarGeometria(id, actual, false);
-      setVentanas((vs) =>
-        alFrente(
-          vs.map((v) => (v.id === id ? { ...v, estado: maximizar ? "maximizada" : "normal" } : v)),
+    (id: string) =>
+      setVentanas((vs) => {
+        const actual = vs.find((v) => v.id === id);
+        if (!actual) return vs;
+        const estado = actual.estado === "maximizada" ? "normal" : "maximizada";
+        return alFrente(
+          vs.map((v) => (v.id === id ? { ...v, estado } : v)),
           id,
-        ),
-      );
-    },
-    [ventanas],
+        );
+      }),
+    [],
   );
 
   const mover = useCallback(
@@ -258,7 +234,7 @@ export function VentanasProvider({ modulos, children }: { modulos: DefModulo[]; 
       actualizar((v) => {
         if (v.id !== id) return v;
         const nueva = { ...v, ...acotar({ x: v.x, y: v.y, w: v.w, h: v.h, ...g }) };
-        if (!v.titulo) guardarGeometria(id, nueva, false);
+        if (!v.titulo) guardarGeometria(id, nueva);
         return nueva;
       }),
     [actualizar],
@@ -273,28 +249,6 @@ export function VentanasProvider({ modulos, children }: { modulos: DefModulo[]; 
       }),
     );
   }, []);
-
-  // Si el usuario sale de pantalla completa (Esc), las ventanas maximizadas vuelven a su tamaño.
-  useEffect(() => {
-    const alCambiar = () => {
-      if (document.fullscreenElement || !pantallaCompletaPropia.current) return;
-      pantallaCompletaPropia.current = false;
-      if (!esMovil()) {
-        setVentanas((vs) => vs.map((v) => (v.estado === "maximizada" ? { ...v, estado: "normal" } : v)));
-      }
-    };
-    document.addEventListener("fullscreenchange", alCambiar);
-    return () => document.removeEventListener("fullscreenchange", alCambiar);
-  }, []);
-
-  // Sin ventanas maximizadas visibles, se sale de pantalla completa.
-  const hayMaximizada = ventanas.some((v) => v.estado === "maximizada");
-  useEffect(() => {
-    if (!hayMaximizada && pantallaCompletaPropia.current) {
-      pantallaCompletaPropia.current = false;
-      salirPantallaCompleta();
-    }
-  }, [hayMaximizada]);
 
   const enfocada = useMemo(() => {
     const visibles = ventanas.filter((v) => v.estado !== "minimizada");

@@ -2,6 +2,12 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-09-29 · Ventanas maximizadas por defecto y datos de ejemplo
+
+- **Botón «Cargar datos de ejemplo» en Taller** (pedido del usuario, para que otros talleres prueben): función `cargar_datos_demo` en la base (0007) en vez de un script con la llave secreta, así cualquier dueño/admin la corre sobre su propia empresa con sus permisos (RLS). Idempotente y sin borrar nada. No crea CAI porque es un dato fiscal real.
+
+- **Módulos abren maximizados, sin API de pantalla completa** (pedido del usuario): cada módulo abre ocupando todo el navegador, tapando barra de menú y dock; solo queda el semáforo. Se quitó `requestFullscreen` (el usuario no quería el efecto F11). Para volver al escritorio se minimiza o se achica con el botón verde.
+
 ## 2026-09-28 · Productos, compatibilidad, mostrador y facturación
 
 - **Categorías globales, no por empresa**: un árbol curado sirve para el catálogo web y para las «categorías relacionadas»; si cada taller inventara el suyo, las recomendaciones no funcionarían. Lo edita el admin de plataforma. El CSV de ejemplo tenía duplicados («SISTEMA HIFRAULICO»), categorías mezcladas con mano de obra y activos fijos; se rediseñó en 25 ramas por sistema del vehículo + Mano de obra (servicios sin inventario). Los nombres de calle (candelas, fricciones, hules, bomper…) van como **sinónimos** en la búsqueda, no como categorías duplicadas.
@@ -22,7 +28,7 @@ Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 - **Reglas de roles en la base** (trigger), no en la UI: nadie se cambia a sí mismo, solo un dueño toca a dueños, siempre queda un dueño.
 - **Nombre editable**: Google ya no lo sobrescribe en cada inicio de sesión.
 - **Formularios en ventana propia** (pedido del usuario, por espacio): `VentanaFlotante` hija de la ventana del módulo.
-- **Maximizar = pantalla completa real** (pedido del usuario: «como un nuevo escritorio»): cubre barra y dock y usa la API del navegador. En móvil no, porque el dock es la navegación.
+- ~~**Maximizar = pantalla completa real**~~ (reemplazado el 2026-09-29) (pedido del usuario: «como un nuevo escritorio»): cubre barra y dock y usa la API del navegador. En móvil no, porque el dock es la navegación.
 - **Parpadeo al minimizar**: se cancelaba la animación un cuadro antes de que React ocultara la ventana; ahora se oculta con `flushSync` y recién después se suelta la animación.
 - **`ambito: "empresa"`** en la capa genérica: base para todas las tablas operativas multiempresa.
 

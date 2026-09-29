@@ -2,8 +2,9 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { actualizarEmpresa, leerEmpresa } from "@/app/acciones/empresa";
+import { actualizarEmpresa, cargarDatosDemo, leerEmpresa, type ResultadoDemo } from "@/app/acciones/empresa";
 import { Formulario } from "@/components/formulario/formulario";
+import ui from "@/components/ui/controles.module.css";
 import { CAMPOS_TALLER } from "@/lib/empresa";
 import { paletaValida } from "@/lib/paletas";
 import { aplicarPaleta } from "@/lib/paletas-cliente";
@@ -26,6 +27,16 @@ export function ModuloTaller() {
   const [datos, setDatos] = useState<Empresa | null>(null);
   const [error, setError] = useState(false);
   const editable = rol === "dueno" || rol === "admin";
+  const [cargando, setCargando] = useState(false);
+  const [demo, setDemo] = useState<ResultadoDemo | null>(null);
+
+  async function cargarDemo() {
+    setCargando(true);
+    setDemo(null);
+    const r = await cargarDatosDemo().catch(() => ({ ok: false as const, error: "Sin conexión. Intentá de nuevo." }));
+    setDemo(r);
+    setCargando(false);
+  }
 
   useEffect(() => {
     let vivo = true;
@@ -88,6 +99,32 @@ export function ModuloTaller() {
               }}
             />
           </>
+        )}
+        {editable && (
+          <div className={styles.bloque}>
+            <p className={ui.etiquetaSeccion}>Datos de ejemplo</p>
+            <div className={styles.bloqueFila}>
+              <div>
+                <p className={styles.bloqueTitulo}>Productos para probar</p>
+                <p className={styles.bloqueTexto}>
+                  Carga 45 repuestos, lubricantes y servicios con precios, existencias y vehículos (Corolla, Hilux,
+                  Civic, Frontier…), más 3 clientes. No borra ni cambia nada tuyo; si ya están, no los repite.
+                </p>
+              </div>
+              <button type="button" className={ui.boton} disabled={cargando} onClick={cargarDemo}>
+                {cargando ? "Cargando…" : "Cargar datos de ejemplo"}
+              </button>
+            </div>
+            {demo && (
+              <p className={demo.ok ? styles.avisoOk : styles.aviso} role="status">
+                {!demo.ok
+                  ? demo.error
+                  : demo.productos + demo.compatibilidades + demo.clientes === 0
+                    ? "Los datos de ejemplo ya estaban cargados."
+                    : `Listo: ${demo.productos} productos, ${demo.compatibilidades} compatibilidades y ${demo.clientes} clientes. Probalos en Cotizar y facturar.`}
+              </p>
+            )}
+          </div>
         )}
       </section>
     </div>

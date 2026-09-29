@@ -96,6 +96,33 @@ export async function actualizarEmpresa(valores: Valores): Promise<ResultadoGuar
   return { ok: true, id: data[0].id as string };
 }
 
+export type ResultadoDemo =
+  | { ok: true; productos: number; compatibilidades: number; clientes: number }
+  | { ok: false; error: string };
+
+/** Carga productos, compatibilidades y clientes de ejemplo en la empresa activa (migración 0007). */
+export async function cargarDatosDemo(): Promise<ResultadoDemo> {
+  const sesion = await obtenerSesion();
+  if (!sesion?.empresa) return { ok: false, error: "No hay una empresa activa." };
+  if (!["dueno", "admin"].includes(sesion.rol ?? "")) {
+    return { ok: false, error: "Solo el dueño o un administrador pueden cargar datos de ejemplo." };
+  }
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("cargar_datos_demo", { p_empresa: sesion.empresa.id });
+  if (error || !data) {
+    console.error("[cargarDatosDemo]", error);
+    return {
+      ok: false,
+      error:
+        error?.code === "PGRST202"
+          ? "Falta ejecutar la migración 0007 en la base."
+          : "No se pudieron cargar los datos de ejemplo. Intentá de nuevo.",
+    };
+  }
+  return { ok: true, ...(data as { productos: number; compatibilidades: number; clientes: number }) };
+}
+
 export async function cambiarPaletaEmpresa(paleta: PaletaId) {
   if (!PALETAS.some((p) => p.id === paleta)) return { ok: false as const };
   const sesion = await obtenerSesion();

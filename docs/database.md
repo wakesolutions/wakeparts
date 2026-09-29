@@ -236,6 +236,10 @@ Producto ↔ vehículo en el nivel elegido (`nivel` 1 marca · 2 modelo · 3 añ
   - `complemento`: hasta 8 productos de categorías relacionadas con lo encontrado o con lo que nombra el texto.
   - Miembros ven costo, existencia y ubicación; el público (catálogo web) solo productos visibles con existencia y sin costo.
 
+### Datos de ejemplo (0007)
+
+`cargar_datos_demo(p_empresa)` (security invoker, solo dueño/admin): inserta en la empresa 45 productos de ejemplo (repuestos con OEM y ubicación, generales sin vehículo y mano de obra), sus compatibilidades resueltas por nombre contra el catálogo (Corolla, Yaris, Hilux y su motor 2KD-FTV, RAV4, Land Cruiser Prado, Civic, CRV, Frontier, Accent, Rio y marcas Toyota/Honda/Nissan) y 3 clientes. Idempotente: salta códigos y clientes existentes. No crea CAI. Devuelve `{productos, compatibilidades, clientes}` con lo que insertó.
+
 ## Ventas (0005)
 
 | Tabla | Qué es |

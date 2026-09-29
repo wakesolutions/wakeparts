@@ -42,5 +42,5 @@ ERP web para tiendas de repuestos y **yonkers** (deshuesaderos) de pequeña y me
 - ✅ Ventas (0005): carritos, cotizaciones y facturas con CAI, descuentos con tope por rol, anulación, impresión en `/documentos/[id]`. Reglas fiscales marcadas «a confirmar» en `negocio.md` §3.5.
 - ✅ Componentes genéricos: TablaMaestra (filtros, orden múltiple, columnas guardadas por usuario) y Formulario (relaciones en cascada).
 - ✅ Mantenimiento del catálogo de vehículos (marcas, modelos, años, carrocerías, especificaciones); edición solo para admin de plataforma.
-- ✅ Migraciones 0000–0005 aplicadas; **0006 pendiente**. La empresa del usuario tiene datos de prueba (45 productos, compatibilidades, 3 clientes; sin CAI).
+- ✅ Migraciones 0000–0005 aplicadas; **0006 y 0007 pendientes**. La empresa del usuario tiene datos de prueba (45 productos, compatibilidades, 3 clientes; sin CAI). Otras empresas los cargan con el botón «Cargar datos de ejemplo» de Taller (`cargar_datos_demo`, 0007).
 - ⏭️ Siguiente propuesto: confirmar reglas CAI con el contador; compras/entradas de inventario; catálogo web público por empresa (usa `buscar_productos` sin sesión).

@@ -218,7 +218,7 @@ export function Ventana({ ventana, titulo, children, onCerrar }: Props) {
   }
 
   const estilo = completa
-    ? // Pantalla completa: ocupa todo, encima de la barra de menú y del dock.
+    ? // Maximizada: ocupa todo el escritorio, encima de la barra de menú y del dock.
       { transform: "none", width: "100vw", height: "100dvh" }
     : maxi
       ? {
@@ -281,7 +281,7 @@ export function Ventana({ ventana, titulo, children, onCerrar }: Props) {
               type="button"
               className={styles.luz}
               data-luz="maximizar"
-              aria-label={maxi ? `Salir de pantalla completa: ${titulo}` : `Pantalla completa: ${titulo}`}
+              aria-label={maxi ? `Achicar ${titulo}` : `Maximizar ${titulo}`}
               onClick={alternar}
             >
               <svg viewBox="0 0 8 8" aria-hidden="true">
