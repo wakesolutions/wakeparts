@@ -16,6 +16,8 @@ import {
   FUNCIONES,
 } from "./_publico/piezas";
 import styles from "./_publico/publico.module.css";
+import { CAPTURAS } from "./_publico/capturas";
+import { Vitrina } from "./_publico/vitrina";
 import { Arranque } from "./_components/arranque";
 import { DEPARTAMENTOS, DESCRIPCION_SITIO, LEMA, NOMBRE_SITIO, URL_SITIO } from "@/lib/sitio";
 
@@ -64,6 +66,13 @@ const ESQUEMA = {
       image: `${URL_SITIO}/opengraph-image`,
       publisher: { "@id": `${URL_SITIO}/#organizacion` },
       featureList: FUNCIONES.map((f) => f.titulo),
+      screenshot: CAPTURAS.map((c) => ({
+        "@type": "ImageObject",
+        url: `${URL_SITIO}${c.src}`,
+        caption: c.alt,
+        width: c.ancho,
+        height: c.alto,
+      })),
       areaServed: [
         { "@type": "Country", name: "Honduras" },
         ...DEPARTAMENTOS.map((d) => ({ "@type": "AdministrativeArea", name: d.nombre, containedInPlace: { "@type": "Country", name: "Honduras" } })),
@@ -153,6 +162,21 @@ export default async function Portada({ searchParams }: PageProps<"/">) {
             </Link>
           </section>
         </div>
+
+        <Seccion
+          id="por-dentro"
+          sobretitulo="Capturas reales · datos de ejemplo"
+          titulo={
+            <>
+              Así se ve
+              <br />
+              por dentro<span className="text-wp-accent">.</span>
+            </>
+          }
+          bajada="Esto es lo que vas a usar desde el primer día: el mostrador, la factura con CAI, el reporte de ventas, la compatibilidad por vehículo y la vista en el celular."
+        >
+          <Vitrina />
+        </Seccion>
 
         <Seccion
           id="funciones"

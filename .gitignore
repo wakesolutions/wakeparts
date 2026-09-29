@@ -43,3 +43,6 @@ next-env.d.ts
 # secretos locales
 dotenv-for-claude.txt
 /keys/
+
+# capturas temporales (npm run capturas)
+.capturas-tmp/

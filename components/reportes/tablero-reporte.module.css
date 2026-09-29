@@ -183,6 +183,7 @@
 }
 
 .indicador {
+  container-type: inline-size;
   display: grid;
   align-content: space-between;
   gap: 0.35rem;
@@ -226,7 +227,8 @@
   text-overflow: ellipsis;
   white-space: nowrap;
   font-family: var(--font-mono);
-  font-size: 1.2rem;
+  /* El monto se achica con la tarjeta: «L 114,546.71» cabe sin cortarse. */
+  font-size: clamp(0.82rem, 11.5cqi, 1.25rem);
   font-weight: 700;
   font-variant-numeric: tabular-nums;
   letter-spacing: -0.02em;
@@ -234,7 +236,7 @@
 }
 
 .indicador[data-grande] .indicadorValor {
-  font-size: 2.2rem;
+  font-size: clamp(1.4rem, 12cqi, 2.2rem);
 }
 
 .indicadorCambio {

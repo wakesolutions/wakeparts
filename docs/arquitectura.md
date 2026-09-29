@@ -78,6 +78,7 @@ Convenciones:
 - `app/layout.tsx`: `metadataBase` = `URL_SITIO` (`NEXT_PUBLIC_SITE_URL`; en Vercel, el dominio de producción), plantilla de título «%s · Wake Parts», Open Graph `es_HN`, tarjeta grande de X, `geo.region` y `<html lang="es-HN">`. Cada página pública define su `canonical`.
 - **JSON-LD** (`<JsonLd>`, sanea `<`): portada = Organization + WebSite + SoftwareApplication (con los 18 departamentos en `areaServed`) + FAQPage; departamento = BreadcrumbList + Service (área y ciudades) + FAQPage; manual = TechArticle + BreadcrumbList.
 - Imágenes para redes generadas con `next/og` (`app/_publico/imagen-og.tsx`), una por página pública. Íconos: `app/icon.svg` (fuente), `favicon.ico` y PNG del manifest generados desde él con `sharp`.
+- **Vitrina de capturas** (portada, sección «Así se ve por dentro»): imágenes reales del sandbox en `public/capturas/*.webp`, definidas en `app/_publico/capturas.ts` (también van al JSON-LD como `screenshot`). Si cambia la interfaz, regeneralas con `npm run dev` y luego `npm run capturas` (`scripts/capturar-landing.mjs`: `playwright-core` maneja el Chrome o Edge instalado, sin descargar navegadores; `BASE_URL`, `CHROME_PATH`).
 - Un departamento nuevo o un cambio de ciudades: `DEPARTAMENTOS` en `lib/sitio.ts` (el sitemap, los enlaces y las imágenes salen de ahí). Cada departamento tiene un párrafo propio (`contexto`) para no duplicar contenido.
 
 ## Autenticación

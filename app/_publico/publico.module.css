@@ -481,6 +481,207 @@
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-accent) 60%, transparent);
 }
 
+/* ---------------------------------------------------------------- vitrina --- */
+
+.vitrina {
+  display: grid;
+  gap: 1.2rem;
+}
+
+.vitrinaPestanas {
+  display: flex;
+  flex-wrap: wrap;
+  justify-self: start;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--wp-field);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.45), inset 0 0 0 1px var(--wp-line);
+}
+
+.vitrinaPestana {
+  position: relative;
+  padding: 0.5rem 0.95rem 0.5rem 1.55rem;
+  border: 0;
+  border-radius: 9px;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 600;
+  color: var(--wp-ink-2);
+  background: none;
+  cursor: pointer;
+  transition:
+    color 180ms var(--ease-quart),
+    background-color 180ms var(--ease-quart);
+}
+
+.vitrinaPestana::before {
+  content: "";
+  position: absolute;
+  left: 0.7rem;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  border-radius: 50%;
+  background: var(--wp-line);
+  transition:
+    background-color 200ms var(--ease-quart),
+    box-shadow 200ms var(--ease-quart);
+}
+
+.vitrinaPestana:hover {
+  color: var(--wp-ink);
+}
+
+.vitrinaPestana[aria-selected="true"] {
+  color: var(--wp-ink);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 1px 3px rgb(0 0 0 / 0.45);
+}
+
+.vitrinaPestana[aria-selected="true"]::before {
+  background: var(--wp-accent);
+  box-shadow: 0 0 8px 1px var(--wp-accent-glow);
+}
+
+.vitrinaPestana:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 2px;
+}
+
+/* Monitor: bisel metálico como la pantalla del tablero de un carro. */
+.monitor {
+  padding: clamp(8px, 1.2vw, 16px);
+  border-radius: clamp(14px, 2vw, 26px);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 -2px 4px rgb(0 0 0 / 0.5),
+    0 0 0 1px rgb(0 0 0 / 0.55),
+    0 50px 90px -40px rgb(0 0 0 / 0.95),
+    0 0 120px -40px var(--wp-accent-glow);
+}
+
+.monitorPantalla {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 16 / 10;
+  border-radius: clamp(8px, 1.2vw, 14px);
+  background:
+    radial-gradient(80% 70% at 50% 40%, color-mix(in oklab, var(--wp-accent) 10%, transparent), transparent 70%),
+    color-mix(in oklab, var(--wp-lcd) 35%, black);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.8);
+}
+
+.monitorCapa {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  opacity: 0;
+  transform: scale(1.015);
+  transition:
+    opacity 480ms var(--ease-quart),
+    transform 700ms var(--ease-expo);
+  pointer-events: none;
+}
+
+.monitorCapa[data-visible] {
+  opacity: 1;
+  transform: none;
+}
+
+.monitorImagen {
+  position: absolute;
+  inset: 0;
+}
+
+.monitorImagen img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+/* Brillo del vidrio. */
+.monitorPantalla::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgb(255 255 255 / 0.06), transparent 35%);
+}
+
+.telefono {
+  height: 92%;
+  aspect-ratio: 390 / 752;
+  padding: 10px;
+  border-radius: 34px;
+  background: linear-gradient(180deg, color-mix(in oklab, var(--wp-lcd) 30%, var(--wp-metal-lo)), color-mix(in oklab, var(--wp-lcd) 40%, black));
+  box-shadow:
+    inset 0 0 0 1px rgb(255 255 255 / 0.08),
+    0 0 0 1px rgb(0 0 0 / 0.7),
+    0 30px 60px -20px rgb(0 0 0 / 0.9);
+}
+
+.telefono img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 25px;
+  object-fit: cover;
+  object-position: top;
+}
+
+.vitrinaLeyenda {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: baseline;
+  gap: 1.2rem;
+  max-width: 820px;
+  animation: leyenda 420ms var(--ease-expo) both;
+}
+
+@keyframes leyenda {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+}
+
+.vitrinaNumero {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.18em;
+  color: var(--wp-accent);
+}
+
+.vitrinaTitulo {
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-variation-settings: "wdth" 66;
+  text-transform: uppercase;
+}
+
+.vitrinaTexto {
+  margin-top: 0.3rem;
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--wp-ink-2);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .monitorCapa,
+  .vitrinaLeyenda {
+    transition: none;
+    animation: none;
+  }
+}
+
 /* -------------------------------------------------------- departamentos --- */
 
 .departamentos {

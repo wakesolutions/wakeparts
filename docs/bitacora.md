@@ -2,6 +2,11 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-09-29 · Capturas reales en la landing
+
+- **Vitrina con capturas reales** en vez de ilustraciones (pedido del usuario: «que la gente vea lo que va a probar»): mostrador, factura con CAI, reporte, compatibilidad y celular, sacadas del sandbox con datos de ejemplo por un script reproducible (`npm run capturas`) para que no queden viejas cuando cambie la UI. WebP de 55–75 KB; solo la primera se carga con prioridad.
+- De paso: los montos del reporte ya no se cortan en tarjetas angostas (el tamaño se ajusta al ancho de la tarjeta con `cqi`).
+
 ## 2026-09-29 · Catálogo global solo del admin y categorías propias
 
 - **Catálogo global = un solo dueño** (pedido del usuario): vehículos, categorías generales y relacionadas los edita solo `miltonbarrientos2@gmail.com`. Dos candados: el flag `usuarios.es_admin_plataforma` (RLS, autoridad real; 0010 desmarca a cualquier otro) y la variable `ADMINS_PLATAFORMA` en la app (las acciones genéricas rechazan escribir recursos `admin_plataforma` si el correo no está). La base no puede leer variables de entorno, por eso el flag sigue mandando.
