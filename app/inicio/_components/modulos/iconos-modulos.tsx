@@ -112,3 +112,22 @@ export function IconoPerfil() {
     </svg>
   );
 }
+
+export function IconoActividad() {
+  // Tacógrafo: disco de registro con la traza de la jornada y la aguja
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <circle cx="24" cy="24" r="17" fill="currentColor" />
+      <path
+        d="M11 26.5h5l2.5-7 4 13 3.5-10 2.5 4h8.5"
+        fill="none"
+        stroke="var(--wp-accent-lo)"
+        strokeWidth="2.4"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="M24 24 33 13" stroke="var(--wp-accent)" strokeWidth="2.2" strokeLinecap="round" />
+      <circle cx="24" cy="24" r="2.6" fill="var(--wp-accent)" />
+    </svg>
+  );
+}

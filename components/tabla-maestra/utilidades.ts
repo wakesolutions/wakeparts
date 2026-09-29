@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { moneda, pct } from "@/lib/formato";
+import { fechaHoraExacta, moneda, pct } from "@/lib/formato";
 import type { DefColumna, DefRecurso, Operador, PreferenciasTabla } from "@/lib/recursos/tipos";
 
 const numero = new Intl.NumberFormat("es-HN");
@@ -30,6 +30,10 @@ export function formatearCelda(col: DefColumna, valor: unknown): string | null {
       return moneda(Number(valor));
     case "porcentaje":
       return pct(Number(valor));
+    case "fechaHora": {
+      const d = new Date(String(valor));
+      return Number.isNaN(d.getTime()) ? String(valor) : fechaHoraExacta(d);
+    }
   }
   if (col.tipo === "booleano") return valor ? "Sí" : "No";
   if (col.tipo === "fecha") {

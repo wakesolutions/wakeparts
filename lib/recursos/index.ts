@@ -1,6 +1,7 @@
 import * as catalogo from "./catalogo";
 import * as equipo from "./equipo";
 import * as inventario from "./inventario";
+import * as registro from "./registro";
 import type { DefRecurso } from "./tipos";
 import * as ventas from "./ventas";
 
@@ -26,6 +27,8 @@ export const RECURSOS: Record<string, DefRecurso> = Object.fromEntries(
     ventas.clientes,
     ventas.cai,
     ventas.documentos,
+    registro.actividad,
+    registro.actividadPlataforma,
   ].map((r) => [r.id, r]),
 );
 

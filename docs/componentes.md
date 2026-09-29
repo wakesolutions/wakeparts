@@ -48,7 +48,7 @@ export const marcas: DefRecurso = {
 | `buscable` | Entra en la búsqueda rápida (texto: contiene; números: igual). |
 | `ordenable` | `false` para desactivar el orden. |
 | `filtro` | Por defecto se deduce del tipo. `{ tipo: "opciones", fuente: { recurso, valor, etiqueta } }` para una lista de otra tabla; `{ tipo: "opciones", opciones: [...] }` para una lista fija; `false` para desactivarlo. |
-| `formato` | `miles`, `litros`, `cc`, `anio`, `codigo`, `moneda` (L 1,234.50), `porcentaje`, `imagen` (ruta de Storage → miniatura). |
+| `formato` | `miles`, `litros`, `cc`, `anio`, `codigo`, `moneda` (L 1,234.50), `porcentaje`, `imagen` (ruta de Storage → miniatura), `fechaHora` (timestamp con segundos, hora de Honduras). |
 | `alerta` | Columna booleana de la fila que pone la celda en ámbar con LED (p. ej. `bajo_minimo`). |
 | `vacio` | Texto cuando el valor es nulo o 0 (p. ej. «General» en Vehículos). |
 | `opciones` | Traduce códigos (L → En línea). |

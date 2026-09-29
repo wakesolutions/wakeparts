@@ -90,6 +90,24 @@ Convenciones:
 - Sin analítica, publicidad ni terceros; las fuentes se sirven desde el sitio (`next/font`).
 - `components/ui/aviso-cookies.tsx` (en `app/layout.tsx`): aviso **informativo** una sola vez + política en `/cookies` (pública, en sitemap). **Si se agrega una cookie o script opcional (analítica, píxeles, chat), el aviso debe pasar a pedir consentimiento ANTES de cargarlo y hay que actualizar `/cookies`.**
 
+## Registro de actividad
+
+Todo queda en la tabla `registros` (migración 0011, detalle en `database.md`); se ve en el módulo **Actividad**.
+
+| Qué | Dónde se registra |
+|---|---|
+| Visitas a páginas (anónimas incluidas) | `lib/supabase/proxy.ts`: cargas de documento y navegaciones RSC; **no** prefetch ni Server Actions. Con `event.waitUntil`, sin demorar la respuesta. |
+| Inicio de sesión, fallos y cierre | `app/auth/callback/route.ts` y `app/auth/actions.ts` (con `after()`), con la empresa activa para que el dueño lo vea. |
+| Errores del servidor | `instrumentation.ts` › `onRequestError` (render, route, action, proxy), con usuario tomado de la cookie **solo para etiquetar**. |
+| Errores del navegador | `instrumentation-client.ts` (window.onerror, promesas) y `app/error.tsx` / `app/global-error.tsx` → `lib/registro-cliente.ts` → `POST /api/registro` (pública; solo errores, recorta y limita 30/min por IP). |
+| Cambios de datos | Trigger `registrar_cambio()` en la base: quién, IP, dispositivo, antes y después. |
+
+- `lib/registro.ts`: `registrar()` escribe con `SUPABASE_SECRET_KEY` directo a PostgREST y **nunca lanza** (si falta la tabla o la llave, solo avisa en consola). `contextoDe(headers)` saca IP (`x-forwarded-for`), dispositivo (parser propio de user agent) y ciudad/país (`x-vercel-ip-*`, solo en Vercel).
+- `lib/supabase/server.ts` manda `x-cliente-ip`, `x-cliente-dispositivo`, `x-cliente-agente`, `x-cliente-ruta` y `x-cliente-entorno` en cada consulta, para que el trigger sepa desde dónde se hizo el cambio. Son informativos (quien llame a PostgREST directo podría falsearlos).
+- `entorno` distingue producción, vista previa y desarrollo (`npm run dev` escribe en la misma base). `REGISTRO_DESACTIVADO=1` apaga el registro desde la app.
+- Sin cookies ni identificadores de visitante: por eso no hace falta consentimiento (ver Cookies). Está declarado en `/privacidad` y `/cookies`.
+- Plazo: `limpiar_registros()` (visitas 180 días, resto 730). Ejecutarlo a mano o programarlo con pg_cron.
+
 ## Autenticación
 
 Solo Google, vía Supabase Auth con PKCE, todo del lado del servidor:
@@ -113,6 +131,7 @@ Configuración externa necesaria en Supabase → Authentication → URL Configur
 | `NEXT_PUBLIC_CONTACTO_WHATSAPP` | WhatsApp comercial tal como se muestra. Default `+504 8901-5974`; el enlace `wa.me` se arma con sus dígitos. |
 | `NEXT_PUBLIC_CONTACTO_EMAIL` | Correo comercial. Default `ventas@wake.solutions`. |
 | `NEXT_PUBLIC_RESPONSABLE` | Quién ofrece Wake Parts en `/terminos` y `/privacidad`. Default `Wake Solutions`. |
+| `REGISTRO_DESACTIVADO` | `1` apaga el registro de actividad desde la app (el trigger de la base sigue). |
 | `NEXT_PUBLIC_SITE_URL` | URL pública canónica: `metadataBase`, sitemap, robots, JSON-LD; respaldo para `redirectTo` si no hay header `host`. |
 | `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto Supabase. |
 | `SUPABASE_PUBLISHABLE_KEY` | Llave publicable. **Solo servidor** hoy. Si algún día hace falta un cliente de navegador (realtime), exponer como `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. |

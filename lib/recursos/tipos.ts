@@ -44,7 +44,9 @@ export type FormatoCelda =
   | "moneda"
   | "porcentaje"
   /** Ruta de una imagen en Storage: se muestra la miniatura. */
-  | "imagen";
+  | "imagen"
+  /** Timestamp con hora y segundos, hora de Honduras (columnas tipo "fecha"). */
+  | "fechaHora";
 
 export type DefColumna = {
   /** Columna de la vista. */

@@ -2,6 +2,14 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-09-29 · Registro de actividad
+
+- **Una sola tabla `registros`** para visitas, sesiones, errores y cambios (pedido del usuario: «saber qué pasó en cada momento», incluso visitas a /privacidad). Más simple de consultar y de mostrar con una sola `TablaMaestra` que varias tablas por tipo.
+- **Visitas en el proxy, sin cookies**: se registra IP y user agent del lado del servidor; no se pone ningún identificador de visitante, así el aviso de cookies sigue siendo informativo. Declarado en `/privacidad` y `/cookies`.
+- **Auditoría por trigger en la base** y no en cada Server Action: cubre todo camino de escritura (formularios, RPC como `emitir_documento`, importación) sin olvidar ninguno. La IP llega por headers `x-cliente-*` desde el cliente de Supabase del servidor. Carritos, líneas y kardex quedan fuera por ruido o por ser ya un historial.
+- **Registrar nunca rompe nada**: la app traga los fallos (el código puede desplegarse antes de ejecutar 0011) y el trigger atrapa su propio error.
+- **Quién ve qué**: dueño/admin, su empresa (sesiones y cambios); admin de plataforma, todo (visitas anónimas y errores no tienen empresa). Nadie edita ni borra; plazos de 6 meses (visitas) y 2 años (resto) vía `limpiar_registros()`.
+
 ## 2026-09-29 · La landing es una demo; términos y privacidad
 
 - **Wake Parts publicado = demo comercial** (pedido del usuario): la portada lo dice junto al arranque y en la sección «Tu versión, a tu medida» (`#contacto`). No hay precios publicados: se acuerdan con cada negocio, con soporte 24/7 y ajustes a la medida. Contacto por WhatsApp y correo desde variables `NEXT_PUBLIC_CONTACTO_*` con default igual al valor real, para poder cambiarlo sin tocar código.

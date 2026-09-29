@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
+import { contextoDe, registrar } from "@/lib/registro";
 
 // Públicas: portada, manual, páginas por departamento y archivos de metadatos
 // (robots, sitemap, manifest, imágenes para redes e íconos generados).
@@ -12,6 +13,7 @@ const RUTAS_PUBLICAS = [
   "/cookies",
   "/privacidad",
   "/terminos",
+  "/api/registro",
   "/robots.txt",
   "/sitemap.xml",
   "/manifest.webmanifest",
@@ -28,8 +30,23 @@ function esPublica(pathname: string) {
   );
 }
 
-/** Refresca la sesión de Supabase y hace las redirecciones optimistas. */
-export async function updateSession(request: NextRequest) {
+/**
+ * ¿Es una página que alguien abrió? Carga completa (documento) o navegación
+ * dentro de la app (RSC). Los prefetch del router y las Server Actions no cuentan.
+ */
+function esVisita(request: NextRequest) {
+  const h = request.headers;
+  if (request.method !== "GET") return false;
+  if (h.has("next-router-prefetch") || /prefetch/i.test(h.get("purpose") ?? h.get("sec-purpose") ?? "")) return false;
+  if (h.get("rsc") === "1") return true;
+  const destino = h.get("sec-fetch-dest");
+  if (destino) return destino === "document";
+  // Bots y clientes sin sec-fetch-*: si pide HTML.
+  return (h.get("accept") ?? "").includes("text/html");
+}
+
+/** Refresca la sesión de Supabase, registra la visita y hace las redirecciones optimistas. */
+export async function updateSession(request: NextRequest, event?: NextFetchEvent) {
   let response = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -60,6 +77,23 @@ export async function updateSession(request: NextRequest) {
   const { data } = await supabase.auth.getClaims();
   const autenticado = Boolean(data?.claims);
   const { pathname } = request.nextUrl;
+
+  if (event && esVisita(request)) {
+    const claims = data?.claims as { sub?: string; email?: string } | undefined;
+    event.waitUntil(
+      registrar({
+        tipo: "visita",
+        evento: "pagina.vista",
+        mensaje: pathname,
+        id_usuario: claims?.sub ?? null,
+        correo: claims?.email ?? null,
+        ruta: `${pathname}${request.nextUrl.search}`.slice(0, 500),
+        metodo: "GET",
+        datos: { navegacion: request.headers.get("rsc") === "1" ? "dentro de la app" : "carga completa" },
+        contexto: contextoDe(request.headers),
+      }),
+    );
+  }
 
   const redirigir = (destino: string) => {
     const url = request.nextUrl.clone();

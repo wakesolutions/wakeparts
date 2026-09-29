@@ -25,20 +25,21 @@ ERP web para tiendas de repuestos y **yonkers** (deshuesaderos) de pequeña y me
 3. **Antes de una migración que toca datos, mirá los datos reales** (lectura vía REST con la llave secreta de `.env.local`) y, si podés, probala dos veces en PGlite con una copia. Las tablas del catálogo tienen ~17 000 filas reales.
 4. **Documentá mientras trabajás**: si cambiás el esquema actualizá `database.md` y el registro de migraciones; si tomás una decisión de negocio/diseño/arquitectura, agregá una entrada a `bitacora.md`. Si cambiás algo que ve el usuario (módulo, atajo, regla, permiso), actualizá el **manual del propietario** en `app/ayuda/page.tsx` (y el recorrido guiado si cambia el mostrador o el dock).
 5. **Cookies**: hoy solo necesarias (sesión) y `wp_paleta`, con aviso informativo y política en `/cookies`. Si agregás analítica, píxeles o cualquier cookie/script opcional, primero convertí el aviso en consentimiento previo y actualizá `/cookies` (ver `arquitectura.md` › Cookies).
-6. **Secretos**: `.env.local`, `dotenv-for-claude.txt` y `keys/` nunca se commitean ni se muestran en respuestas. La llave publicable de Supabase se usa solo en servidor.
-7. **Multiempresa**: toda tabla operativa (productos, clientes, facturas…) lleva `id_empresa` + RLS por membresía. El catálogo de vehículos es global.
-8. **Idioma**: UI, esquema y docs en español (voseo hondureño en textos de UI: «Intentá», «Revisá»). Esquema en `snake_case`, FKs `id_<entidad>`.
-9. **Reutilizar, no duplicar**: todo listado usa `TablaMaestra` y todo alta/edición usa `Formulario` vía una `DefRecurso`. Nada de tablas o formularios hechos a mano por pantalla.
-10. **Verificar la UI** en el sandbox `/dev/escritorio` y `/dev/bienvenida` (sesión ficticia, solo desarrollo), porque un agente no puede iniciar sesión con Google.
-11. **Diseño**: skeuomórfico de cabina automotriz; solo tokens `--wp-*`, nunca colores sueltos; easing de `--ease-*` (sin rebotes); respetar `prefers-reduced-motion`.
-12. **Facturación CAI es legal/fiscal**: no inventes reglas. Lo marcado «a verificar» en `negocio.md` debe confirmarse con el usuario antes de implementarse.
+6. **Registro de actividad**: los errores y eventos nuevos se registran con `registrar()` de `lib/registro.ts` (nunca lanza). Una tabla de negocio nueva lleva el trigger `zz_registrar_cambio`. No agregues cookies ni identificadores de visitante para el registro (rompería la regla 5).
+7. **Secretos**: `.env.local`, `dotenv-for-claude.txt` y `keys/` nunca se commitean ni se muestran en respuestas. La llave publicable de Supabase se usa solo en servidor.
+8. **Multiempresa**: toda tabla operativa (productos, clientes, facturas…) lleva `id_empresa` + RLS por membresía. El catálogo de vehículos es global.
+9. **Idioma**: UI, esquema y docs en español (voseo hondureño en textos de UI: «Intentá», «Revisá»). Esquema en `snake_case`, FKs `id_<entidad>`.
+10. **Reutilizar, no duplicar**: todo listado usa `TablaMaestra` y todo alta/edición usa `Formulario` vía una `DefRecurso`. Nada de tablas o formularios hechos a mano por pantalla.
+11. **Verificar la UI** en el sandbox `/dev/escritorio` y `/dev/bienvenida` (sesión ficticia, solo desarrollo), porque un agente no puede iniciar sesión con Google.
+12. **Diseño**: skeuomórfico de cabina automotriz; solo tokens `--wp-*`, nunca colores sueltos; easing de `--ease-*` (sin rebotes); respetar `prefers-reduced-motion`.
+13. **Facturación CAI es legal/fiscal**: no inventes reglas. Lo marcado «a verificar» en `negocio.md` debe confirmarse con el usuario antes de implementarse.
 
 ## Estado actual (actualizar al cerrar cada hito)
 
 - ✅ Login solo con Google (Supabase OAuth, PKCE) → `/inicio`.
 - ✅ Multiempresa: `empresas`, `usuarios` (sincronizado con auth), `roles`, membresías. El onboarding `/bienvenida` obliga a registrar la empresa la primera vez.
 - ✅ Paleta por empresa (la cambian dueño/admin desde la barra de menú; la cookie es solo caché).
-- ✅ Escritorio con ventanas estilo macOS (hijas, pantalla completa, mosaicos en el dock). Módulos: **Inicio**, **Cotizar y facturar** (mostrador), **Inventario** (productos con fotos y vehículos, kardex, marcas, categorías), **Ventas** (documentos, clientes, CAI), **Mantenimiento** (catálogos globales), **Usuarios** (solo dueño/admin), **Taller** (datos de la empresa + tope de descuento) y **Mi usuario** (desde el nombre en la barra).
+- ✅ Escritorio con ventanas estilo macOS (hijas, pantalla completa, mosaicos en el dock). Módulos: **Inicio**, **Cotizar y facturar** (mostrador), **Inventario** (productos con fotos y vehículos, kardex, marcas, categorías), **Ventas** (documentos, clientes, CAI), **Mantenimiento** (catálogos globales), **Usuarios** (solo dueño/admin), **Actividad** (registro; dueño/admin y admin de plataforma), **Taller** (datos de la empresa + tope de descuento) y **Mi usuario** (desde el nombre en la barra).
 - ✅ Productos (0004): árbol de categorías con sinónimos y relacionadas, marcas de repuestos, utilidad/margen, kardex, fotos en Storage, compatibilidad con vehículos, `buscar_productos()` (sirve también para el catálogo web).
 - ✅ Ventas (0005): carritos, cotizaciones y facturas con CAI, descuentos con tope por rol, anulación, impresión en `/documentos/[id]`. Reglas fiscales marcadas «a confirmar» en `negocio.md` §3.5.
 - ✅ Recorrido guiado del escritorio (primera vez; se repite desde Mi usuario) y opción de datos de ejemplo al registrar la empresa. Pasos en `app/inicio/_components/recorrido/pasos.tsx`, anclados con `data-recorrido`.
@@ -48,5 +49,6 @@ ERP web para tiendas de repuestos y **yonkers** (deshuesaderos) de pequeña y me
 - ✅ Manual del propietario en `/ayuda` (público): explica todos los módulos con piezas reales (marco de ventana, dock, odómetro). Enlaces en la portada y en la barra de menú.
 - ✅ Componentes genéricos: TablaMaestra (filtros, orden múltiple, columnas guardadas por usuario) y Formulario (relaciones en cascada).
 - ✅ Mantenimiento del catálogo de vehículos (marcas, modelos, años, carrocerías, especificaciones) y de categorías generales; edición solo para el admin de plataforma (flag en la base + `ADMINS_PLATAFORMA`). Las empresas crean categorías y marcas **propias** (0010).
-- ✅ Migraciones 0000–0005 aplicadas; **0006 a 0010 pendientes**. La empresa del usuario tiene datos de prueba (45 productos, compatibilidades, 3 clientes; sin CAI). Otras empresas los cargan con el botón «Cargar datos de ejemplo» de Taller (`cargar_datos_demo`, 0007).
+- ✅ **Registro de actividad** (0011): visitas (anónimas incluidas), sesiones con IP y dispositivo, errores del servidor y del navegador, y auditoría de cambios por trigger; módulo **Actividad** (dueño/admin: su empresa; admin de plataforma: todo). Ver `arquitectura.md` › Registro de actividad.
+- ✅ Migraciones 0000–0005 aplicadas; **0006 a 0011 pendientes**. La empresa del usuario tiene datos de prueba (45 productos, compatibilidades, 3 clientes; sin CAI). Otras empresas los cargan con el botón «Cargar datos de ejemplo» de Taller (`cargar_datos_demo`, 0007).
 - ⏭️ Siguiente propuesto: confirmar reglas CAI con el contador; compras/entradas de inventario; catálogo web público por empresa (usa `buscar_productos` sin sesión).

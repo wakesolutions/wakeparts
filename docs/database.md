@@ -283,6 +283,17 @@ Totales: `bruto = cantidad·precio`; `neto = bruto·(1 − desc. línea)·(1 −
 | `public.tg_normalizar_texto()` | Trigger genérico; recibe como argumentos las columnas a normalizar. |
 | `public.tg_especificaciones_motor_cc()` | Trigger: completa `motor_cc` si viene null. |
 
+## Registro de actividad (0011)
+
+### `registros`
+
+Solo se agrega (sin FKs, para sobrevivir a borrados). `tipo`: `visita` · `sesion` · `error` · `cambio` · `accion`; `nivel`: `info` · `aviso` · `error`; `evento` (`pagina.vista`, `sesion.inicio|cierre|fallo`, `error.navegador`, `error.servidor.<render|route|action|proxy>`, `<tabla>.crear|editar|eliminar`). Además: `id_usuario`, `correo`, `id_empresa`, `tabla`, `id_registro`, `ip inet`, `dispositivo` («Celular · Android 14 · Chrome 140»), `agente`, `pais`, `ciudad`, `ruta`, `metodo`, `referente`, `entorno`, `datos jsonb` (cambios `{campo: {antes, despues}}`, fila creada/eliminada, pila del error…).
+
+- **Escritura**: la app con la llave secreta (`lib/registro.ts`: visitas, sesiones, errores) y el trigger `zz_registrar_cambio` → `registrar_cambio()` (security definer) en empresas, empresas_usuarios, invitaciones, productos, productos_imagenes, productos_compatibilidades, categorias, categorias_relacionadas, marcas_productos, clientes, cai, documentos y el catálogo de vehículos. En `UPDATE` guarda solo las columnas cambiadas (ignora `actualizado_en`) y no registra si no cambió nada. IP y dispositivo salen de los headers `x-cliente-*` que manda `lib/supabase/server.ts`. Si falla, solo emite un `warning`: nunca bloquea la operación.
+- **RLS**: lectura para admin de plataforma (todo) y dueño/admin (filas de su empresa). Nadie inserta, edita ni borra desde la API.
+- `v_registros` (security invoker): nombre del usuario, `nombre_empresa_visible()`, `host(ip)`, `ubicacion`.
+- `limpiar_registros(p_dias_visitas = 180, p_dias_resto = 730)`: borra vencidos (solo admin de plataforma o sin sesión, p. ej. pg_cron). Hoy se ejecuta a mano.
+
 ## Esquema `respaldo`
 
 Copias de filas eliminadas por migraciones (`<tabla>_<NNNN>`). No expuesto a la API. Se puede vaciar cuando ya no haga falta.

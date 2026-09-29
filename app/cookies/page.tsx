@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import Link from "next/link";
 import { PaginaLegal } from "../_publico/legal";
 import styles from "../_publico/publico.module.css";
 
@@ -114,6 +115,13 @@ export default function Cookies() {
         Las fuentes tipográficas se sirven desde nuestro propio sitio. Las fotos de productos se guardan en Supabase
         Storage y se cargan sin cookies. El inicio de sesión lo hace Google: al tocar «Encender» pasás por su página y
         aplican sus propias políticas.
+      </p>
+
+      <h2 className={styles.legalTitulo}>Registro de actividad</h2>
+      <p>
+        Guardamos en nuestros servidores un registro de visitas, sesiones y errores (con IP y tipo de dispositivo) para
+        seguridad y soporte. <strong>No usa cookies</strong> ni identificadores en tu navegador. Los detalles están en
+        la <Link href="/privacidad">política de privacidad</Link>.
       </p>
 
       <h2 className={styles.legalTitulo}>Cómo borrarlas</h2>

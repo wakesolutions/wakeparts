@@ -34,10 +34,10 @@ const DATOS = [
     para: "Emitir documentos a su nombre. Los decide y administra tu empresa.",
   },
   {
-    que: "Datos técnicos",
+    que: "Registro de actividad",
     detalle:
-      "Registros de acceso del servidor (fecha, dirección IP, navegador) y las cookies descritas en la política de cookies.",
-    para: "Mantener tu sesión, la seguridad y resolver fallas.",
+      "De cada página que se abre (también sin iniciar sesión), cada inicio o cierre de sesión y cada error: fecha y hora, dirección IP, tipo de dispositivo, sistema y navegador, ciudad y país aproximados, la página y de dónde venías. De cada cambio de datos: quién lo hizo y el valor anterior y el nuevo.",
+    para: "Seguridad, detectar accesos indebidos, resolver fallas y saber qué pasó en cada momento.",
   },
 ];
 
@@ -123,11 +123,31 @@ export default function Privacidad() {
         lo hizo.
       </p>
 
+      <h2 className={styles.legalTitulo}>Registro de actividad</h2>
+      <p>
+        Para proteger tu cuenta y poder investigar fallas, Wake Parts guarda un registro de lo que pasa en el sistema:
+        visitas a las páginas, inicios y cierres de sesión, errores y cambios de datos, con la dirección IP y el tipo
+        de dispositivo. Esto se hace en nuestros servidores, <strong>sin cookies ni rastreadores</strong> de terceros, y
+        no se usa para publicidad.
+      </p>
+      <ul className={styles.legalLista}>
+        <li>
+          <strong>El dueño y los administradores</strong> de tu empresa ven los inicios de sesión y los cambios de su
+          empresa (quién, cuándo, desde qué IP y dispositivo).
+        </li>
+        <li>
+          <strong>Nuestro equipo</strong> ve todo el registro, incluidas las visitas de personas sin sesión, solo para
+          seguridad, soporte y mejorar el servicio.
+        </li>
+        <li>Nadie puede editar el registro; solo se borra al vencer su plazo.</li>
+      </ul>
+
       <h2 className={styles.legalTitulo}>Cuánto tiempo los guardamos</h2>
       <p>
         Mientras tu empresa use Wake Parts. Las facturas y su numeración CAI se conservan aunque se anulen, porque son
         documentos fiscales. Si dejás de usar el servicio, podés pedirnos una copia de tus datos y que los borremos,
-        salvo lo que una ley nos obligue a conservar.
+        salvo lo que una ley nos obligue a conservar. En el registro de actividad, las visitas se guardan hasta 6 meses y
+        el resto (sesiones, errores y cambios) hasta 2 años.
       </p>
 
       <h2 className={styles.legalTitulo}>Tus derechos</h2>

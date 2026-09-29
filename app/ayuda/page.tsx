@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
+  IconoActividad,
   IconoEquipo,
   IconoInicio,
   IconoInventario,
@@ -47,6 +48,7 @@ const PERMISOS: [string, boolean, boolean, boolean][] = [
   ["Registrar CAI", true, true, false],
   ["Editar el taller y su paleta", true, true, false],
   ["Invitar y administrar usuarios", true, true, false],
+  ["Ver la actividad: quién entró y qué cambió", true, true, false],
   ["Cambiar el rol de un dueño", true, false, false],
 ];
 
@@ -161,6 +163,7 @@ export default function Manual() {
               <IconoDock icono={<IconoVentas />} nombre="Ventas" />
               <IconoDock icono={<IconoLlave />} nombre="Mantenim." />
               <IconoDock icono={<IconoEquipo />} nombre="Usuarios" />
+              <IconoDock icono={<IconoActividad />} nombre="Actividad" />
               <IconoDock icono={<IconoTaller />} nombre="Taller" />
             </ul>
             <div className={styles.dosColumnas}>
@@ -629,6 +632,13 @@ export default function Manual() {
             <Nota titulo="Reglas que cuida la base de datos">
               Nadie se cambia su propio rol, solo un dueño toca a otro dueño y siempre queda al menos un dueño activo.
             </Nota>
+            <h3 className={styles.subtitulo}>Actividad</h3>
+            <p>
+              El módulo <em>Actividad</em> (solo dueño y administrador) es la caja negra del taller: cada inicio y cierre
+              de sesión con su <strong>IP y dispositivo</strong>, y cada producto, precio, cliente, factura, CAI o
+              usuario que alguien creó, editó o eliminó, con la fecha y hora exactas. Abrí una fila para ver{" "}
+              <strong>el antes y el después</strong> de cada campo. Nadie puede editar ni borrar ese registro.
+            </p>
           </Capitulo>
 
           {/* 09 ------------------------------------------------------------ */}

@@ -37,7 +37,19 @@ const fechaHora = new Intl.DateTimeFormat("es-HN", {
   minute: "2-digit",
 });
 
+const fechaHoraSegundos = new Intl.DateTimeFormat("es-HN", {
+  timeZone: ZONA,
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  hour: "2-digit",
+  minute: "2-digit",
+  second: "2-digit",
+});
+
 export const fecha = (v: string | Date) => fechaLarga.format(new Date(v));
+/** Con segundos, hora de Honduras (registro de actividad). */
+export const fechaHoraExacta = (v: string | Date) => fechaHoraSegundos.format(new Date(v));
 export const fechaYHora = (v: string | Date) => fechaHora.format(new Date(v));
 /** Fecha sin hora (AAAA-MM-DD) mostrada tal cual, sin corrimiento de zona. */
 export const fechaDia = (v: string) => v.slice(0, 10).split("-").reverse().join("/");
