@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Arranque } from "./_components/arranque";
 
 const ERRORES: Record<string, string> = {
@@ -67,6 +68,13 @@ export default async function Login({ searchParams }: PageProps<"/">) {
           >
             El acceso es solo con tu cuenta de Google.
           </p>
+          <Link
+            href="/ayuda"
+            className="wp-entra mt-3 font-mono text-[0.68rem] tracking-[0.2em] text-wp-ink-3 uppercase underline decoration-wp-accent/60 underline-offset-4 transition-colors hover:text-wp-ink"
+            style={{ animationDelay: "1400ms" }}
+          >
+            Leé el manual del propietario
+          </Link>
         </section>
       </div>
     </main>

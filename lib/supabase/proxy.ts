@@ -2,7 +2,7 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
 // /dev = sandbox de UI con sesión ficticia, solo en desarrollo.
-const RUTAS_PUBLICAS = ["/", "/auth", ...(process.env.NODE_ENV === "development" ? ["/dev"] : [])];
+const RUTAS_PUBLICAS = ["/", "/auth", "/ayuda", ...(process.env.NODE_ENV === "development" ? ["/dev"] : [])];
 
 function esPublica(pathname: string) {
   return RUTAS_PUBLICAS.some((ruta) =>

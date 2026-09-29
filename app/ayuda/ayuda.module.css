@@ -1,0 +1,823 @@
+/* Manual del propietario: página larga de lectura sobre fibra de carbono,
+   con índice lateral tipo tablero y figuras hechas con las piezas reales. */
+
+@media (prefers-reduced-motion: no-preference) {
+  :global(html):has(.pagina) {
+    scroll-behavior: smooth;
+  }
+}
+
+.pagina {
+  min-height: 100dvh;
+  color: var(--wp-ink);
+}
+
+/* ---------------------------------------------------------------- barra --- */
+
+.barra {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  height: 44px;
+  padding: 0 1rem;
+  font-size: 0.8rem;
+}
+
+.marca {
+  font-weight: 800;
+  font-variation-settings: "wdth" 70;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.barraTitulo {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.volver {
+  margin-left: auto;
+  padding: 0.3rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-on-accent);
+  background: linear-gradient(180deg, var(--wp-accent-hi), var(--wp-accent) 55%, var(--wp-accent-lo));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    0 0 12px -2px var(--wp-accent-glow);
+  transition: transform 240ms var(--ease-quart);
+}
+
+.volver:hover {
+  transform: translate3d(0, -1px, 0);
+}
+
+.volver:focus-visible,
+.indice a:focus-visible,
+.marca:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 3px;
+}
+
+/* ----------------------------------------------------------------- hero --- */
+
+.hero {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: clamp(3rem, 9vw, 7rem) 1rem clamp(2.5rem, 6vw, 4.5rem);
+}
+
+.sobretitulo {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--wp-accent);
+}
+
+.heroTitulo {
+  margin-top: 1.2rem;
+  font-size: clamp(3.6rem, 13vw, 11.5rem);
+  font-weight: 800;
+  font-variation-settings: "wdth" 58;
+  line-height: 0.8;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+}
+
+.heroTexto {
+  max-width: 44ch;
+  margin-top: 2rem;
+  font-size: clamp(1.05rem, 1.6vw, 1.25rem);
+  line-height: 1.6;
+  color: var(--wp-ink-2);
+  text-wrap: pretty;
+}
+
+/* ---------------------------------------------------------------- cuerpo --- */
+
+.cuerpo {
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 1rem 6rem;
+}
+
+.indice {
+  position: sticky;
+  top: 72px;
+  align-self: start;
+}
+
+.indiceEtiqueta {
+  margin-bottom: 0.9rem;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.indice ol {
+  display: grid;
+  gap: 2px;
+  padding: 0;
+  list-style: none;
+}
+
+.indice a {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.45rem 0.6rem 0.45rem 1.1rem;
+  border-radius: 8px;
+  font-size: 0.86rem;
+  color: var(--wp-ink-2);
+  transition:
+    color 200ms var(--ease-quart),
+    background-color 200ms var(--ease-quart);
+}
+
+/* LED apagado a la izquierda; se enciende en el capítulo que se lee. */
+.indice a::before {
+  content: "";
+  position: absolute;
+  left: 0.3rem;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin-top: -2.5px;
+  border-radius: 50%;
+  background: var(--wp-line);
+  transition:
+    background-color 240ms var(--ease-quart),
+    box-shadow 240ms var(--ease-quart);
+}
+
+.indice a:hover {
+  color: var(--wp-ink);
+  background: var(--wp-hover);
+}
+
+.indice a[aria-current] {
+  color: var(--wp-ink);
+  background: var(--wp-sel);
+}
+
+.indice a[aria-current]::before {
+  background: var(--wp-accent);
+  box-shadow: 0 0 8px 1px var(--wp-accent-glow);
+}
+
+.indiceNumero {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--wp-ink-3);
+}
+
+.contenido {
+  display: grid;
+  gap: clamp(4rem, 9vw, 7rem);
+  min-width: 0;
+}
+
+/* -------------------------------------------------------------- capítulo --- */
+
+.capitulo {
+  scroll-margin-top: 72px;
+}
+
+.capituloCabecera {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: end;
+  gap: 1.2rem;
+  padding-bottom: 1.4rem;
+  margin-bottom: 2rem;
+  border-bottom: 1px solid var(--wp-line);
+}
+
+.capituloNumero {
+  font-family: var(--font-mono);
+  font-size: clamp(3rem, 7vw, 5.2rem);
+  font-weight: 700;
+  line-height: 0.8;
+  letter-spacing: -0.06em;
+  color: transparent;
+  -webkit-text-stroke: 1px color-mix(in oklab, var(--wp-accent) 70%, transparent);
+}
+
+.capituloTitulo {
+  font-size: clamp(2rem, 4.6vw, 3.6rem);
+  font-weight: 800;
+  font-variation-settings: "wdth" 62;
+  line-height: 0.85;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+
+.capituloBajada {
+  margin-top: 0.6rem;
+  font-size: 1rem;
+  color: var(--wp-ink-2);
+}
+
+.capituloCuerpo {
+  display: grid;
+  gap: 1.8rem;
+  max-width: 980px;
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: var(--wp-ink-2);
+}
+
+.capituloCuerpo strong {
+  color: var(--wp-ink);
+  font-weight: 650;
+}
+
+.capituloCuerpo em {
+  font-style: normal;
+  color: var(--wp-ink);
+}
+
+.capituloCuerpo div > p + p {
+  margin-top: 0.9rem;
+}
+
+.capituloCuerpo div > .subtitulo:not(:first-child) {
+  margin-top: 1.6rem;
+}
+
+.dosColumnas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+  gap: clamp(1.5rem, 4vw, 3rem);
+}
+
+.subtitulo {
+  margin-bottom: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--wp-accent-hi);
+}
+
+.lista {
+  display: grid;
+  gap: 0.5rem;
+  padding: 0;
+  list-style: none;
+}
+
+.lista li {
+  position: relative;
+  padding-left: 1rem;
+}
+
+.lista li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.72em;
+  width: 6px;
+  height: 1px;
+  background: var(--wp-ink-3);
+}
+
+.pasos {
+  display: grid;
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+  counter-reset: paso;
+}
+
+.pasos li {
+  position: relative;
+  padding: 1rem 1.1rem 1rem 3.4rem;
+  border-radius: 12px;
+  background: var(--wp-panel);
+  box-shadow:
+    inset 0 0 0 1px var(--wp-line),
+    0 10px 24px -18px rgb(0 0 0 / 0.7);
+  counter-increment: paso;
+}
+
+.pasos li::before {
+  content: counter(paso);
+  position: absolute;
+  left: 1rem;
+  top: 0.95rem;
+  display: grid;
+  place-items: center;
+  width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 50%;
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--wp-on-accent);
+  background: linear-gradient(180deg, var(--wp-accent-hi), var(--wp-accent-lo));
+  box-shadow: 0 0 10px -2px var(--wp-accent-glow);
+}
+
+.codigo,
+.mono {
+  font-family: var(--font-mono);
+  font-size: 0.86em;
+}
+
+.codigo {
+  padding: 0.05rem 0.35rem;
+  border-radius: 5px;
+  color: var(--wp-ink);
+  background: var(--wp-field);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.tecla {
+  display: inline-block;
+  min-width: 1.7em;
+  padding: 0.08rem 0.4rem 0.14rem;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-align: center;
+  color: var(--wp-ink);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 2px 0 var(--wp-bevel-dark),
+    0 0 0 1px rgb(0 0 0 / 0.35);
+}
+
+/* ------------------------------------------------------------------ LED --- */
+
+.led {
+  --c: var(--wp-ok);
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  vertical-align: 0.05em;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 7px 0 color-mix(in oklab, var(--c) 70%, transparent);
+}
+
+.led[data-tono="aviso"] {
+  --c: var(--wp-aviso);
+}
+
+.led[data-tono="acento"] {
+  --c: var(--wp-accent);
+}
+
+.led[data-estado="medio"] {
+  background: linear-gradient(90deg, var(--c) 50%, color-mix(in oklab, var(--c) 22%, transparent) 50%);
+  box-shadow: 0 0 5px 0 color-mix(in oklab, var(--c) 45%, transparent);
+}
+
+.led[data-estado="no"] {
+  background: color-mix(in oklab, var(--c) 22%, transparent);
+  box-shadow: none;
+}
+
+/* ----------------------------------------------------------------- nota --- */
+
+.nota {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.9rem;
+  padding: 1rem 1.1rem;
+  border-radius: 12px;
+  background: var(--wp-panel);
+  box-shadow:
+    inset 3px 0 0 var(--c),
+    inset 0 0 0 1px var(--wp-line);
+  --c: var(--wp-ink-3);
+}
+
+.nota[data-tono="aviso"] {
+  --c: var(--wp-aviso);
+}
+
+.notaLed {
+  width: 9px;
+  height: 9px;
+  margin-top: 0.4rem;
+  border-radius: 50%;
+  background: var(--c);
+  box-shadow: 0 0 9px 1px color-mix(in oklab, var(--c) 60%, transparent);
+}
+
+.notaTitulo {
+  font-weight: 700;
+  color: var(--wp-ink);
+}
+
+.notaTexto {
+  margin-top: 0.2rem;
+  font-size: 0.92rem;
+}
+
+/* --------------------------------------------------------------- figuras --- */
+
+.marco {
+  /* La piel de ventana real, pero en flujo de página. */
+  position: relative;
+  width: 100%;
+  margin: 0;
+  pointer-events: none;
+  will-change: auto;
+}
+
+.marcoCuerpo {
+  padding: 1.1rem;
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.dock {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1.1rem 1.4rem;
+  padding: 1.4rem 1.2rem 1rem;
+  border-radius: 22px;
+  background: color-mix(in oklab, var(--wp-panel) 70%, transparent);
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 0 0 1px var(--wp-line),
+    0 20px 40px -24px rgb(0 0 0 / 0.8);
+  list-style: none;
+}
+
+.dockItem {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+}
+
+.dockApp {
+  cursor: default;
+}
+
+.dockApp:hover {
+  transform: none;
+}
+
+.dockNombre {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.grupos {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0;
+  list-style: none;
+}
+
+.grupos li {
+  display: grid;
+  grid-template-columns: 7.2rem minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.etiqueta {
+  --c: var(--wp-ink-3);
+  justify-self: start;
+  padding: 0.18rem 0.55rem;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--c);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c) 55%, transparent);
+  background: color-mix(in oklab, var(--c) 10%, transparent);
+}
+
+.etiqueta[data-tono="ok"] {
+  --c: var(--wp-ok);
+}
+
+.etiqueta[data-tono="aviso"] {
+  --c: var(--wp-aviso);
+}
+
+.etiqueta[data-tono="acento"] {
+  --c: var(--wp-accent-hi);
+}
+
+.ticketDemo {
+  display: grid;
+  gap: 0.9rem;
+  container-type: inline-size;
+}
+
+.ticketLineas {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0;
+  list-style: none;
+}
+
+.ticketLineas li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 0.1rem;
+  border-bottom: 1px dashed var(--wp-line);
+  transition:
+    opacity 420ms var(--ease-expo),
+    transform 420ms var(--ease-expo);
+}
+
+.ticketLineas li[data-fuera] {
+  opacity: 0.18;
+  transform: translate3d(6px, 0, 0);
+}
+
+.ticketTotales {
+  display: grid;
+  gap: 0.2rem;
+  font-size: 0.8rem;
+}
+
+.ticketTotales div {
+  display: flex;
+  justify-content: space-between;
+}
+
+.ticketTotales dt {
+  color: var(--wp-ink-3);
+}
+
+.ticketTotales dd {
+  font-family: var(--font-mono);
+}
+
+.niveles {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
+  margin: 0.6rem 0 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.niveles li {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.6rem 0.7rem;
+  border-radius: 8px;
+  background: var(--wp-field);
+  box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.35), inset 0 0 0 1px var(--wp-line);
+}
+
+/* De general a específico: el LED de arriba se enciende más en cada nivel. */
+.niveles li:nth-child(1) {
+  box-shadow: inset 0 2px 0 color-mix(in oklab, var(--wp-accent) 30%, transparent), inset 0 0 0 1px var(--wp-line);
+}
+.niveles li:nth-child(2) {
+  box-shadow: inset 0 2px 0 color-mix(in oklab, var(--wp-accent) 55%, transparent), inset 0 0 0 1px var(--wp-line);
+}
+.niveles li:nth-child(3) {
+  box-shadow: inset 0 2px 0 color-mix(in oklab, var(--wp-accent) 80%, transparent), inset 0 0 0 1px var(--wp-line);
+}
+.niveles li:nth-child(4) {
+  box-shadow: inset 0 2px 0 var(--wp-accent), inset 0 0 0 1px var(--wp-line), 0 -4px 12px -8px var(--wp-accent-glow);
+}
+
+.niveles span {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wp-ink);
+}
+
+.niveles small {
+  font-size: 0.74rem;
+  color: var(--wp-ink-3);
+}
+
+.numeracion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.3rem;
+  margin: 0.8rem 0 1rem;
+  padding: 1rem 1.1rem;
+  border-radius: 10px;
+  font-family: var(--font-mono);
+  color: var(--wp-lcd-ink);
+  background:
+    repeating-linear-gradient(0deg, rgb(0 0 0 / 0.16) 0 1px, transparent 1px 3px),
+    var(--wp-lcd);
+  box-shadow: inset 0 2px 8px rgb(0 0 0 / 0.7);
+}
+
+.numeracion span {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.numeracion b {
+  font-size: clamp(1.05rem, 2.2vw, 1.35rem);
+  letter-spacing: 0.04em;
+  text-shadow: 0 0 10px color-mix(in oklab, var(--wp-lcd-ink) 60%, transparent);
+}
+
+.numeracion small {
+  font-size: 0.56rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  opacity: 0.6;
+}
+
+.numeracion i {
+  font-style: normal;
+  font-size: 1.2rem;
+  opacity: 0.5;
+}
+
+/* ---------------------------------------------------------------- tablas --- */
+
+.tablaScroll {
+  overflow-x: auto;
+}
+
+.tabla {
+  width: 100%;
+  max-width: 640px;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.tabla caption {
+  margin-bottom: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-align: left;
+  text-transform: uppercase;
+  color: var(--wp-accent-hi);
+}
+
+.tabla th,
+.tabla td {
+  padding: 0.55rem 0.7rem;
+  border-bottom: 1px solid var(--wp-line);
+  text-align: left;
+  vertical-align: middle;
+}
+
+.tabla thead th {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.tabla tbody th {
+  font-weight: 500;
+  color: var(--wp-ink);
+}
+
+.celdaLed {
+  text-align: center !important;
+}
+
+.glosario {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--wp-line);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.glosario div {
+  padding: 1rem 1.1rem;
+  background: var(--wp-panel);
+}
+
+.glosario dt {
+  font-weight: 800;
+  font-variation-settings: "wdth" 70;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--wp-ink);
+}
+
+.glosario dd {
+  margin-top: 0.25rem;
+  font-size: 0.88rem;
+}
+
+.pie {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-top: 2rem;
+  border-top: 1px solid var(--wp-line);
+  color: var(--wp-ink-3);
+}
+
+.pie .volver {
+  margin-left: 0;
+}
+
+/* --------------------------------------------------------------- móvil --- */
+
+@media (max-width: 900px) {
+  .cuerpo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  /* El índice se vuelve una tira horizontal fija bajo la barra. */
+  .indice {
+    top: 44px;
+    z-index: 10;
+    margin: 0 -1rem;
+    padding: 0.5rem 1rem;
+    overflow-x: auto;
+    background: color-mix(in oklab, var(--wp-bg) 88%, transparent);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 1px 0 var(--wp-line);
+    scrollbar-width: none;
+  }
+
+  .indiceEtiqueta {
+    display: none;
+  }
+
+  .indice ol {
+    display: flex;
+    gap: 0.25rem;
+  }
+
+  .indice a {
+    white-space: nowrap;
+    padding: 0.35rem 0.7rem 0.35rem 1rem;
+    font-size: 0.8rem;
+  }
+
+  .capitulo {
+    scroll-margin-top: 104px;
+  }
+
+  .dosColumnas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .barraTitulo {
+    display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .niveles {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .grupos li {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.3rem;
+  }
+
+  .capituloCabecera {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.5rem;
+  }
+}

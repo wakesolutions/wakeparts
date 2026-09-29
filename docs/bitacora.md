@@ -2,8 +2,9 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
-## 2026-09-29 · Ventanas maximizadas por defecto y datos de ejemplo
+## 2026-09-29 · Ventanas maximizadas por defecto, datos de ejemplo y manual
 
+- **Manual del propietario en `/ayuda`** (pedido del usuario): página pública (sirve a quien todavía no entra) con 10 capítulos, índice con LED que sigue la lectura, y figuras hechas con las piezas reales (piel de ventana, íconos del dock, odómetro del mostrador, LEDs) para que el manual se vea como la app. Enlaces: portada y barra de menú (pestaña nueva). Los íconos de módulos se movieron a `modulos/iconos-modulos.tsx` para compartirlos.
 - **Botón «Cargar datos de ejemplo» en Taller** (pedido del usuario, para que otros talleres prueben): función `cargar_datos_demo` en la base (0007) en vez de un script con la llave secreta, así cualquier dueño/admin la corre sobre su propia empresa con sus permisos (RLS). Idempotente y sin borrar nada. No crea CAI porque es un dato fiscal real.
 
 - **Módulos abren maximizados, sin API de pantalla completa** (pedido del usuario): cada módulo abre ocupando todo el navegador, tapando barra de menú y dock; solo queda el semáforo. Se quitó `requestFullscreen` (el usuario no quería el efecto F11). Para volver al escritorio se minimiza o se achica con el botón verde.

@@ -113,6 +113,9 @@ export function BarraMenu() {
           ) : null}
           <span className={styles.nombre}>{usuario.nombre}</span>
         </button>
+        <a href="/ayuda" target="_blank" rel="noopener" className={styles.manual} title="Manual del propietario">
+          Manual
+        </a>
         <form action={cerrarSesion}>
           <button type="submit" className={styles.apagar}>
             Apagar

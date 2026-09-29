@@ -70,7 +70,7 @@ Solo Google, vía Supabase Auth con PKCE, todo del lado del servidor:
 3. `proxy.ts` corre en cada request (menos estáticos): refresca el token con `getClaims()` y redirige:
    - sin sesión y ruta no pública → `/`
    - con sesión en `/` → `/inicio`
-   - Rutas públicas: `/` y `/auth/*`. **Al agregar el catálogo web público, sumarlo a `RUTAS_PUBLICAS` en `lib/supabase/proxy.ts`.**
+   - Rutas públicas: `/`, `/auth/*` y `/ayuda` (manual del propietario). **Al agregar el catálogo web público, sumarlo a `RUTAS_PUBLICAS` en `lib/supabase/proxy.ts`.**
 4. `/inicio` usa `obtenerSesion()`: sin sesión → `/`; **sin empresa → `/bienvenida`** (registro obligatorio, RPC `crear_empresa`); con empresa → escritorio.
 5. Las páginas protegidas vuelven a validar con `supabase.auth.getUser()`: el proxy es una comprobación optimista, no la autorización real. Cada Server Action que modifique datos debe verificar el usuario.
 
