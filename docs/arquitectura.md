@@ -73,13 +73,22 @@ Convenciones:
 
 ## SEO y páginas públicas
 
-- **Públicas e indexables**: `/` (landing + login), `/honduras`, `/honduras/[departamento]` (`generateStaticParams`, `dynamicParams = false`) y `/ayuda`. Deben estar en `RUTAS_PUBLICAS` del proxy, igual que `robots.txt`, `sitemap.xml`, `manifest.webmanifest`, `opengraph-image`, `twitter-image`, `icon` y `apple-icon`.
+- **Públicas e indexables**: `/` (landing + login), `/honduras`, `/honduras/[departamento]` (`generateStaticParams`, `dynamicParams = false`), `/ayuda` y las legales `/terminos`, `/privacidad` y `/cookies`. Deben estar en `RUTAS_PUBLICAS` del proxy, igual que `robots.txt`, `sitemap.xml`, `manifest.webmanifest`, `opengraph-image`, `twitter-image`, `icon` y `apple-icon`.
 - **Privadas**: `/inicio`, `/bienvenida`, `/documentos/*` y `/dev/*` llevan `robots: { index: false }` y están en `Disallow` de `robots.txt`.
 - `app/layout.tsx`: `metadataBase` = `URL_SITIO` (`NEXT_PUBLIC_SITE_URL`; en Vercel, el dominio de producción), plantilla de título «%s · Wake Parts», Open Graph `es_HN`, tarjeta grande de X, `geo.region` y `<html lang="es-HN">`. Cada página pública define su `canonical`.
 - **JSON-LD** (`<JsonLd>`, sanea `<`): portada = Organization + WebSite + SoftwareApplication (con los 18 departamentos en `areaServed`) + FAQPage; departamento = BreadcrumbList + Service (área y ciudades) + FAQPage; manual = TechArticle + BreadcrumbList.
 - Imágenes para redes generadas con `next/og` (`app/_publico/imagen-og.tsx`), una por página pública. Íconos: `app/icon.svg` (fuente), `favicon.ico` y PNG del manifest generados desde él con `sharp`.
 - **Vitrina de capturas** (portada, sección «Así se ve por dentro»): imágenes reales del sandbox en `public/capturas/*.webp`, definidas en `app/_publico/capturas.ts` (también van al JSON-LD como `screenshot`). Si cambia la interfaz, regeneralas con `npm run dev` y luego `npm run capturas` (`scripts/capturar-landing.mjs`: `playwright-core` maneja el Chrome o Edge instalado, sin descargar navegadores; `BASE_URL`, `CHROME_PATH`).
+- **Es una demo**: la portada lo aclara (nota bajo el arranque y sección `#contacto` con `BloqueDemo`: precio a convenir, soporte 24/7, ajustes a la medida, WhatsApp y correo). El contacto sale de `CONTACTO` en `lib/sitio.ts` (también en el pie, la FAQ de precio, el `contactPoint` del JSON-LD y las páginas legales); nunca escribas el número o el correo sueltos.
+- **Páginas legales**: `PaginaLegal` (`app/_publico/legal.tsx`) da el marco común (h1, resumen, contacto, enlaces cruzados, JSON-LD). `PAGINAS_LEGALES` alimenta el sitemap; `LEGAL_ACTUALIZADO` es la fecha visible: cambiala al editar cualquier texto legal. Los textos no fueron revisados por un abogado.
 - Un departamento nuevo o un cambio de ciudades: `DEPARTAMENTOS` en `lib/sitio.ts` (el sitemap, los enlaces y las imágenes salen de ahí). Cada departamento tiene un párrafo propio (`contexto`) para no duplicar contenido.
+
+## Cookies y datos locales
+
+- **Cookies (todas necesarias o de preferencia):** sesión de Supabase (`sb-…-auth-token`, hasta cerrar sesión, máx. 400 días; `…-code-verifier` solo durante el login) y `wp_paleta` (1 año). Un visitante que no inicia sesión no recibe ninguna.
+- **localStorage** (no viaja al servidor): `wp:ventanas`, `wp:<módulo>:seccion`, `wp:recorrido:<usuario>`, `wp:aviso-cookies`.
+- Sin analítica, publicidad ni terceros; las fuentes se sirven desde el sitio (`next/font`).
+- `components/ui/aviso-cookies.tsx` (en `app/layout.tsx`): aviso **informativo** una sola vez + política en `/cookies` (pública, en sitemap). **Si se agrega una cookie o script opcional (analítica, píxeles, chat), el aviso debe pasar a pedir consentimiento ANTES de cargarlo y hay que actualizar `/cookies`.**
 
 ## Autenticación
 
@@ -101,6 +110,9 @@ Configuración externa necesaria en Supabase → Authentication → URL Configur
 | Variable | Uso |
 |---|---|
 | `ADMINS_PLATAFORMA` | Correos (separados por coma) que pueden editar el catálogo global. Segundo candado de la app sobre el flag `usuarios.es_admin_plataforma`; sin la variable, solo `miltonbarrientos2@gmail.com`. No es secreta. |
+| `NEXT_PUBLIC_CONTACTO_WHATSAPP` | WhatsApp comercial tal como se muestra. Default `+504 8901-5974`; el enlace `wa.me` se arma con sus dígitos. |
+| `NEXT_PUBLIC_CONTACTO_EMAIL` | Correo comercial. Default `ventas@wake.solutions`. |
+| `NEXT_PUBLIC_RESPONSABLE` | Quién ofrece Wake Parts en `/terminos` y `/privacidad`. Default `Wake Solutions`. |
 | `NEXT_PUBLIC_SITE_URL` | URL pública canónica: `metadataBase`, sitemap, robots, JSON-LD; respaldo para `redirectTo` si no hay header `host`. |
 | `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto Supabase. |
 | `SUPABASE_PUBLISHABLE_KEY` | Llave publicable. **Solo servidor** hoy. Si algún día hace falta un cliente de navegador (realtime), exponer como `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. |

@@ -24,13 +24,14 @@ ERP web para tiendas de repuestos y **yonkers** (deshuesaderos) de pequeña y me
 2. **Base de datos = migraciones manuales.** Todo cambio va en `supabase/migrations/NNNN_descripcion.sql`, **idempotente** y dentro de `begin; … commit;`. Al terminar, decile al usuario exactamente qué archivo ejecutar en el SQL Editor de Supabase. Nunca edites una migración ya aplicada (salvo para hacerla idempotente sin cambiar su efecto).
 3. **Antes de una migración que toca datos, mirá los datos reales** (lectura vía REST con la llave secreta de `.env.local`) y, si podés, probala dos veces en PGlite con una copia. Las tablas del catálogo tienen ~17 000 filas reales.
 4. **Documentá mientras trabajás**: si cambiás el esquema actualizá `database.md` y el registro de migraciones; si tomás una decisión de negocio/diseño/arquitectura, agregá una entrada a `bitacora.md`. Si cambiás algo que ve el usuario (módulo, atajo, regla, permiso), actualizá el **manual del propietario** en `app/ayuda/page.tsx` (y el recorrido guiado si cambia el mostrador o el dock).
-5. **Secretos**: `.env.local`, `dotenv-for-claude.txt` y `keys/` nunca se commitean ni se muestran en respuestas. La llave publicable de Supabase se usa solo en servidor.
-6. **Multiempresa**: toda tabla operativa (productos, clientes, facturas…) lleva `id_empresa` + RLS por membresía. El catálogo de vehículos es global.
-7. **Idioma**: UI, esquema y docs en español (voseo hondureño en textos de UI: «Intentá», «Revisá»). Esquema en `snake_case`, FKs `id_<entidad>`.
-8. **Reutilizar, no duplicar**: todo listado usa `TablaMaestra` y todo alta/edición usa `Formulario` vía una `DefRecurso`. Nada de tablas o formularios hechos a mano por pantalla.
-9. **Verificar la UI** en el sandbox `/dev/escritorio` y `/dev/bienvenida` (sesión ficticia, solo desarrollo), porque un agente no puede iniciar sesión con Google.
-10. **Diseño**: skeuomórfico de cabina automotriz; solo tokens `--wp-*`, nunca colores sueltos; easing de `--ease-*` (sin rebotes); respetar `prefers-reduced-motion`.
-11. **Facturación CAI es legal/fiscal**: no inventes reglas. Lo marcado «a verificar» en `negocio.md` debe confirmarse con el usuario antes de implementarse.
+5. **Cookies**: hoy solo necesarias (sesión) y `wp_paleta`, con aviso informativo y política en `/cookies`. Si agregás analítica, píxeles o cualquier cookie/script opcional, primero convertí el aviso en consentimiento previo y actualizá `/cookies` (ver `arquitectura.md` › Cookies).
+6. **Secretos**: `.env.local`, `dotenv-for-claude.txt` y `keys/` nunca se commitean ni se muestran en respuestas. La llave publicable de Supabase se usa solo en servidor.
+7. **Multiempresa**: toda tabla operativa (productos, clientes, facturas…) lleva `id_empresa` + RLS por membresía. El catálogo de vehículos es global.
+8. **Idioma**: UI, esquema y docs en español (voseo hondureño en textos de UI: «Intentá», «Revisá»). Esquema en `snake_case`, FKs `id_<entidad>`.
+9. **Reutilizar, no duplicar**: todo listado usa `TablaMaestra` y todo alta/edición usa `Formulario` vía una `DefRecurso`. Nada de tablas o formularios hechos a mano por pantalla.
+10. **Verificar la UI** en el sandbox `/dev/escritorio` y `/dev/bienvenida` (sesión ficticia, solo desarrollo), porque un agente no puede iniciar sesión con Google.
+11. **Diseño**: skeuomórfico de cabina automotriz; solo tokens `--wp-*`, nunca colores sueltos; easing de `--ease-*` (sin rebotes); respetar `prefers-reduced-motion`.
+12. **Facturación CAI es legal/fiscal**: no inventes reglas. Lo marcado «a verificar» en `negocio.md` debe confirmarse con el usuario antes de implementarse.
 
 ## Estado actual (actualizar al cerrar cada hito)
 
@@ -42,6 +43,7 @@ ERP web para tiendas de repuestos y **yonkers** (deshuesaderos) de pequeña y me
 - ✅ Ventas (0005): carritos, cotizaciones y facturas con CAI, descuentos con tope por rol, anulación, impresión en `/documentos/[id]`. Reglas fiscales marcadas «a confirmar» en `negocio.md` §3.5.
 - ✅ Recorrido guiado del escritorio (primera vez; se repite desde Mi usuario) y opción de datos de ejemplo al registrar la empresa. Pasos en `app/inicio/_components/recorrido/pasos.tsx`, anclados con `data-recorrido`.
 - ✅ Reporte de ventas (Ventas › Análisis) sobre el tablero genérico `TableroReporte` (receta en `componentes.md` › Reportes); entradas de inventario y importación desde Excel (Inventario › Productos). Migración 0009.
+- ✅ La landing se presenta como **demo** con contacto comercial (`CONTACTO` en `lib/sitio.ts`, vía `.env`) y páginas legales `/terminos`, `/privacidad`, `/cookies` (textos sin revisión legal).
 - ✅ SEO: landing en `/`, `/honduras` + 18 departamentos, robots, sitemap, manifest, íconos, imágenes OG, JSON-LD; privadas con noindex (ver `arquitectura.md` › SEO).
 - ✅ Manual del propietario en `/ayuda` (público): explica todos los módulos con piezas reales (marco de ventana, dock, odómetro). Enlaces en la portada y en la barra de menú.
 - ✅ Componentes genéricos: TablaMaestra (filtros, orden múltiple, columnas guardadas por usuario) y Formulario (relaciones en cascada).

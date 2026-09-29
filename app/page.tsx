@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   BloqueCai,
+  BloqueDemo,
   DemoBusqueda,
   EncabezadoPublico,
   Funciones,
@@ -19,7 +20,7 @@ import styles from "./_publico/publico.module.css";
 import { CAPTURAS } from "./_publico/capturas";
 import { Vitrina } from "./_publico/vitrina";
 import { Arranque } from "./_components/arranque";
-import { DEPARTAMENTOS, DESCRIPCION_SITIO, LEMA, NOMBRE_SITIO, URL_SITIO } from "@/lib/sitio";
+import { CONTACTO, DEPARTAMENTOS, DESCRIPCION_SITIO, LEMA, NOMBRE_SITIO, URL_SITIO } from "@/lib/sitio";
 
 const ERRORES: Record<string, string> = {
   auth: "No pudimos completar el inicio de sesión. Intentá de nuevo.",
@@ -43,6 +44,21 @@ const ESQUEMA = {
       url: URL_SITIO,
       logo: `${URL_SITIO}/icono-512.png`,
       areaServed: { "@type": "Country", name: "Honduras" },
+      email: CONTACTO.email,
+      contactPoint: {
+        "@type": "ContactPoint",
+        contactType: "sales",
+        telephone: CONTACTO.whatsapp.replace(/[^\d+]/g, ""),
+        email: CONTACTO.email,
+        areaServed: "HN",
+        availableLanguage: "es",
+        hoursAvailable: {
+          "@type": "OpeningHoursSpecification",
+          dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
+          opens: "00:00",
+          closes: "23:59",
+        },
+      },
     },
     {
       "@type": "WebSite",
@@ -152,6 +168,16 @@ export default async function Portada({ searchParams }: PageProps<"/">) {
             <Arranque error={mensaje} />
             <p className="wp-entra mt-8 text-sm text-wp-ink-3" style={{ animationDelay: "1300ms" }}>
               El acceso es solo con tu cuenta de Google.
+            </p>
+            <p
+              className="wp-entra mt-4 max-w-[38ch] text-center text-sm leading-relaxed text-wp-ink-2 text-pretty"
+              style={{ animationDelay: "1350ms" }}
+            >
+              <strong className="text-wp-ink">Esto es una demo</strong> de lo que podemos montar para tu negocio.{" "}
+              <Link href="#contacto" className="underline decoration-wp-accent/60 underline-offset-4 hover:text-wp-ink">
+                Hablemos
+              </Link>
+              .
             </p>
             <Link
               href="/ayuda"
@@ -272,6 +298,26 @@ export default async function Portada({ searchParams }: PageProps<"/">) {
           }
         >
           <PreguntasFrecuentes preguntas={PREGUNTAS} />
+        </Seccion>
+
+        <Seccion
+          id="contacto"
+          tono="panel"
+          sobretitulo="Esto es una demo"
+          titulo={
+            <>
+              Tu versión,
+              <br />a tu medida<span className="text-wp-accent">.</span>
+            </>
+          }
+          bajada={
+            <>
+              Wake Parts, tal como lo ves acá, es una demostración de lo que te podemos ofrecer. Probalo con tus datos
+              y, cuando estés listo, armamos juntos la versión para tu negocio.
+            </>
+          }
+        >
+          <BloqueDemo />
         </Seccion>
 
         <LlamadoFinal />

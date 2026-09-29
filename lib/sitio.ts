@@ -8,6 +8,24 @@ export const URL_SITIO = (
 
 export const NOMBRE_SITIO = "Wake Parts";
 
+/** Quien ofrece Wake Parts (responsable de los datos en /privacidad y /terminos). */
+export const RESPONSABLE = process.env.NEXT_PUBLIC_RESPONSABLE || "Wake Solutions";
+
+const WHATSAPP = process.env.NEXT_PUBLIC_CONTACTO_WHATSAPP || "+504 8901-5974";
+const EMAIL = process.env.NEXT_PUBLIC_CONTACTO_EMAIL || "ventas@wake.solutions";
+
+/** Contacto comercial. Se configura en `.env.local`; los defaults son los valores de producción. */
+export const CONTACTO = {
+  /** Tal como se muestra: «+504 8901-5974». */
+  whatsapp: WHATSAPP,
+  /** Enlace de chat: solo dígitos, con código de país. */
+  whatsappUrl: `https://wa.me/${WHATSAPP.replace(/\D/g, "")}?text=${encodeURIComponent(
+    "Hola, vi la demo de Wake Parts y quiero información para mi negocio.",
+  )}`,
+  email: EMAIL,
+  emailUrl: `mailto:${EMAIL}?subject=${encodeURIComponent("Wake Parts para mi negocio")}`,
+} as const;
+
 export const LEMA = "Inventario, facturación con CAI y catálogo para repuestos y yonkers en Honduras";
 
 export const DESCRIPCION_SITIO =

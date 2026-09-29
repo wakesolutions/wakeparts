@@ -2,6 +2,15 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-09-29 · La landing es una demo; términos y privacidad
+
+- **Wake Parts publicado = demo comercial** (pedido del usuario): la portada lo dice junto al arranque y en la sección «Tu versión, a tu medida» (`#contacto`). No hay precios publicados: se acuerdan con cada negocio, con soporte 24/7 y ajustes a la medida. Contacto por WhatsApp y correo desde variables `NEXT_PUBLIC_CONTACTO_*` con default igual al valor real, para poder cambiarlo sin tocar código.
+- **`/terminos` y `/privacidad`** junto a `/cookies`, con un marco común (`PaginaLegal`). Privacidad distingue: de la cuenta y la empresa responde quien ofrece Wake Parts; de los clientes de cada empresa, la empresa (nosotros solo procesamos). Términos dejan claro que la demo va «tal cual» y que el servicio real se rige por el acuerdo firmado. Responsable por defecto «Wake Solutions» (deducido del dominio del correo; configurable). **Pendiente: revisión legal.**
+
+## 2026-09-29 · Aviso y política de cookies
+
+- **Aviso informativo, sin botones de aceptar/rechazar**: la app solo usa cookies necesarias (sesión) y de preferencia (`wp_paleta`); no hay nada opcional que consentir. Se muestra una vez (se recuerda en localStorage) con enlace a `/cookies`, que lista cada cookie y dato local. Si en el futuro se agrega analítica o publicidad, el aviso debe convertirse en consentimiento previo.
+
 ## 2026-09-29 · Capturas reales en la landing
 
 - **Vitrina con capturas reales** en vez de ilustraciones (pedido del usuario: «que la gente vea lo que va a probar»): mostrador, factura con CAI, reporte, compatibilidad y celular, sacadas del sandbox con datos de ejemplo por un script reproducible (`npm run capturas`) para que no queden viejas cuando cambie la UI. WebP de 55–75 KB; solo la primera se carga con prioridad.

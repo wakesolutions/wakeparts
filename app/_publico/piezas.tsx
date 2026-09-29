@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { IconoBuscar } from "@/components/ui/iconos";
-import { DEPARTAMENTOS, jsonLd, type Departamento } from "@/lib/sitio";
+import { CONTACTO, DEPARTAMENTOS, jsonLd, type Departamento } from "@/lib/sitio";
 import styles from "./publico.module.css";
 
 /** <script type="application/ld+json"> seguro. */
@@ -20,6 +20,7 @@ export function EncabezadoPublico() {
         <Link href="/#facturacion-cai">Facturación CAI</Link>
         <Link href="/honduras">Departamentos</Link>
         <Link href="/ayuda">Manual</Link>
+        <Link href="/#contacto">Contacto</Link>
       </nav>
       <Link href="/#encender" className={styles.entrar}>
         Entrar
@@ -38,6 +39,12 @@ export function PiePublico() {
         <p>Inventario, cotizaciones y facturación con CAI para repuestos, yonkers y talleres de Honduras.</p>
         <p className={styles.pieLegal}>
           Wake Parts no es una entidad del SAR. Confirmá con tu contador los requisitos fiscales de tu negocio.
+        </p>
+        <p className={styles.pieContacto}>
+          <a href={CONTACTO.whatsappUrl} target="_blank" rel="noopener noreferrer">
+            WhatsApp {CONTACTO.whatsapp}
+          </a>
+          <a href={CONTACTO.emailUrl}>{CONTACTO.email}</a>
         </p>
       </div>
       <nav aria-label="Departamentos" className={styles.pieDepartamentos}>
@@ -64,6 +71,18 @@ export function PiePublico() {
           </li>
           <li>
             <Link href="/#encender">Entrar con Google</Link>
+          </li>
+        </ul>
+        <p className={`${styles.pieTitulo} mt-5`}>Legal</p>
+        <ul>
+          <li>
+            <Link href="/terminos">Términos de uso</Link>
+          </li>
+          <li>
+            <Link href="/privacidad">Política de privacidad</Link>
+          </li>
+          <li>
+            <Link href="/cookies">Política de cookies</Link>
           </li>
         </ul>
       </nav>
@@ -293,6 +312,10 @@ export const PREGUNTAS: Pregunta[] = [
     r: "Sí, en los 18 departamentos de Honduras, desde Ocotepeque hasta Gracias a Dios. Solo necesitás internet.",
   },
   {
+    p: "¿Cuánto cuesta Wake Parts?",
+    r: `Lo que ves es una demo que podés usar gratis. Para tu negocio, el precio lo definimos juntos según lo que necesités: sucursales, usuarios, ajustes a la medida y acompañamiento. Incluye soporte 24/7. Escribinos al WhatsApp ${CONTACTO.whatsapp} o a ${CONTACTO.email}.`,
+  },
+  {
     p: "¿Cómo empiezo?",
     r: "Entrá con Google, registrá tu negocio y, si querés practicar, marcá «Cargar productos de ejemplo». Un recorrido guiado te enseña a cotizar y facturar en dos minutos.",
   },
@@ -334,6 +357,52 @@ export function LlamadoFinal({ texto = "Encendé tu tablero hoy." }: { texto?: s
         Empezar ahora
       </Link>
     </section>
+  );
+}
+
+/** Aclara que el sitio es una demo y da el contacto comercial. Va con id="contacto" (enlace del encabezado). */
+export function BloqueDemo() {
+  const puntos = [
+    {
+      titulo: "Precio a tu medida",
+      texto:
+        "Lo definimos entre nosotros según el tamaño de tu negocio, tus sucursales y lo que necesitás. Sin tarifas de catálogo.",
+    },
+    {
+      titulo: "Soporte 24/7",
+      texto: "Si algo se traba un domingo en la noche, hay alguien del otro lado, por WhatsApp o por correo.",
+    },
+    {
+      titulo: "Ajustes para tu negocio",
+      texto:
+        "Formatos de factura, reportes, campos, flujos o integraciones: lo adaptamos a cómo trabajás vos, no al revés.",
+    },
+  ];
+  return (
+    <div className={styles.dosColumnas}>
+      <ul className={styles.lista}>
+        {puntos.map((p) => (
+          <li key={p.titulo}>
+            <strong>{p.titulo}</strong>
+            {p.texto}
+          </li>
+        ))}
+      </ul>
+      <div className={styles.contacto}>
+        <p className={styles.contactoEtiqueta}>Hablemos</p>
+        <a href={CONTACTO.whatsappUrl} target="_blank" rel="noopener noreferrer" className={styles.contactoCanal}>
+          <span>WhatsApp</span>
+          <strong>{CONTACTO.whatsapp}</strong>
+        </a>
+        <a href={CONTACTO.emailUrl} className={styles.contactoCanal}>
+          <span>Correo</span>
+          <strong>{CONTACTO.email}</strong>
+        </a>
+        <p className={styles.contactoNota}>
+          Contanos qué vendés y cuántos atienden el mostrador; te respondemos con una propuesta.
+        </p>
+      </div>
+    </div>
   );
 }
 

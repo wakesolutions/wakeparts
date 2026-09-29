@@ -830,7 +830,81 @@
   font-size: 0.8rem;
 }
 
+/* ------------------------------------------------------ demo y contacto --- */
+
+.contacto {
+  display: grid;
+  gap: 0.7rem;
+  padding: clamp(1.2rem, 3vw, 1.8rem);
+  border-radius: 18px;
+  background: var(--wp-panel);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    inset 0 0 0 1px var(--wp-line),
+    0 30px 60px -34px rgb(0 0 0 / 0.9);
+}
+
+.contactoEtiqueta {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--wp-accent-hi);
+}
+
+.contactoCanal {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.9rem 1.1rem;
+  border-radius: 12px;
+  background: var(--wp-field);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  transition:
+    box-shadow 200ms var(--ease-quart),
+    transform 240ms var(--ease-quart);
+}
+
+.contactoCanal span {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.contactoCanal strong {
+  font-size: clamp(1.1rem, 2.4vw, 1.45rem);
+  font-weight: 700;
+  font-variation-settings: "wdth" 80;
+  overflow-wrap: anywhere;
+  color: var(--wp-ink);
+}
+
+.contactoCanal:hover {
+  box-shadow:
+    inset 0 0 0 1px var(--wp-accent),
+    0 0 16px -4px var(--wp-accent-glow);
+  transform: translate3d(0, -1px, 0);
+}
+
+.contactoCanal:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 3px;
+}
+
+.contactoNota {
+  font-size: 0.88rem;
+  line-height: 1.55;
+  color: var(--wp-ink-3);
+}
+
 /* ------------------------------------------------------------------- pie --- */
+
+.pieContacto {
+  display: grid;
+  gap: 0.25rem;
+  margin-top: 0.4rem;
+}
 
 .pie {
   display: grid;
@@ -893,6 +967,133 @@
   letter-spacing: 0.2em;
   text-transform: uppercase;
   color: var(--wp-ink-3);
+}
+
+/* ----------------------------------------------------------------- legal --- */
+
+.legal {
+  display: grid;
+  gap: 1rem;
+  max-width: 900px;
+  font-size: 1rem;
+  line-height: 1.7;
+  color: var(--wp-ink-2);
+}
+
+.legal strong {
+  color: var(--wp-ink);
+}
+
+.legal code {
+  padding: 0.05rem 0.35rem;
+  border-radius: 5px;
+  font-family: var(--font-mono);
+  font-size: 0.82em;
+  color: var(--wp-ink);
+  background: var(--wp-field);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.legalTitulo {
+  margin-top: 1.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--wp-accent-hi);
+}
+
+.legalTabla {
+  overflow-x: auto;
+  border-radius: 14px;
+  background: var(--wp-panel);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.legalTabla table {
+  width: 100%;
+  min-width: 620px;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.legalTabla th,
+.legalTabla td {
+  padding: 0.8rem 0.9rem;
+  border-bottom: 1px solid var(--wp-line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.legalTabla tr:last-child > * {
+  border-bottom: 0;
+}
+
+.legalTabla thead th {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.legalTabla tbody th {
+  font-weight: 500;
+}
+
+.legalTabla tbody th small {
+  display: block;
+  margin-top: 0.35rem;
+  font-size: 0.74rem;
+  color: var(--wp-ink-3);
+}
+
+.legalLista {
+  display: grid;
+  gap: 0.5rem;
+  padding-left: 1.1rem;
+}
+
+.legal p a,
+.legal li a {
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--wp-accent) 60%, transparent);
+  text-underline-offset: 4px;
+}
+
+.legalOtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 2rem;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--wp-line);
+}
+
+.legalOtros a {
+  padding: 0.45rem 0.9rem;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wp-ink-2);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  transition:
+    color 180ms var(--ease-quart),
+    box-shadow 180ms var(--ease-quart);
+}
+
+.legalOtros a:hover {
+  color: var(--wp-ink);
+  box-shadow: inset 0 0 0 1px var(--wp-accent);
+}
+
+.legal a:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 3px;
 }
 
 /* ----------------------------------------------------------------- migas --- */

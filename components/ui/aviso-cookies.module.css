@@ -1,0 +1,107 @@
+/* Aviso de cookies: una placa de tablero discreta abajo a la izquierda. */
+
+.aviso {
+  position: fixed;
+  left: max(1rem, env(safe-area-inset-left));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 1200;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+  width: min(560px, calc(100vw - 2rem));
+  padding: 0.85rem 0.9rem 0.85rem 1rem;
+  border-radius: 14px;
+  color: var(--wp-ink);
+  background: color-mix(in oklab, var(--wp-panel) 94%, transparent);
+  backdrop-filter: blur(10px);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.45),
+    inset 0 0 0 1px var(--wp-metal-edge),
+    inset 0 1px 0 var(--wp-bevel-light),
+    var(--wp-sombra-ventana);
+  animation: entrar 560ms var(--ease-expo) both;
+}
+
+@keyframes entrar {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0);
+  }
+}
+
+.led {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--wp-ok);
+  box-shadow: 0 0 8px 1px color-mix(in oklab, var(--wp-ok) 65%, transparent);
+}
+
+.texto {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--wp-ink-2);
+}
+
+.texto strong {
+  font-weight: 650;
+  color: var(--wp-ink);
+}
+
+.enlace {
+  color: var(--wp-accent-hi);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  white-space: nowrap;
+}
+
+.boton {
+  padding: 0.5rem 0.95rem;
+  border: 0;
+  border-radius: 999px;
+  font: inherit;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--wp-on-accent);
+  background: linear-gradient(180deg, var(--wp-accent-hi), var(--wp-accent) 55%, var(--wp-accent-lo));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    0 0 12px -2px var(--wp-accent-glow);
+  cursor: pointer;
+  transition: transform 200ms var(--ease-quart);
+}
+
+.boton:hover {
+  transform: translate3d(0, -1px, 0);
+}
+
+.enlace:focus-visible,
+.boton:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 2px;
+}
+
+@media (max-width: 520px) {
+  .aviso {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+  .boton {
+    grid-column: 1 / -1;
+    justify-self: end;
+  }
+}
+
+@media print {
+  .aviso {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aviso {
+    animation: none;
+  }
+}

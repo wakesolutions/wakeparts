@@ -3,6 +3,7 @@ import { Saira, JetBrains_Mono } from "next/font/google";
 import { cookies } from "next/headers";
 import { COOKIE_PALETA, paletaValida } from "@/lib/paletas";
 import { DESCRIPCION_SITIO, LEMA, NOMBRE_SITIO, PALABRAS_CLAVE, URL_SITIO } from "@/lib/sitio";
+import { AvisoCookies } from "@/components/ui/aviso-cookies";
 import "./globals.css";
 
 const saira = Saira({
@@ -56,7 +57,10 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
       data-paleta={paleta}
       className={`${saira.variable} ${mono.variable} h-full antialiased`}
     >
-      <body className="min-h-full">{children}</body>
+      <body className="min-h-full">
+        {children}
+        <AvisoCookies />
+      </body>
     </html>
   );
 }
