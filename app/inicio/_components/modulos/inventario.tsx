@@ -36,7 +36,7 @@ export function ModuloInventario() {
         },
         {
           titulo: "Catálogos",
-          nota: "Las categorías son generales para todos los talleres.",
+          nota: "Las marcas y categorías generales vienen con Wake Parts; las propias solo las ve tu taller.",
           items: [
             {
               recurso: "marcas_productos",
@@ -44,7 +44,7 @@ export function ModuloInventario() {
             },
             {
               recurso: "categorias",
-              descripcion: "Árbol de categorías con los sinónimos de mostrador que entiende la búsqueda.",
+              descripcion: "Las generales de Wake Parts más las propias de tu taller: creá las que te falten (solo las ve tu empresa).",
             },
           ],
         },

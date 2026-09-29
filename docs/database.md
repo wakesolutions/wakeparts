@@ -67,7 +67,7 @@ Perfil 1:1 con `auth.users`. Lo crea y actualiza el trigger `wp_sincronizar_usua
 
 RLS: cada uno se ve a sí mismo y a quienes comparten empresa. Solo puede actualizar `id_empresa_activa`, `nombre`, `telefono` y `recorrido_visto_en` (privilegio por columna).
 
-Admin de plataforma actual: `miltonbarrientos2@gmail.com`.
+Admin de plataforma actual: `miltonbarrientos2@gmail.com` (0010 desmarca a cualquier otro). La app exige además que el correo esté en `ADMINS_PLATAFORMA`. Para agregar otro admin: `update usuarios set es_admin_plataforma = true where correo = …` **y** sumarlo a la variable.
 
 ### `roles`
 
@@ -178,13 +178,13 @@ Variante concreta de un modelo-año: carrocería + motor. Es el nivel al que se 
 
 ## Productos e inventario (0004)
 
-### `categorias` (global)
+### `categorias` (generales + propias por empresa, 0010)
 
-Árbol de hasta 3 niveles (trigger `a_arbol`: sin ciclos, genera `slug`, hereda `es_servicio` del padre). Semilla: 25 categorías principales y 161 subcategorías, incluida **Mano de obra** (`es_servicio`: sus productos no llevan inventario). `sinonimos` = cómo le dicen en mostrador («candelas», «fricciones», «hules»): entran en la búsqueda. Escribe solo el admin de plataforma; lectura pública. Vista `v_categorias` (ruta «Frenos › Pastillas de freno», nivel, `orden_arbol`).
+Árbol de hasta 3 niveles (trigger `a_arbol`: sin ciclos, genera `slug`, hereda `es_servicio` del padre). Semilla: 25 categorías principales y 161 subcategorías, incluida **Mano de obra** (`es_servicio`: sus productos no llevan inventario). `sinonimos` = cómo le dicen en mostrador («candelas», «fricciones», «hules»): entran en la búsqueda. `id_empresa` null = **general** (la escribe solo el admin de plataforma; lectura pública, también `anon`); con empresa = **propia** (la ven los miembros, la escriben dueño/admin). Una propia puede colgar de una general o de otra propia de la misma empresa; una general nunca de una propia; la empresa de una categoría no cambia. El `slug` es único entre todas (el trigger `a_arbol` es security definer para verlas todas). Un producto solo usa generales o propias de su empresa (trigger `a_categoria_empresa`). Vista `v_categorias` (ruta «Frenos › Pastillas de freno», nivel, `orden_arbol`, `id_empresa`, `global`); `v_categorias_globales` = solo generales (Mantenimiento del admin).
 
 ### `categorias_relacionadas` (global)
 
-Pares **simétricos** (trigger `z_simetria` mantiene el inverso): «si busca aceite de motor, recomendar filtros de aceite». Semilla de 102 pares (204 filas). Vista `v_categorias_relacionadas`.
+Pares **simétricos** (trigger `z_simetria` mantiene el inverso), solo entre categorías generales (los escribe el admin de plataforma; se leen si ambas categorías son visibles): «si busca aceite de motor, recomendar filtros de aceite». Semilla de 102 pares (204 filas). Vista `v_categorias_relacionadas`.
 
 ### `marcas_productos`
 

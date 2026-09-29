@@ -41,6 +41,7 @@ const PERMISOS: [string, boolean, boolean, boolean][] = [
   ["Descuentos sin tope", true, true, false],
   ["Crear y editar productos, fotos y vehículos", true, true, false],
   ["Cargar inventario e importar desde Excel", true, true, false],
+  ["Crear marcas y categorías propias", true, true, false],
   ["Ver utilidad y margen en el reporte", true, true, false],
   ["Anular facturas", true, true, false],
   ["Registrar CAI", true, true, false],
@@ -426,8 +427,10 @@ export default function Manual() {
               <div>
                 <h3 className={styles.subtitulo}>Marcas y categorías</h3>
                 <p>
-                  Ya vienen 57 marcas de repuestos y un árbol de 186 categorías con sinónimos de mostrador. Podés
-                  agregar las marcas que te falten; el árbol lo mantiene Wake Parts para todos.
+                  Ya vienen 57 marcas de repuestos y un árbol de 186 categorías con sinónimos de mostrador; esas las
+                  mantiene Wake Parts para todos. Si te falta una marca o una categoría, creala como{" "}
+                  <strong>propia</strong> en <em>Inventario</em>: solo la ve y la usa tu taller, puede ir dentro de una
+                  categoría general y sus sinónimos también entran en la búsqueda.
                 </p>
                 <h3 className={styles.subtitulo}>Importar desde Excel</h3>
                 <p>
@@ -637,12 +640,13 @@ export default function Manual() {
           >
             <p>
               Marcas, modelos, años, carrocerías y especificaciones (motor y carrocería) de vehículos, más el árbol de
-              categorías y sus relacionadas. Hay más de 16 000 especificaciones cargadas. Todos pueden consultarlos;
-              los edita el equipo de Wake Parts para que el catálogo sea uno solo y limpio.
+              categorías generales y sus relacionadas. Hay más de 16 000 especificaciones cargadas. Todos pueden
+              consultarlos; solo el administrador de Wake Parts los edita, para que el catálogo sea uno solo y limpio
+              para todas las empresas.
             </p>
             <Nota titulo="¿Falta un vehículo o una categoría?">
-              Avisale al equipo de Wake Parts. Mientras tanto, asigná el producto al nivel de arriba (el modelo o la
-              marca).
+              Una categoría la podés crear como propia en Inventario › Categorías. Un vehículo, avisale al equipo de
+              Wake Parts; mientras tanto, asigná el producto al nivel de arriba (el modelo o la marca).
             </Nota>
           </Capitulo>
 

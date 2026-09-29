@@ -130,6 +130,16 @@
   animation: subir 420ms var(--ease-expo) both;
 }
 
+.aviso {
+  margin: 0 1.2rem 0.8rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: var(--wp-ink-2);
+  background: var(--wp-hover);
+  box-shadow: inset 3px 0 0 var(--wp-aviso);
+}
+
 .sugerencia {
   padding: 0.6rem 0.8rem;
   border-radius: 8px;

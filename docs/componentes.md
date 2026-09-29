@@ -114,7 +114,9 @@ Formulario genérico. **No sabe de tablas**: recibe `campos` y un `onGuardar(val
 
 Para tablas operativas (productos, clientes, facturas…) usá `ambito: "empresa"` en la `DefRecurso`: la vista debe exponer `id_empresa` y el servidor filtra por la empresa activa en lecturas, opciones, ediciones y eliminaciones, y la asigna al crear. RLS sigue siendo la autoridad (`es_miembro` / `tiene_rol`).
 
-`ambito: "compartido"` (p. ej. `marcas_productos`): se leen las filas globales (`id_empresa` null) más las de la empresa; al crear se asigna la empresa. Las globales solo las edita el admin de plataforma (RLS).
+`ambito: "compartido"` (p. ej. `marcas_productos`, `categorias`): se leen las filas globales (`id_empresa` null) más las de la empresa; al crear se asigna la empresa. Las globales solo las edita el admin de plataforma (RLS): `MantenimientoRecurso` las abre en solo lectura (con aviso y sin eliminar) salvo con `editaGlobales` (ModuloTablas lo pasa según `sesion.usuario.esAdminPlataforma`). Para que el admin cree filas **globales** hace falta un recurso aparte con `ambito: "global"` sobre una vista filtrada (p. ej. `categorias_globales` sobre `v_categorias_globales`, en Mantenimiento).
+
+Recursos con `escritura: "admin_plataforma"`: además de RLS, `guardarRecurso`/`eliminarRecurso` exigen `esAdminPlataforma` (flag de la base **y** correo en `ADMINS_PLATAFORMA`).
 
 ### Módulos
 

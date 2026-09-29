@@ -41,6 +41,11 @@ type Props = {
   acciones?: ReactNode;
   /** Forzar recarga desde afuera. */
   version?: number;
+  /**
+   * Recursos «compartidos» (filas generales + propias): puede tocar también las
+   * generales (id_empresa null). Si no, una fila general se abre en solo lectura.
+   */
+  editaGlobales?: boolean;
 };
 
 type Edicion = { modo: "nuevo" } | { modo: "editar"; fila: Fila; recienCreado?: boolean };
@@ -51,7 +56,15 @@ type Edicion = { modo: "nuevo" } | { modo: "editar"; fila: Fila; recienCreado?: 
  *
  *   <MantenimientoRecurso recurso="marcas" puedeEditar={esAdmin} />
  */
-export function MantenimientoRecurso({ recurso, puedeEditar, pestanas, onAbrir, acciones, version: versionExterna = 0 }: Props) {
+export function MantenimientoRecurso({
+  recurso,
+  puedeEditar,
+  pestanas,
+  onAbrir,
+  acciones,
+  version: versionExterna = 0,
+  editaGlobales = false,
+}: Props) {
   const def = obtenerRecurso(recurso);
   const ventanaMadre = useVentanaActual() ?? undefined;
   const [edicion, setEdicion] = useState<Edicion | null>(null);
@@ -76,6 +89,10 @@ export function MantenimientoRecurso({ recurso, puedeEditar, pestanas, onAbrir, 
   }
 
   const clave = edicion?.modo === "editar" ? (edicion.fila[def.clave] as string | number) : null;
+  // Fila del catálogo general dentro de un recurso compartido: solo la toca el admin de plataforma.
+  const filaGeneral =
+    def.ambito === "compartido" && edicion?.modo === "editar" && (edicion.fila.id_empresa ?? null) === null;
+  const bloqueada = filaGeneral && !editaGlobales;
   const titulo =
     edicion?.modo === "editar"
       ? [def.titulo ?? def.clave]
@@ -164,8 +181,15 @@ export function MantenimientoRecurso({ recurso, puedeEditar, pestanas, onAbrir, 
             )}
 
             <div role="tabpanel" hidden={pestana !== "datos"}>
+              {bloqueada && (
+                <p className={styles.aviso} role="note">
+                  Es del catálogo general de Wake Parts: la podés usar, pero no cambiarla. Si te falta algo, creá una{" "}
+                  {def.nombre} propia.
+                </p>
+              )}
               <Formulario
                 campos={def.campos}
+                soloLectura={bloqueada}
                 edicion={edicion.modo === "editar"}
                 valoresIniciales={edicion.modo === "editar" ? edicion.fila : undefined}
                 onCancelar={cerrar}
@@ -191,7 +215,7 @@ export function MantenimientoRecurso({ recurso, puedeEditar, pestanas, onAbrir, 
                     : undefined
                 }
                 onEliminar={
-                  clave !== null && puedeEliminar
+                  clave !== null && puedeEliminar && !bloqueada
                     ? async () => {
                         const r = await accionEliminar(def.id, clave);
                         if (r.ok) {

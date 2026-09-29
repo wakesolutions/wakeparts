@@ -2,6 +2,12 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-09-29 · Catálogo global solo del admin y categorías propias
+
+- **Catálogo global = un solo dueño** (pedido del usuario): vehículos, categorías generales y relacionadas los edita solo `miltonbarrientos2@gmail.com`. Dos candados: el flag `usuarios.es_admin_plataforma` (RLS, autoridad real; 0010 desmarca a cualquier otro) y la variable `ADMINS_PLATAFORMA` en la app (las acciones genéricas rechazan escribir recursos `admin_plataforma` si el correo no está). La base no puede leer variables de entorno, por eso el flag sigue mandando.
+- **Categorías propias por empresa** en la misma tabla (`id_empresa`), como las marcas: así la búsqueda, la importación y los productos las usan sin código aparte. Pueden colgar de una general (p. ej. «Frenos › Pastillas para moto»). Las relacionadas (complementos) siguen solo entre generales para no mezclar recomendaciones entre empresas.
+- Inventario › Categorías muestra generales (solo lectura) + propias; Mantenimiento › Categorías generales es el catálogo del admin.
+
 ## 2026-09-29 · SEO, reportes, entradas e importación
 
 - **Reportes genéricos** (pedido del usuario: «reutilizable como la tabla maestra»): `TableroReporte` + `DefReporte` + una función SQL con contrato fijo `{indicadores, serie, rankings}`. Lo que la base devuelve en null no se dibuja: así la misma definición sirve para dueño (con utilidad) y vendedor (sin costo).

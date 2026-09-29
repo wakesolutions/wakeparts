@@ -45,6 +45,6 @@ ERP web para tiendas de repuestos y **yonkers** (deshuesaderos) de pequeña y me
 - ✅ SEO: landing en `/`, `/honduras` + 18 departamentos, robots, sitemap, manifest, íconos, imágenes OG, JSON-LD; privadas con noindex (ver `arquitectura.md` › SEO).
 - ✅ Manual del propietario en `/ayuda` (público): explica todos los módulos con piezas reales (marco de ventana, dock, odómetro). Enlaces en la portada y en la barra de menú.
 - ✅ Componentes genéricos: TablaMaestra (filtros, orden múltiple, columnas guardadas por usuario) y Formulario (relaciones en cascada).
-- ✅ Mantenimiento del catálogo de vehículos (marcas, modelos, años, carrocerías, especificaciones); edición solo para admin de plataforma.
-- ✅ Migraciones 0000–0005 aplicadas; **0006, 0007, 0008 y 0009 pendientes**. La empresa del usuario tiene datos de prueba (45 productos, compatibilidades, 3 clientes; sin CAI). Otras empresas los cargan con el botón «Cargar datos de ejemplo» de Taller (`cargar_datos_demo`, 0007).
+- ✅ Mantenimiento del catálogo de vehículos (marcas, modelos, años, carrocerías, especificaciones) y de categorías generales; edición solo para el admin de plataforma (flag en la base + `ADMINS_PLATAFORMA`). Las empresas crean categorías y marcas **propias** (0010).
+- ✅ Migraciones 0000–0005 aplicadas; **0006 a 0010 pendientes**. La empresa del usuario tiene datos de prueba (45 productos, compatibilidades, 3 clientes; sin CAI). Otras empresas los cargan con el botón «Cargar datos de ejemplo» de Taller (`cargar_datos_demo`, 0007).
 - ⏭️ Siguiente propuesto: confirmar reglas CAI con el contador; compras/entradas de inventario; catálogo web público por empresa (usa `buscar_productos` sin sesión).

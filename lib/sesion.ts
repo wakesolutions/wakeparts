@@ -33,6 +33,21 @@ export async function aceptarInvitaciones() {
   return (data as number | null) ?? 0;
 }
 
+/**
+ * Correos que pueden ser admin de plataforma (catálogo global). La autoridad
+ * real es `usuarios.es_admin_plataforma` en la base (RLS); esto es un segundo
+ * candado en la app: además del flag, el correo debe estar en ADMINS_PLATAFORMA
+ * (separados por coma). Sin la variable, solo el dueño de Wake Parts.
+ */
+const ADMINS_PLATAFORMA = (process.env.ADMINS_PLATAFORMA ?? "miltonbarrientos2@gmail.com")
+  .split(",")
+  .map((c) => c.trim().toLowerCase())
+  .filter(Boolean);
+
+export function correoEsAdminPlataforma(correo: string | null | undefined) {
+  return !!correo && ADMINS_PLATAFORMA.includes(correo.trim().toLowerCase());
+}
+
 /** Usuario autenticado + perfil + empresa activa. null si no hay sesión. */
 export const obtenerSesion = cache(async (): Promise<Sesion | null> => {
   const supabase = await createClient();
@@ -69,7 +84,7 @@ export const obtenerSesion = cache(async (): Promise<Sesion | null> => {
         user.email ??
         "Usuario",
       avatar: perfil?.avatar_url ?? (user.user_metadata?.avatar_url as string | undefined),
-      esAdminPlataforma: Boolean(perfil?.es_admin_plataforma),
+      esAdminPlataforma: Boolean(perfil?.es_admin_plataforma) && correoEsAdminPlataforma(perfil?.correo ?? user.email),
     },
     empresa: activa
       ? {

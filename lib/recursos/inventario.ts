@@ -359,6 +359,10 @@ export const marcasProductos: DefRecurso = {
   },
 };
 
+/**
+ * Categorías que ve la empresa: las generales (solo lectura, las mantiene el
+ * admin de plataforma) y las propias de la empresa (0010), que edita dueño/admin.
+ */
 export const categorias: DefRecurso = {
   id: "categorias",
   nombre: "categoría",
@@ -367,7 +371,8 @@ export const categorias: DefRecurso = {
   vista: "v_categorias",
   tabla: "categorias",
   clave: "id",
-  escritura: "admin_plataforma",
+  ambito: "compartido",
+  escritura: "empresa",
   titulo: "nombre",
   orden: [{ columna: "orden_arbol", dir: "asc" }],
   columnasInternas: ["id_padre", "orden_arbol"],
@@ -390,6 +395,16 @@ export const categorias: DefRecurso = {
     { clave: "orden", etiqueta: "Orden", tipo: "entero", ancho: 80, oculta: true },
     { clave: "slug", etiqueta: "Clave", tipo: "texto", ancho: 180, formato: "codigo", oculta: true },
     { clave: "activa", etiqueta: "Activa", tipo: "booleano", ancho: 90, opciones: SI_NO },
+    {
+      clave: "global",
+      etiqueta: "Origen",
+      tipo: "booleano",
+      ancho: 150,
+      opciones: [
+        { valor: "true", etiqueta: "Catálogo general" },
+        { valor: "false", etiqueta: "Propia" },
+      ],
+    },
   ],
   campos: [
     {
@@ -397,7 +412,7 @@ export const categorias: DefRecurso = {
       etiqueta: "Dentro de",
       tipo: "relacion",
       relacion: { recurso: "categorias", valor: "id", etiqueta: "ruta" },
-      ayuda: "Vacío = categoría principal. Máximo 3 niveles.",
+      ayuda: "Podés colgarla de una categoría general o de una propia. Vacío = principal. Máximo 3 niveles.",
       ancho: "completo",
     },
     { nombre: "nombre", etiqueta: "Nombre", tipo: "texto", requerido: true, maxLargo: 80, placeholder: "Pastillas de freno" },
@@ -418,6 +433,26 @@ export const categorias: DefRecurso = {
     duplicado: "Ya existe una categoría con esa clave.",
     enUso: "No se puede eliminar: tiene subcategorías o productos.",
   },
+};
+
+/** Solo el catálogo general de categorías: lo mantiene el admin de plataforma (Mantenimiento). */
+export const categoriasGlobales: DefRecurso = {
+  ...categorias,
+  id: "categorias_globales",
+  nombrePlural: "Categorías generales",
+  vista: "v_categorias_globales",
+  ambito: "global",
+  escritura: "admin_plataforma",
+  columnas: categorias.columnas.filter((c) => c.clave !== "global"),
+  campos: categorias.campos.map((c) =>
+    c.nombre === "id_padre"
+      ? {
+          ...c,
+          relacion: { recurso: "categorias_globales", valor: "id", etiqueta: "ruta" },
+          ayuda: "Vacío = categoría principal. Máximo 3 niveles.",
+        }
+      : c,
+  ),
 };
 
 export const categoriasRelacionadas: DefRecurso = {
@@ -445,7 +480,7 @@ export const categoriasRelacionadas: DefRecurso = {
       tipo: "relacion",
       requerido: true,
       soloAlCrear: true,
-      relacion: { recurso: "categorias", valor: "id", etiqueta: "ruta" },
+      relacion: { recurso: "categorias_globales", valor: "id", etiqueta: "ruta" },
       ancho: "completo",
     },
     {
@@ -454,7 +489,7 @@ export const categoriasRelacionadas: DefRecurso = {
       tipo: "relacion",
       requerido: true,
       soloAlCrear: true,
-      relacion: { recurso: "categorias", valor: "id", etiqueta: "ruta" },
+      relacion: { recurso: "categorias_globales", valor: "id", etiqueta: "ruta" },
       ancho: "completo",
       ayuda: "La relación funciona en los dos sentidos.",
     },

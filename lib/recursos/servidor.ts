@@ -50,6 +50,18 @@ function deLaEmpresa<Q extends { eq(c: string, v: unknown): Q; or(f: string): Q 
 const permite = (def: DefRecurso, accion: "crear" | "editar" | "eliminar") =>
   def.escritura !== "ninguna" && def.acciones?.[accion] !== false;
 
+const SOLO_ADMIN = "Solo el administrador de Wake Parts puede cambiar el catálogo general.";
+
+/**
+ * Catálogo global: además de RLS (flag en la base), el correo debe estar en
+ * ADMINS_PLATAFORMA (lib/sesion.ts). null = puede; texto = motivo.
+ */
+async function bloqueoGlobal(def: DefRecurso) {
+  if (def.escritura !== "admin_plataforma") return null;
+  const sesion = await obtenerSesion();
+  return sesion?.usuario.esAdminPlataforma ? null : SOLO_ADMIN;
+}
+
 /* Texto seguro para filtros de PostgREST dentro de comillas. */
 function limpiarTermino(valor: string) {
   return valor.replace(/["\\*%_(),]/g, " ").trim();
@@ -291,6 +303,8 @@ export async function guardarRecurso(
   if (!permite(def, clave === null ? "crear" : "editar")) {
     return { ok: false, error: "Esta acción no está disponible." };
   }
+  const bloqueo = await bloqueoGlobal(def);
+  if (bloqueo) return { ok: false, error: bloqueo };
 
   const validacion = validarValores(def.campos, valores, { edicion: clave !== null });
   if (!validacion.ok) return { ok: false, error: "Revisá los campos marcados.", errores: validacion.errores };
@@ -320,6 +334,8 @@ export async function eliminarRecurso(
 ): Promise<{ ok: true } | { ok: false; error: string }> {
   const def = obtenerRecurso(id);
   if (!permite(def, "eliminar")) return { ok: false, error: "Esta acción no está disponible." };
+  const bloqueo = await bloqueoGlobal(def);
+  if (bloqueo) return { ok: false, error: bloqueo };
   const empresa = await empresaDe(def);
   if (empresa === null) return { ok: false, error: "No hay una empresa activa." };
 

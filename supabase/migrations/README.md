@@ -79,3 +79,4 @@ Con Node y [PGlite](https://pglite.dev) (Postgres en WASM), en una carpeta tempo
 | 0007 | `0007_datos_demo.sql` | `cargar_datos_demo(empresa)`: 45 productos, compatibilidades y 3 clientes de ejemplo (botón en Taller; dueño/admin; idempotente; sin CAI) | **Pendiente** |
 | 0008 | `0008_recorrido_guiado.sql` | `usuarios.recorrido_visto_en`: el recorrido guiado del escritorio sale una sola vez por usuario | **Pendiente** |
 | 0009 | `0009_reportes_entradas_importacion.sql` | `reporte_ventas()` (contrato genérico de reportes), `entrada_inventario()` (kardex «compra», costo promedio/último), `importar_productos()` (con modo revisar) y `resolver_categoria()` | **Pendiente** |
+| 0010 | `0010_catalogo_global_categorias_propias.sql` | Admin de plataforma = solo miltonbarrientos2@gmail.com; categorías propias por empresa (`categorias.id_empresa`, RLS, validaciones de árbol y de productos), `v_categorias_globales` | **Pendiente** |

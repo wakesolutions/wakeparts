@@ -99,6 +99,7 @@ Configuración externa necesaria en Supabase → Authentication → URL Configur
 
 | Variable | Uso |
 |---|---|
+| `ADMINS_PLATAFORMA` | Correos (separados por coma) que pueden editar el catálogo global. Segundo candado de la app sobre el flag `usuarios.es_admin_plataforma`; sin la variable, solo `miltonbarrientos2@gmail.com`. No es secreta. |
 | `NEXT_PUBLIC_SITE_URL` | URL pública canónica: `metadataBase`, sitemap, robots, JSON-LD; respaldo para `redirectTo` si no hay header `host`. |
 | `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto Supabase. |
 | `SUPABASE_PUBLISHABLE_KEY` | Llave publicable. **Solo servidor** hoy. Si algún día hace falta un cliente de navegador (realtime), exponer como `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. |

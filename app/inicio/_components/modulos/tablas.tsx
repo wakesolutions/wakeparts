@@ -112,7 +112,12 @@ export function ModuloTablas({
               {item.contenido({ editable })}
             </div>
           ) : (
-            <MantenimientoRecurso key={claveDe(item)} recurso={item.recurso!} puedeEditar={editable} />
+            <MantenimientoRecurso
+              key={claveDe(item)}
+              recurso={item.recurso!}
+              puedeEditar={editable}
+              editaGlobales={sesion.usuario.esAdminPlataforma}
+            />
           )}
         </div>
       </div>
@@ -131,8 +136,9 @@ export function ModuloMantenimiento() {
           nota: "Global · las marcas de repuestos propias se agregan en Inventario",
           items: [
             {
-              recurso: "categorias",
-              descripcion: "Árbol de categorías (hasta 3 niveles). Los sinónimos alimentan la búsqueda del mostrador.",
+              recurso: "categorias_globales",
+              descripcion:
+                "Árbol general de categorías (hasta 3 niveles) para todas las empresas. Los sinónimos alimentan la búsqueda del mostrador.",
             },
             {
               recurso: "categorias_relacionadas",
