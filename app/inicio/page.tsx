@@ -4,7 +4,7 @@ import { recorridoPendiente } from "@/app/acciones/perfil";
 import { aceptarInvitaciones, obtenerSesion } from "@/lib/sesion";
 import { Escritorio } from "./_components/escritorio";
 
-export const metadata: Metadata = { title: "Inicio · Wake Parts" };
+export const metadata: Metadata = { title: "Inicio", robots: { index: false, follow: false } };
 
 function saludo() {
   const hora = Number(

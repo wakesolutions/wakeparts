@@ -1,0 +1,747 @@
+/* Páginas públicas (landing, departamentos): la cabina, vista desde afuera. */
+
+.encabezado {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 1.2rem;
+  height: 52px;
+  padding: 0 clamp(1rem, 4vw, 3.5rem);
+}
+
+.marca {
+  font-size: 0.95rem;
+  font-weight: 800;
+  font-variation-settings: "wdth" 70;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.nav {
+  display: flex;
+  gap: 0.2rem;
+  margin-left: auto;
+}
+
+.nav a {
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  color: var(--wp-ink-2);
+  transition:
+    color 180ms var(--ease-quart),
+    background-color 180ms var(--ease-quart);
+}
+
+.nav a:hover {
+  color: var(--wp-ink);
+  background: var(--wp-hover);
+}
+
+.entrar,
+.llamadoBoton {
+  padding: 0.42rem 1rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-on-accent);
+  background: linear-gradient(180deg, var(--wp-accent-hi), var(--wp-accent) 55%, var(--wp-accent-lo));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.35),
+    0 0 14px -2px var(--wp-accent-glow);
+  transition: transform 240ms var(--ease-quart);
+}
+
+.entrar:hover,
+.llamadoBoton:hover {
+  transform: translate3d(0, -1px, 0);
+}
+
+.encabezado a:focus-visible,
+.pie a:focus-visible,
+.departamento:focus-visible,
+.llamadoBoton:focus-visible,
+.pregunta summary:focus-visible,
+.migas a:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 3px;
+}
+
+/* ------------------------------------------------------------- secciones --- */
+
+.seccion {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: clamp(4rem, 10vw, 8rem) clamp(1rem, 4vw, 3.5rem);
+}
+
+.seccion[data-tono="panel"] {
+  max-width: none;
+  background:
+    linear-gradient(180deg, transparent, color-mix(in oklab, var(--wp-panel) 55%, transparent) 20%, color-mix(in oklab, var(--wp-panel) 55%, transparent) 80%, transparent);
+}
+
+.seccion[data-tono="panel"] > * {
+  max-width: 1220px;
+  margin-inline: auto;
+}
+
+.seccionCabecera {
+  display: grid;
+  gap: 1rem;
+  max-width: 900px;
+  margin-bottom: clamp(2rem, 5vw, 3.5rem);
+}
+
+.sobretitulo {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--wp-accent);
+}
+
+.seccionTitulo {
+  font-size: clamp(2.6rem, 7.5vw, 6.2rem);
+  font-weight: 800;
+  font-variation-settings: "wdth" 60;
+  line-height: 0.84;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.seccionBajada {
+  max-width: 56ch;
+  font-size: clamp(1.02rem, 1.5vw, 1.18rem);
+  line-height: 1.65;
+  color: var(--wp-ink-2);
+  text-wrap: pretty;
+}
+
+/* Aparición al entrar en pantalla, sin JS (si el navegador lo soporta). */
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .seccionCabecera,
+    .funcion,
+    .cai > *,
+    .demo,
+    .departamentos li,
+    .pregunta {
+      animation: aparecer var(--ease-quart) both;
+      animation-timeline: view();
+      animation-range: entry 0% entry 55%;
+    }
+  }
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 28px, 0);
+  }
+}
+
+/* ------------------------------------------------------------- funciones --- */
+
+.funciones {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+  gap: 1px;
+  overflow: hidden;
+  padding: 0;
+  border-radius: 18px;
+  background: var(--wp-line);
+  box-shadow: 0 0 0 1px var(--wp-line), 0 30px 60px -40px rgb(0 0 0 / 0.9);
+  list-style: none;
+}
+
+.funcion {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 0.6rem;
+  min-height: 220px;
+  padding: 1.6rem 1.5rem 1.7rem;
+  background: var(--wp-panel);
+  transition: background-color 260ms var(--ease-quart);
+}
+
+.funcion:hover {
+  background: var(--wp-panel-2);
+}
+
+.funcion::after {
+  content: "";
+  position: absolute;
+  left: 1.5rem;
+  top: 0;
+  width: 28px;
+  height: 2px;
+  background: var(--wp-accent);
+  box-shadow: 0 0 10px var(--wp-accent-glow);
+  transform-origin: 0 50%;
+  transition: transform 420ms var(--ease-expo);
+}
+
+.funcion:hover::after {
+  transform: scaleX(3);
+}
+
+.funcionNumero {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.2em;
+  color: var(--wp-ink-3);
+}
+
+.funcionTitulo {
+  font-size: 1.45rem;
+  font-weight: 800;
+  font-variation-settings: "wdth" 66;
+  line-height: 0.95;
+  letter-spacing: -0.015em;
+  text-transform: uppercase;
+}
+
+.funcion p {
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--wp-ink-2);
+}
+
+/* ------------------------------------------------------------------ CAI --- */
+
+.cai {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+}
+
+.caiVisor {
+  padding: clamp(1.2rem, 3vw, 2rem);
+  border-radius: 16px;
+  color: var(--wp-lcd-ink);
+  background:
+    repeating-linear-gradient(0deg, rgb(0 0 0 / 0.16) 0 1px, transparent 1px 3px),
+    radial-gradient(120% 140% at 50% 0%, color-mix(in oklab, var(--wp-lcd-ink) 12%, var(--wp-lcd)), var(--wp-lcd));
+  box-shadow:
+    inset 0 3px 12px rgb(0 0 0 / 0.75),
+    inset 0 0 0 1px rgb(0 0 0 / 0.6),
+    0 0 0 6px var(--wp-metal-lo),
+    0 0 0 7px var(--wp-metal-edge),
+    0 30px 60px -30px rgb(0 0 0 / 0.9);
+}
+
+.caiEtiqueta,
+.caiRango {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.caiRango {
+  letter-spacing: 0.06em;
+  text-transform: none;
+  overflow-wrap: anywhere;
+}
+
+.caiNumero {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.2rem 0.4rem;
+  margin: 1rem 0;
+  font-family: var(--font-mono);
+  font-size: clamp(1.4rem, 3.6vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  text-shadow: 0 0 14px color-mix(in oklab, var(--wp-lcd-ink) 65%, transparent);
+}
+
+.caiNumero span {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.caiNumero small {
+  font-size: 0.56rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  text-shadow: none;
+  opacity: 0.6;
+}
+
+.caiNumero i {
+  font-style: normal;
+  opacity: 0.45;
+}
+
+.caiLista {
+  display: grid;
+  gap: 0.9rem;
+  padding: 0;
+  list-style: none;
+}
+
+.caiLista li {
+  position: relative;
+  padding-left: 1.6rem;
+  font-size: 1rem;
+  line-height: 1.55;
+  color: var(--wp-ink-2);
+}
+
+.caiLista li::before {
+  content: "";
+  position: absolute;
+  left: 0.2rem;
+  top: 0.5em;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--wp-ok);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--wp-ok) 70%, transparent);
+}
+
+/* ------------------------------------------------------ demo de búsqueda --- */
+
+.demo {
+  display: grid;
+  gap: 0.8rem;
+  max-width: 640px;
+  margin: 0;
+  padding: 1.2rem;
+  border-radius: 18px;
+  background: var(--wp-panel);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.45),
+    inset 0 0 0 1px var(--wp-metal-edge),
+    var(--wp-sombra-ventana);
+}
+
+.demoPlaca {
+  position: relative;
+  overflow: hidden;
+  padding: 1.6rem 1rem 0.8rem;
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow: inset 0 1px 0 var(--wp-bevel-light), 0 2px 6px rgb(0 0 0 / 0.4);
+}
+
+.demoPlacaBanda {
+  position: absolute;
+  inset: 0 0 auto;
+  padding: 0.18rem 0.8rem;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+  color: var(--wp-on-accent);
+  background: linear-gradient(180deg, var(--wp-accent-hi), var(--wp-accent-lo));
+}
+
+.demoPlaca strong {
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  font-weight: 800;
+  font-variation-settings: "wdth" 62;
+  letter-spacing: -0.01em;
+  text-shadow: 0 1px 0 var(--wp-engrave);
+}
+
+.demoBuscar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 10px;
+  color: var(--wp-ink);
+  background: var(--wp-field);
+  box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.4), inset 0 0 0 1px var(--wp-accent);
+}
+
+.demoResultados {
+  display: grid;
+  gap: 1px;
+  padding: 0;
+  list-style: none;
+}
+
+.demoResultados li {
+  display: grid;
+  grid-template-columns: 6.5rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.6rem 0.4rem;
+  border-bottom: 1px solid var(--wp-line);
+}
+
+.demoEtiqueta {
+  --c: var(--wp-ink-3);
+  justify-self: start;
+  padding: 0.14rem 0.5rem;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--c);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--c) 55%, transparent);
+}
+
+.demoEtiqueta[data-tono="ok"] {
+  --c: var(--wp-ok);
+}
+
+.demoEtiqueta[data-tono="aviso"] {
+  --c: var(--wp-aviso);
+}
+
+.demoEtiqueta[data-tono="acento"] {
+  --c: var(--wp-accent-hi);
+}
+
+.demoNombre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.9rem;
+}
+
+.demoPrecio {
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.demoPie {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.dosColumnas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(2rem, 6vw, 5rem);
+}
+
+.lista {
+  display: grid;
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.lista li {
+  display: grid;
+  gap: 0.2rem;
+  padding-left: 1.2rem;
+  border-left: 2px solid var(--wp-line);
+  font-size: 1rem;
+  line-height: 1.6;
+  color: var(--wp-ink-2);
+}
+
+.lista strong {
+  color: var(--wp-ink);
+}
+
+.ciudades {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  margin: 1rem 0 1.4rem;
+  padding: 0;
+  list-style: none;
+}
+
+.ciudades li {
+  padding: 0.4rem 0.85rem;
+  border-radius: 999px;
+  font-size: 0.92rem;
+  font-weight: 600;
+  background: var(--wp-panel);
+  box-shadow: inset 0 0 0 1px var(--wp-line), inset 0 1px 0 var(--wp-bevel-light);
+}
+
+.ciudades li:first-child {
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-accent) 60%, transparent);
+}
+
+/* -------------------------------------------------------- departamentos --- */
+
+.departamentos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: 0.6rem;
+  padding: 0;
+  list-style: none;
+}
+
+.departamento {
+  position: relative;
+  display: grid;
+  gap: 0.3rem;
+  height: 100%;
+  padding: 1rem 1.1rem 1.1rem;
+  border-radius: 14px;
+  background: var(--wp-panel);
+  box-shadow: inset 0 0 0 1px var(--wp-line), inset 0 1px 0 var(--wp-bevel-light);
+  transition:
+    transform 320ms var(--ease-expo),
+    box-shadow 320ms var(--ease-quart);
+}
+
+.departamento:hover {
+  transform: translate3d(0, -3px, 0);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--wp-accent) 60%, transparent),
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 16px 30px -20px var(--wp-accent-glow);
+}
+
+.departamentoIso {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  color: var(--wp-accent);
+}
+
+.departamentoNombre {
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-variation-settings: "wdth" 64;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.departamentoCabecera {
+  font-size: 0.8rem;
+  color: var(--wp-ink-3);
+}
+
+/* ------------------------------------------------------------- preguntas --- */
+
+.preguntas {
+  display: grid;
+  gap: 0.5rem;
+  max-width: 920px;
+}
+
+.pregunta {
+  border-radius: 14px;
+  background: var(--wp-panel);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.pregunta summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.1rem 1.2rem;
+  font-size: 1.05rem;
+  font-weight: 650;
+  list-style: none;
+  cursor: pointer;
+}
+
+.pregunta summary::-webkit-details-marker {
+  display: none;
+}
+
+.preguntaIcono {
+  position: relative;
+  flex: none;
+  width: 14px;
+  height: 14px;
+}
+
+.preguntaIcono::before,
+.preguntaIcono::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 6px;
+  width: 14px;
+  height: 2px;
+  border-radius: 1px;
+  background: var(--wp-accent);
+  transition: transform 320ms var(--ease-expo);
+}
+
+.preguntaIcono::after {
+  transform: rotate(90deg);
+}
+
+.pregunta[open] .preguntaIcono::after {
+  transform: rotate(0deg);
+}
+
+.pregunta p {
+  padding: 0 1.2rem 1.2rem;
+  font-size: 0.98rem;
+  line-height: 1.65;
+  color: var(--wp-ink-2);
+}
+
+/* --------------------------------------------------------------- llamado --- */
+
+.llamado {
+  display: grid;
+  justify-items: start;
+  gap: 1.2rem;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: clamp(4rem, 10vw, 7rem) clamp(1rem, 4vw, 3.5rem);
+}
+
+.llamadoTitulo {
+  font-size: clamp(3rem, 11vw, 9.5rem);
+  font-weight: 800;
+  font-variation-settings: "wdth" 58;
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+  text-transform: uppercase;
+}
+
+.llamado > p {
+  max-width: 44ch;
+  font-size: 1.1rem;
+  color: var(--wp-ink-2);
+}
+
+.llamadoBoton {
+  padding: 0.8rem 1.6rem;
+  font-size: 0.8rem;
+}
+
+/* ------------------------------------------------------------------- pie --- */
+
+.pie {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(0, 2fr) minmax(0, 0.8fr);
+  gap: 2rem;
+  padding: 3rem clamp(1rem, 4vw, 3.5rem) 2rem;
+  border-top: 1px solid var(--wp-line);
+  font-size: 0.86rem;
+  color: var(--wp-ink-2);
+}
+
+.pieMarca {
+  display: grid;
+  align-content: start;
+  gap: 0.6rem;
+}
+
+.pieLegal {
+  font-size: 0.74rem;
+  color: var(--wp-ink-3);
+}
+
+.pieTitulo {
+  margin-bottom: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.pieDepartamentos ul {
+  columns: 3 150px;
+  column-gap: 1.2rem;
+  padding: 0;
+  list-style: none;
+}
+
+.pieRecursos ul {
+  display: grid;
+  gap: 0.35rem;
+  padding: 0;
+  list-style: none;
+}
+
+.pieDepartamentos li {
+  padding: 0.18rem 0;
+}
+
+.pie a:hover {
+  color: var(--wp-ink);
+}
+
+.pieFirma {
+  grid-column: 1 / -1;
+  padding-top: 1.4rem;
+  border-top: 1px solid var(--wp-line);
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+/* ----------------------------------------------------------------- migas --- */
+
+.migas ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding: 0;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+  list-style: none;
+}
+
+.migas li + li::before {
+  content: "›";
+  margin-right: 0.4rem;
+  color: var(--wp-accent);
+}
+
+.migas a:hover {
+  color: var(--wp-ink);
+}
+
+/* ------------------------------------------------------------- responsive --- */
+
+@media (max-width: 900px) {
+  .nav {
+    display: none;
+  }
+  .entrar {
+    margin-left: auto;
+  }
+  .cai,
+  .dosColumnas {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .pie {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+@media (max-width: 520px) {
+  .demoResultados li {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .demoEtiqueta {
+    grid-column: 1 / -1;
+  }
+}

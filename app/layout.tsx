@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Saira, JetBrains_Mono } from "next/font/google";
 import { cookies } from "next/headers";
 import { COOKIE_PALETA, paletaValida } from "@/lib/paletas";
+import { DESCRIPCION_SITIO, LEMA, NOMBRE_SITIO, PALABRAS_CLAVE, URL_SITIO } from "@/lib/sitio";
 import "./globals.css";
 
 const saira = Saira({
@@ -15,10 +16,31 @@ const mono = JetBrains_Mono({
   subsets: ["latin"],
 });
 
+// SEO base: cada página pública ajusta título, descripción y canónica; las
+// privadas (escritorio, onboarding, documentos, sandbox) se marcan noindex.
 export const metadata: Metadata = {
-  title: "Wake Parts",
-  description:
-    "ERP para tiendas de repuestos y yonkers: inventario, catálogo web y facturación con CAI.",
+  metadataBase: new URL(URL_SITIO),
+  title: { default: `${NOMBRE_SITIO} · ${LEMA}`, template: `%s · ${NOMBRE_SITIO}` },
+  description: DESCRIPCION_SITIO,
+  applicationName: NOMBRE_SITIO,
+  keywords: PALABRAS_CLAVE,
+  authors: [{ name: NOMBRE_SITIO, url: URL_SITIO }],
+  creator: NOMBRE_SITIO,
+  publisher: NOMBRE_SITIO,
+  category: "business",
+  alternates: { canonical: "/", languages: { "es-HN": "/" } },
+  openGraph: {
+    type: "website",
+    locale: "es_HN",
+    url: "/",
+    siteName: NOMBRE_SITIO,
+    title: `${NOMBRE_SITIO} · ${LEMA}`,
+    description: DESCRIPCION_SITIO,
+  },
+  twitter: { card: "summary_large_image", title: `${NOMBRE_SITIO} · ${LEMA}`, description: DESCRIPCION_SITIO },
+  robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } },
+  formatDetection: { telephone: false, email: false, address: false },
+  other: { "geo.region": "HN", "geo.placename": "Honduras" },
 };
 
 export const viewport: Viewport = {
@@ -30,7 +52,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
 
   return (
     <html
-      lang="es"
+      lang="es-HN"
       data-paleta={paleta}
       className={`${saira.variable} ${mono.variable} h-full antialiased`}
     >

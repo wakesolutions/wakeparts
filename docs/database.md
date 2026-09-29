@@ -237,6 +237,17 @@ Producto ↔ vehículo en el nivel elegido (`nivel` 1 marca · 2 modelo · 3 añ
   - `complemento`: hasta 8 productos de categorías relacionadas con lo encontrado o con lo que nombra el texto.
   - Miembros ven costo, existencia y ubicación; el público (catálogo web) solo productos visibles con existencia y sin costo.
 
+### Reportes, entradas e importación (0009)
+
+Las tres son **security invoker** (RLS de quien llama).
+
+| Función | Qué hace |
+|---|---|
+| `reporte_ventas(empresa, desde, hasta)` | Contrato genérico de reportes (`{periodo, indicadores:{clave:{valor, anterior}}, serie, rankings}`, ver `componentes.md` › Reportes). Facturas emitidas por fecha de Honduras; `anterior` = período previo de igual largo; utilidad/margen y la columna utilidad de productos solo para dueño/admin (null para vendedores). Rankings: productos (10), categorías (8), vendedores, clientes. Máx. 400 días. |
+| `entrada_inventario(empresa, lineas jsonb, referencia, modo_costo)` | Suma existencias de varias líneas `[{id_producto, cantidad, costo}]` en una transacción, con `wp.movimiento_tipo = 'compra'` (kardex). `modo_costo`: `promedio` (ponderado; si la existencia era ≤ 0 manda el costo nuevo), `ultimo` o `mantener`. Rechaza servicios y cantidades ≤ 0. Solo dueño/admin. |
+| `importar_productos(empresa, filas jsonb, actualizar, probar)` | Alta o actualización por `codigo` (máx. 1000 filas por llamada). Categoría por slug, nombre, sinónimo o ruta («Frenos › Pastillas»); marca del catálogo o nueva propia; unidad y condición con tildes/plurales. Lo vacío no pisa datos en actualizaciones. Errores por fila (`_fila`) sin cortar el resto. `probar` = hace todo y lo deshace (subtransacción) para revisar el archivo. Kardex con referencia «Importación». Solo dueño/admin. |
+| `resolver_categoria(texto)` | La categoría más probable para un texto (prefiere subcategorías). |
+
 ### Datos de ejemplo (0007)
 
 `cargar_datos_demo(p_empresa)` (security invoker, solo dueño/admin): inserta en la empresa 45 productos de ejemplo (repuestos con OEM y ubicación, generales sin vehículo y mano de obra), sus compatibilidades resueltas por nombre contra el catálogo (Corolla, Yaris, Hilux y su motor 2KD-FTV, RAV4, Land Cruiser Prado, Civic, CRV, Frontier, Accent, Rio y marcas Toyota/Honda/Nissan) y 3 clientes. Idempotente: salta códigos y clientes existentes. No crea CAI. Devuelve `{productos, compatibilidades, clientes}` con lo que insertó.

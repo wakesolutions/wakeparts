@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useApi } from "@/components/datos/apis";
 import { MantenimientoRecurso } from "@/components/mantenimiento/mantenimiento-recurso";
+import { TableroReporte } from "@/components/reportes/tablero-reporte";
 import ui from "@/components/ui/controles.module.css";
 import { IconoCarrito, IconoImprimir } from "@/components/ui/iconos";
 import { useVentanaActual } from "@/components/ventanas/ventana";
@@ -15,7 +16,7 @@ import { useSesion } from "../sesion-contexto";
 import { ModuloTablas } from "./tablas";
 import styles from "./modulos.module.css";
 
-/** Ventas: documentos emitidos, clientes y CAI. */
+/** Ventas: documentos emitidos, clientes, reporte de ventas y CAI. */
 export function ModuloVentas() {
   return (
     <ModuloTablas
@@ -33,6 +34,17 @@ export function ModuloVentas() {
             {
               recurso: "clientes",
               descripcion: "Clientes del taller. Con RTN salen en la factura; sin RTN, como consumidor final.",
+            },
+          ],
+        },
+        {
+          titulo: "Análisis",
+          items: [
+            {
+              id: "reporte-ventas",
+              titulo: "Reporte de ventas",
+              descripcion: "Cuánto vendiste, qué se mueve y quién vende, comparado con el período anterior.",
+              contenido: () => <TableroReporte reporte="ventas" />,
             },
           ],
         },

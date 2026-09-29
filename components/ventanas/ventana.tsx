@@ -312,7 +312,9 @@ export function Ventana({ ventana, titulo, children, onCerrar }: Props) {
 /** Ventanas de módulos. Las hijas se montan aquí mediante portales (VentanaFlotante). */
 export function CapaVentanas() {
   const { ventanas, modulos, registrarCapa, enfocada } = useVentanas();
-  const focoCompleto = ventanas.some((v) => v.id === enfocada && v.estado === "maximizada");
+  // Tapa barra y dock si la ventana enfocada (o la madre de una hija enfocada) está maximizada.
+  const madre = ventanas.find((v) => v.id === enfocada)?.padre;
+  const focoCompleto = ventanas.some((v) => (v.id === enfocada || v.id === madre) && v.estado === "maximizada");
   return (
     <div className={styles.capa} ref={registrarCapa} data-completa={focoCompleto || undefined}>
       {ventanas.map((v) => {

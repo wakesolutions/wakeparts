@@ -4,7 +4,7 @@ import { cerrarSesion } from "@/app/auth/actions";
 import { aceptarInvitaciones, obtenerSesion } from "@/lib/sesion";
 import { RegistroEmpresa } from "./registro-empresa";
 
-export const metadata: Metadata = { title: "Tu empresa · Wake Parts" };
+export const metadata: Metadata = { title: "Tu empresa", robots: { index: false, follow: false } };
 
 export default async function Bienvenida() {
   // Si alguien lo invitó mientras tanto, entra directo a esa empresa.

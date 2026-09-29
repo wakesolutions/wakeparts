@@ -4,7 +4,7 @@ import { leerDocumento } from "@/app/acciones/ventas";
 import { DocumentoVista } from "@/components/ventas/documento-vista";
 import { BarraImpresion } from "./barra-impresion";
 
-export const metadata: Metadata = { title: "Documento · Wake Parts" };
+export const metadata: Metadata = { title: "Documento", robots: { index: false, follow: false } };
 
 /** Vista imprimible de una cotización o factura (RLS: solo miembros de la empresa). */
 export default async function PaginaDocumento(props: { params: Promise<{ id: string }> }) {

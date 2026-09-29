@@ -119,7 +119,7 @@ Para tablas operativas (productos, clientes, facturas…) usá `ambito: "empresa
 ### Módulos
 
 - `app/inicio/_components/modulos/index.tsx`: `MODULOS` (orden del dock). Cada módulo: `id`, `nombre`, `icono` (SVG propio), `componente`, `tamano`, `visible(sesion)` (p. ej. solo dueño/admin), `enDock: false` (se abre desde otro lado, como «Mi usuario» desde la barra de menú).
-- `ModuloTablas` (`modulos/tablas.tsx`): barra lateral de tablas + `MantenimientoRecurso`. Mantenimiento, Usuarios, Inventario y Ventas son configuraciones de este componente. Un ítem puede traer `contenido({ editable })` para usar un mantenimiento con pestañas u `onAbrir`.
+- `ModuloTablas` (`modulos/tablas.tsx`): barra lateral de tablas + `MantenimientoRecurso`. Mantenimiento, Usuarios, Inventario y Ventas son configuraciones de este componente. Un ítem puede traer `contenido({ editable })` para usar un mantenimiento con pestañas u `onAbrir`. Un ítem que **no es una tabla** (p. ej. un reporte) lleva `id` + `titulo` + `contenido` en vez de `recurso`; `visible(sesion)` lo oculta por rol.
 - Módulos de ficha (Taller, Mi usuario): placa metálica + `Formulario` contra una Server Action propia.
 
 ### Ventanas hijas
@@ -132,9 +132,27 @@ Para tablas operativas (productos, clientes, facturas…) usá `ambito: "empresa
 - `components/ventanas/ventana.tsx`: ventana estilo macOS: semáforo (cerrar/minimizar/maximizar), arrastre por la barra, redimensión por los bordes (e, w, s, se, sw), doble clic para maximizar o achicar, minimizar con animación hacia el ícono del dock (el estado se aplica con `flushSync` antes de soltar la animación: sin parpadeo), restaurar desde el dock. **Los módulos abren maximizados**: en escritorio la ventana ocupa todo el navegador por encima de barra y dock (solo queda su semáforo); **no** usa la API de pantalla completa del navegador (F11). El botón verde o el doble clic la vuelven flotante. En móvil «maximizar» respeta barra y dock. Recuerda posición y tamaño flotantes por módulo en `localStorage` (`wp:ventanas`). Las ventanas hijas abren flotantes (maximizadas en móvil).
 - El contenido de la ventana es un contenedor (`container-type: inline-size`): los módulos se adaptan con `@container`, no con media queries.
 
+## Reportes (`TableroReporte`)
+
+Igual que la tabla maestra, pero para análisis. Un reporte nuevo = **una función SQL + una `DefReporte`**; el componente no se toca.
+
+**Receta «reporte de X»**
+1. Migración con `reporte_x(p_empresa uuid, p_desde date, p_hasta date) returns jsonb` (security invoker; validá `es_miembro` y el rango). Devolvé siempre este contrato:
+   ```json
+   { "periodo": { "desde": "2026-09-01", "hasta": "2026-09-30", "dias": 30 },
+     "indicadores": { "ventas": { "valor": 1200, "anterior": 900 }, "utilidad": null },
+     "serie": [ { "fecha": "2026-09-01", "ventas": 100, "facturas": 2 } ],
+     "rankings": { "productos": [ { "codigo": "PF-01", "descripcion": "…", "total": 500 } ] } }
+   ```
+   `anterior` = mismo indicador en el período previo de igual largo. Un indicador `null` (o una columna de ranking toda en null) **no se muestra**: así se esconde, p. ej., la utilidad a los vendedores.
+2. `DefReporte` en `lib/reportes/index.ts` (tipos en `lib/reportes/tipos.ts`): `funcion`, `indicadores` (`formato`, `destacado` = visor LCD grande, `inverso` = menos es mejor), `serie` (clave + `secundaria` opcional), `rankings` (`columnas` con `principal`/`secundaria`, `medida` = largo de la pista, `ancho`), `periodo` inicial.
+3. Mostralo: `<TableroReporte reporte="x" />` (p. ej. como ítem `{ id, titulo, contenido }` de `ModuloTablas`).
+
+El tablero trae: períodos (hoy, 7/30 días, este mes, mes pasado, este año) y rango libre (máx. 400 días; fechas de Honduras), indicadores con variación contra el período anterior, **ecualizador LED** por día (agrupa por semana > 62 días y por mes > 180), rankings con pista y **Exportar a Excel** (una hoja por sección). Datos vía `useApi("reportes")` → `leerReporte(id, desde, hasta)` (`app/acciones/reportes.ts`), que solo acepta ids registrados.
+
 ## Módulos interactivos (no genéricos)
 
-Donde la tabla maestra no alcanza (mostrador, fotos, compatibilidad) hay componentes propios. Todos leen datos con `useApi(...)` (`components/datos/apis.tsx`): por defecto Server Actions; el sandbox inyecta datos en memoria con `<ApisProvider valor={APIS_DEMO}>`.
+Donde la tabla maestra no alcanza (mostrador, fotos, compatibilidad, entradas, importación) hay componentes propios. Todos leen datos con `useApi(...)` (`components/datos/apis.tsx`): por defecto Server Actions; el sandbox inyecta datos en memoria con `<ApisProvider valor={APIS_DEMO}>`.
 
 | Componente | Qué hace |
 |---|---|
@@ -144,6 +162,8 @@ Donde la tabla maestra no alcanza (mostrador, fotos, compatibilidad) hay compone
 | `components/ventas/odometro.tsx` | Total en visor LCD con dígitos que ruedan. |
 | `components/ventas/documento-vista.tsx` | Hoja de cotización/factura (pantalla e impresión, papel `--wp-papel-*`). |
 | `components/compatibilidad/editor-compatibilidad.tsx` | Columnas Marca › Modelo › Año › Motor con LED (asignado · parcial · incluido por un nivel superior). Marcar un nivel cubre lo de abajo; **Mayús+clic** marca rangos; en Años se filtra `2003-2008` y «Marcar los N»; salto «corolla 05»; «Copiar de otro producto». Guardado optimista. |
+| `components/inventario/entrada-inventario.tsx` | «Entrada» (Inventario › Productos): buscar o escanear, **Enter** agrega y salta a la cantidad; costo por línea; costo del producto por **promedio ponderado**, último costo o sin cambio; referencia (factura del proveedor). Llama a `entrada_inventario()` (kardex «compra»). Solo dueño/admin. |
+| `components/inventario/importar-productos.tsx` | «Importar» desde **.xlsx o .csv** (`read-excel-file`; CSV con , o ;): plantilla descargable (`write-excel-file`), columnas reconocidas por nombre y alias (`lib/inventario.ts` › `COLUMNAS_IMPORTACION`), vista previa, **Revisar** (corre `importar_productos(…, probar)` y deshace) y luego importar en lotes de 400 con progreso. Errores por número de fila. |
 | `components/imagenes/galeria-producto.tsx` | Fotos: arrastrar y soltar, se comprimen en el navegador a WebP (1600 px + miniatura 400 px, `procesar.ts`), la primera es la principal, reordenar, ampliar. |
 
 Cálculos de venta compartidos (cliente, servidor, impresión): `lib/ventas.ts` (`calcularTotales` usa el mismo redondeo que `emitir_documento()`). Formatos: `lib/formato.ts` (`moneda`, `enLetras`…).
@@ -158,7 +178,7 @@ Como un agente no puede iniciar sesión con Google, existen rutas **solo en desa
 
 - `/dev/escritorio`: escritorio completo; lee el catálogo como `anon`; las escrituras fallan por RLS (sirve para probar errores).
 - `/dev/bienvenida`: formulario de registro de empresa.
-- El escritorio del sandbox usa `app/dev/datos-demo.ts`: 16 productos, clientes, carritos y documentos **en memoria** para el mostrador, las fotos y la compatibilidad (el catálogo de vehículos es el real). `/dev/documento?id=…` imprime el documento demo; `/dev/piezas` muestra sueltos el editor de compatibilidad y la galería.
+- El escritorio del sandbox usa `app/dev/datos-demo.ts`: 16 productos, clientes, carritos y documentos **en memoria** para el mostrador, las fotos, la compatibilidad, entradas, importación y un reporte de ventas sintético (el catálogo de vehículos es el real). `/dev/documento?id=…` imprime el documento demo; `/dev/piezas` muestra sueltos el editor de compatibilidad y la galería.
 - Las animaciones con WAAPI (abrir/minimizar ventanas) tampoco avanzan con el panel oculto: `document.getAnimations().forEach(a => a.finish())` antes de capturar.
 
 Si el panel del navegador no está visible, las animaciones no avanzan: para capturas, inyectá temporalmente `*{animation:none!important;transition:none!important}`.

@@ -1,0 +1,628 @@
+/* Tablero de reportes: el visor principal es un LCD con odómetro, los demás
+   indicadores son instrumentos pequeños y la serie es un ecualizador de LED. */
+
+.tablero {
+  container-type: inline-size;
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  padding: 0 1.2rem 1.4rem;
+}
+
+/* ---------------------------------------------------------------- barra --- */
+
+.barra {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 0.9rem;
+  margin: 0 -1.2rem;
+  padding: 0.8rem 1.2rem;
+  background: color-mix(in oklab, var(--wp-panel) 92%, transparent);
+  backdrop-filter: blur(8px);
+  box-shadow: 0 1px 0 var(--wp-line);
+}
+
+/* LED que barre el borde inferior mientras se arma el reporte. */
+.barrido {
+  position: absolute;
+  left: 0;
+  bottom: -1px;
+  width: 30%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--wp-accent), transparent);
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tablero[data-cargando] .barrido {
+  opacity: 1;
+  animation: barrer 1100ms var(--ease-inout) infinite;
+}
+
+@keyframes barrer {
+  from {
+    transform: translate3d(-100%, 0, 0);
+  }
+  to {
+    transform: translate3d(340%, 0, 0);
+  }
+}
+
+.periodos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--wp-field);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.45), inset 0 0 0 1px var(--wp-line);
+}
+
+/* Teclas metálicas: la elegida queda hundida con LED. */
+.periodo {
+  position: relative;
+  padding: 0.38rem 0.7rem 0.38rem 1.2rem;
+  border: 0;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--wp-ink-2);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color 180ms var(--ease-quart),
+    background-color 180ms var(--ease-quart);
+}
+
+.periodo::before {
+  content: "";
+  position: absolute;
+  left: 0.5rem;
+  top: 50%;
+  width: 5px;
+  height: 5px;
+  margin-top: -2.5px;
+  border-radius: 50%;
+  background: var(--wp-line);
+  transition:
+    background-color 200ms var(--ease-quart),
+    box-shadow 200ms var(--ease-quart);
+}
+
+.periodo:hover {
+  color: var(--wp-ink);
+}
+
+.periodo[aria-checked="true"] {
+  color: var(--wp-ink);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 1px 2px rgb(0 0 0 / 0.4);
+}
+
+.periodo[aria-checked="true"]::before {
+  background: var(--wp-accent);
+  box-shadow: 0 0 6px 1px var(--wp-accent-glow);
+}
+
+.periodo:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 1px;
+}
+
+.rango {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--wp-ink-3);
+}
+
+.rango input {
+  width: 9.6rem;
+  padding-block: 0.35rem;
+  font-size: 0.78rem;
+}
+
+.exportar {
+  margin-left: auto;
+}
+
+.error {
+  padding: 0.7rem 0.9rem;
+  border-radius: 10px;
+  font-size: 0.85rem;
+  color: var(--wp-ink);
+  background: var(--wp-hover);
+  box-shadow: inset 3px 0 0 var(--wp-accent);
+}
+
+.reintentar {
+  margin-left: 0.4rem;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  font-weight: 600;
+  color: var(--wp-accent-hi);
+  background: none;
+  cursor: pointer;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.cuerpo {
+  display: grid;
+  gap: 1rem;
+  transition: opacity 240ms var(--ease-quart);
+}
+
+.tablero[data-cargando] .cuerpo {
+  opacity: 0.55;
+}
+
+/* ---------------------------------------------------------- indicadores --- */
+
+.indicadores {
+  display: grid;
+  grid-template-columns: minmax(260px, 0.9fr) minmax(0, 2fr);
+  gap: 0.8rem;
+}
+
+.instrumentos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.6rem;
+}
+
+.indicador {
+  display: grid;
+  align-content: space-between;
+  gap: 0.35rem;
+  min-width: 0;
+  padding: 0.75rem 0.85rem;
+  border-radius: 12px;
+  background: var(--wp-panel-2);
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 0 0 1px var(--wp-line),
+    0 8px 18px -14px rgb(0 0 0 / 0.8);
+  animation: entrar 560ms var(--ease-expo) both;
+}
+
+@keyframes entrar {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+}
+
+.indicador[data-grande] {
+  align-content: center;
+  gap: 0.6rem;
+  padding: 1rem 1.1rem;
+  background:
+    radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--wp-accent) 12%, transparent), transparent 60%),
+    var(--wp-panel-2);
+}
+
+.indicadorEtiqueta {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.indicadorValor {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+  color: var(--wp-ink);
+}
+
+.indicador[data-grande] .indicadorValor {
+  font-size: 2.2rem;
+}
+
+.indicadorCambio {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--wp-ink-3);
+}
+
+.indicadorCambio[data-tono="bien"] {
+  color: var(--wp-ok);
+}
+
+.indicadorCambio[data-tono="mal"] {
+  color: var(--wp-accent-hi);
+}
+
+.indicadorPrevio {
+  color: var(--wp-ink-3);
+}
+
+.flecha {
+  width: 9px;
+  height: 9px;
+}
+
+/* ---------------------------------------------------------------- panel --- */
+
+.panel {
+  min-width: 0;
+  padding: 0.9rem 1rem 1rem;
+  border-radius: 14px;
+  background: var(--wp-panel-2);
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 0 0 1px var(--wp-line);
+}
+
+.panelCabecera {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.8rem;
+}
+
+.panelTitulo {
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-variation-settings: "wdth" 66;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.panelNota {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.vacio {
+  padding: 1.6rem 0.4rem;
+  font-size: 0.86rem;
+  text-align: center;
+  color: var(--wp-ink-3);
+}
+
+/* -------------------------------------------------------- ecualizador --- */
+
+.grafico {
+  display: grid;
+  gap: 0.8rem;
+}
+
+.lectura {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.35rem 0.9rem;
+  font-family: var(--font-mono);
+}
+
+.lecturaFecha {
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.lecturaValor {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--wp-accent-hi);
+  text-shadow: 0 0 10px var(--wp-accent-glow);
+}
+
+.lecturaSecundaria {
+  font-size: 0.72rem;
+  color: var(--wp-ink-2);
+}
+
+.area {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.6rem;
+  height: 210px;
+  padding: 0.8rem 0.8rem 0;
+  border-radius: 10px;
+  background:
+    repeating-linear-gradient(0deg, rgb(0 0 0 / 0.14) 0 1px, transparent 1px 3px),
+    var(--wp-field);
+  box-shadow: inset 0 2px 8px rgb(0 0 0 / 0.5), inset 0 0 0 1px var(--wp-line);
+}
+
+.guias {
+  position: relative;
+  width: 3.6rem;
+  margin-bottom: 1.4rem;
+}
+
+.guias span {
+  position: absolute;
+  right: 0;
+  transform: translate3d(0, 50%, 0);
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  white-space: nowrap;
+  color: var(--wp-ink-3);
+}
+
+.barras {
+  display: flex;
+  align-items: stretch;
+  gap: 3px;
+  min-width: 0;
+  padding: 0;
+  list-style: none;
+  /* Líneas guía a la altura de las etiquetas. */
+  background:
+    linear-gradient(var(--wp-line), var(--wp-line)) 0 0 / 100% 1px no-repeat,
+    linear-gradient(var(--wp-line), var(--wp-line)) 0 calc((100% - 1.4rem) / 2) / 100% 1px no-repeat;
+}
+
+.barras[data-muchas] {
+  gap: 1px;
+}
+
+.columna {
+  flex: 1 1 0;
+  display: grid;
+  grid-template-rows: minmax(0, 1fr) 1.4rem;
+  min-width: 0;
+}
+
+.barraBoton {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  padding: 0;
+  border: 0;
+  background: none;
+  cursor: crosshair;
+}
+
+.barraBoton:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 1px;
+  border-radius: 3px;
+}
+
+/* LED segmentado: franjas de acento con rendijas, más brillante arriba. */
+.barraLed {
+  width: min(100%, 22px);
+  border-radius: 2px 2px 0 0;
+  background:
+    linear-gradient(to top, transparent 0, transparent calc(100% - 4px), rgb(255 255 255 / 0.35) calc(100% - 4px)),
+    repeating-linear-gradient(to top, var(--wp-accent-lo) 0 4px, transparent 4px 6px);
+  transform-origin: 50% 100%;
+  animation: crecer 720ms var(--ease-expo) both;
+  transition: filter 160ms var(--ease-quart);
+}
+
+.barraLed[data-activa] {
+  background:
+    linear-gradient(to top, transparent 0, transparent calc(100% - 4px), rgb(255 255 255 / 0.6) calc(100% - 4px)),
+    repeating-linear-gradient(to top, var(--wp-accent-hi) 0 4px, transparent 4px 6px);
+  filter: drop-shadow(0 0 6px var(--wp-accent-glow));
+}
+
+.barraLed[data-cero] {
+  height: 2px !important;
+  background: var(--wp-line);
+}
+
+@keyframes crecer {
+  from {
+    transform: scaleY(0);
+  }
+}
+
+.eje {
+  overflow: hidden;
+  padding-top: 0.3rem;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  white-space: nowrap;
+  text-align: center;
+  color: var(--wp-ink-3);
+  text-overflow: clip;
+}
+
+/* ------------------------------------------------------------- rankings --- */
+
+.rankings {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.8rem;
+}
+
+.panel[data-ancho="completo"] {
+  grid-column: 1 / -1;
+}
+
+.ranking {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.84rem;
+}
+
+.ranking th {
+  padding: 0 0.5rem 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-align: left;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.ranking td {
+  padding: 0.45rem 0.5rem;
+  border-top: 1px solid var(--wp-line);
+  vertical-align: top;
+}
+
+.ranking tbody tr {
+  animation: entrar 480ms var(--ease-expo) both;
+}
+
+.ranking tbody tr:hover {
+  background: var(--wp-hover);
+}
+
+.posicion {
+  width: 2.2rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem !important;
+  color: var(--wp-ink-3);
+}
+
+.ranking tbody tr:first-child .posicion {
+  color: var(--wp-accent-hi);
+}
+
+.nombre {
+  min-width: 0;
+  max-width: 1px;
+  width: 100%;
+}
+
+.nombreTexto {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--wp-ink);
+}
+
+.nombreSecundario {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--wp-ink-3);
+}
+
+/* Pista de LED bajo el nombre: el largo es la medida del ranking. */
+.pista {
+  display: block;
+  height: 3px;
+  margin-top: 0.35rem;
+  border-radius: 2px;
+  background: color-mix(in oklab, var(--wp-accent) 12%, transparent);
+  overflow: hidden;
+}
+
+.pista span {
+  display: block;
+  height: 100%;
+  border-radius: 2px;
+  background: linear-gradient(90deg, var(--wp-accent-lo), var(--wp-accent-hi));
+  box-shadow: 0 0 6px var(--wp-accent-glow);
+  transform-origin: 0 50%;
+  animation: llenar 760ms var(--ease-expo) both;
+}
+
+@keyframes llenar {
+  from {
+    transform: scaleX(0);
+  }
+}
+
+.numero {
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right !important;
+  white-space: nowrap;
+  color: var(--wp-ink-2);
+}
+
+.numero[data-medida] {
+  color: var(--wp-ink);
+  font-weight: 600;
+}
+
+/* ------------------------------------------------------------ esqueleto --- */
+
+.esqueleto {
+  min-height: 78px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, var(--wp-hover), color-mix(in oklab, var(--wp-hover) 30%, transparent), var(--wp-hover));
+  background-size: 200% 100%;
+  animation: brillo 1400ms var(--ease-inout) infinite;
+}
+
+.esqueleto[data-alto="grande"] {
+  min-height: 170px;
+}
+
+.esqueleto[data-alto="grafico"] {
+  min-height: 280px;
+}
+
+@keyframes brillo {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
+
+/* ----------------------------------------------------------- responsive --- */
+
+@container (max-width: 760px) {
+  .indicadores,
+  .rankings {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .exportar {
+    margin-left: 0;
+  }
+}
+
+@container (max-width: 480px) {
+  .rango input {
+    width: 8.4rem;
+  }
+  .area {
+    height: 170px;
+  }
+  .guias {
+    width: 2.8rem;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .barraLed,
+  .pista span,
+  .indicador,
+  .ranking tbody tr {
+    animation: none;
+  }
+}

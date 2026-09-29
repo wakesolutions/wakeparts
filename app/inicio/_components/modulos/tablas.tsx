@@ -9,13 +9,26 @@ import styles from "./modulos.module.css";
 export type SeccionTablas = {
   titulo: string;
   nota?: string;
-  items: readonly {
-    recurso: string;
-    descripcion: string;
-    /** Contenido propio en vez del mantenimiento genérico (p. ej. con pestañas extra). */
-    contenido?: (ctx: { editable: boolean }) => ReactNode;
-  }[];
+  items: readonly ItemTablas[];
 };
+
+/**
+ * Un ítem es una tabla (`recurso` de lib/recursos) o una vista propia (`id` +
+ * `titulo` + `contenido`), p. ej. un tablero de reportes.
+ */
+export type ItemTablas = {
+  recurso?: string;
+  id?: string;
+  titulo?: string;
+  descripcion: string;
+  /** Contenido propio en vez del mantenimiento genérico (p. ej. con pestañas extra). */
+  contenido?: (ctx: { editable: boolean }) => ReactNode;
+  /** Solo para algunos roles. */
+  visible?: (sesion: ReturnType<typeof useSesion>) => boolean;
+};
+
+const claveDe = (i: ItemTablas) => i.recurso ?? i.id!;
+const tituloDe = (i: ItemTablas) => (i.recurso ? obtenerRecurso(i.recurso).nombrePlural : i.titulo ?? i.id!);
 
 /**
  * Módulo genérico «barra lateral de tablas + mantenimiento»: cada ítem abre el
@@ -32,20 +45,23 @@ export function ModuloTablas({
   inicial: string;
 }) {
   const sesion = useSesion();
-  const todos = secciones.flatMap((s) => s.items);
+  const visibles = secciones
+    .map((s) => ({ ...s, items: s.items.filter((i) => !i.visible || i.visible(sesion)) }))
+    .filter((s) => s.items.length);
+  const todos = visibles.flatMap((s) => s.items);
   const clave = `wp:${id}:seccion`;
   const [actual, setActual] = useState<string>(() => {
     try {
       const guardado = localStorage.getItem(clave);
-      if (todos.some((i) => i.recurso === guardado)) return guardado!;
+      if (todos.some((i) => claveDe(i) === guardado)) return guardado!;
     } catch {
       // sin almacenamiento
     }
     return inicial;
   });
-  const def = obtenerRecurso(actual);
-  const item = todos.find((i) => i.recurso === actual)!;
-  const editable = puedeEscribir(sesion, def.escritura);
+  const item = todos.find((i) => claveDe(i) === actual) ?? todos[0];
+  const def = item.recurso ? obtenerRecurso(item.recurso) : null;
+  const editable = def ? puedeEscribir(sesion, def.escritura) : false;
 
   function elegir(recurso: string) {
     setActual(recurso);
@@ -59,20 +75,20 @@ export function ModuloTablas({
   return (
     <div className={styles.modulo}>
       <nav className={styles.lateral} aria-label="Tablas">
-        {secciones.map((s) => (
+        {visibles.map((s) => (
           <div key={s.titulo} className={styles.seccion}>
             <p className={styles.seccionTitulo}>{s.titulo}</p>
             <ul>
               {s.items.map((i, n) => (
-                <li key={i.recurso}>
+                <li key={claveDe(i)}>
                   <button
                     type="button"
                     className={styles.item}
-                    aria-current={actual === i.recurso ? "page" : undefined}
-                    onClick={() => elegir(i.recurso)}
+                    aria-current={claveDe(item) === claveDe(i) ? "page" : undefined}
+                    onClick={() => elegir(claveDe(i))}
                   >
                     <span className={styles.itemNumero}>{String(n + 1).padStart(2, "0")}</span>
-                    {obtenerRecurso(i.recurso).nombrePlural}
+                    {tituloDe(i)}
                   </button>
                 </li>
               ))}
@@ -83,20 +99,20 @@ export function ModuloTablas({
       </nav>
 
       <div className={styles.principal}>
-        <header className={styles.cabecera} key={actual}>
+        <header className={styles.cabecera} key={claveDe(item)}>
           <div>
-            <h3 className={styles.cabeceraTitulo}>{def.nombrePlural}</h3>
+            <h3 className={styles.cabeceraTitulo}>{tituloDe(item)}</h3>
             <p className={styles.cabeceraDescripcion}>{item.descripcion}</p>
           </div>
-          {!editable && <span className={styles.soloLectura}>Solo lectura</span>}
+          {def && !editable && <span className={styles.soloLectura}>Solo lectura</span>}
         </header>
         <div className={styles.cuerpo}>
           {item.contenido ? (
-            <div key={actual} className={styles.cuerpoPropio}>
+            <div key={claveDe(item)} className={styles.cuerpoPropio}>
               {item.contenido({ editable })}
             </div>
           ) : (
-            <MantenimientoRecurso key={actual} recurso={actual} puedeEditar={editable} />
+            <MantenimientoRecurso key={claveDe(item)} recurso={item.recurso!} puedeEditar={editable} />
           )}
         </div>
       </div>

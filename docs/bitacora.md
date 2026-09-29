@@ -2,6 +2,14 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-09-29 · SEO, reportes, entradas e importación
+
+- **Reportes genéricos** (pedido del usuario: «reutilizable como la tabla maestra»): `TableroReporte` + `DefReporte` + una función SQL con contrato fijo `{indicadores, serie, rankings}`. Lo que la base devuelve en null no se dibuja: así la misma definición sirve para dueño (con utilidad) y vendedor (sin costo).
+- **Entradas de inventario con costo promedio ponderado** por defecto: es lo que refleja el costo real cuando se compra a distinto precio; se puede elegir «último costo» o no tocarlo. Van al kardex como «compra» con la referencia del proveedor.
+- **Importación en dos pasos (revisar → importar)**: la función hace todo y lo deshace en modo prueba, así los errores por fila salen de las mismas reglas que al guardar. Sin código = siempre producto nuevo (no se adivina por nombre para no mezclar productos). Librerías `read-excel-file`/`write-excel-file` (MIT) en vez de `xlsx` de npm, que está desactualizada.
+- **SEO**: la portada pasa a ser landing (el tacómetro de login queda en el hero, `#encender`). 18 páginas por departamento con texto propio cada una (evita contenido duplicado), `geo.region` ISO 3166-2, JSON-LD y FAQ. No se publican precios ni se dice que Wake Parts esté certificado por el SAR: las respuestas fiscales remiten al contador.
+- **Ventanas hijas y modo completo**: la capa tapa barra y dock también cuando la enfocada es una hija de una ventana maximizada.
+
 ## 2026-09-29 · Ventanas maximizadas por defecto, datos de ejemplo, manual y recorrido
 
 - **Recorrido guiado** (pedido del usuario: «sale una vez y ya»): 15 pasos que abren el mostrador y señalan placa, búsqueda, resultados, carrito, cliente y emitir; luego el dock. No bloquea: se puede tocar lo señalado y avanza solo al abrir Cotizar o minimizar. La marca de visto va en la base (`usuarios.recorrido_visto_en`, 0008) para que no se repita en otra computadora; sin la migración cae a `localStorage`. Se repite desde Mi usuario.

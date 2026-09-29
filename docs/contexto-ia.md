@@ -41,8 +41,10 @@ ERP web para tiendas de repuestos y **yonkers** (deshuesaderos) de pequeña y me
 - ✅ Productos (0004): árbol de categorías con sinónimos y relacionadas, marcas de repuestos, utilidad/margen, kardex, fotos en Storage, compatibilidad con vehículos, `buscar_productos()` (sirve también para el catálogo web).
 - ✅ Ventas (0005): carritos, cotizaciones y facturas con CAI, descuentos con tope por rol, anulación, impresión en `/documentos/[id]`. Reglas fiscales marcadas «a confirmar» en `negocio.md` §3.5.
 - ✅ Recorrido guiado del escritorio (primera vez; se repite desde Mi usuario) y opción de datos de ejemplo al registrar la empresa. Pasos en `app/inicio/_components/recorrido/pasos.tsx`, anclados con `data-recorrido`.
+- ✅ Reporte de ventas (Ventas › Análisis) sobre el tablero genérico `TableroReporte` (receta en `componentes.md` › Reportes); entradas de inventario y importación desde Excel (Inventario › Productos). Migración 0009.
+- ✅ SEO: landing en `/`, `/honduras` + 18 departamentos, robots, sitemap, manifest, íconos, imágenes OG, JSON-LD; privadas con noindex (ver `arquitectura.md` › SEO).
 - ✅ Manual del propietario en `/ayuda` (público): explica todos los módulos con piezas reales (marco de ventana, dock, odómetro). Enlaces en la portada y en la barra de menú.
 - ✅ Componentes genéricos: TablaMaestra (filtros, orden múltiple, columnas guardadas por usuario) y Formulario (relaciones en cascada).
 - ✅ Mantenimiento del catálogo de vehículos (marcas, modelos, años, carrocerías, especificaciones); edición solo para admin de plataforma.
-- ✅ Migraciones 0000–0005 aplicadas; **0006, 0007 y 0008 pendientes**. La empresa del usuario tiene datos de prueba (45 productos, compatibilidades, 3 clientes; sin CAI). Otras empresas los cargan con el botón «Cargar datos de ejemplo» de Taller (`cargar_datos_demo`, 0007).
+- ✅ Migraciones 0000–0005 aplicadas; **0006, 0007, 0008 y 0009 pendientes**. La empresa del usuario tiene datos de prueba (45 productos, compatibilidades, 3 clientes; sin CAI). Otras empresas los cargan con el botón «Cargar datos de ejemplo» de Taller (`cargar_datos_demo`, 0007).
 - ⏭️ Siguiente propuesto: confirmar reglas CAI con el contador; compras/entradas de inventario; catálogo web público por empresa (usa `buscar_productos` sin sesión).

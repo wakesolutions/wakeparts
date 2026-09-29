@@ -1,0 +1,646 @@
+/* Entrada de inventario e importación desde Excel (ventanas hijas de Inventario). */
+
+.hoja {
+  container-type: inline-size;
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  height: 100%;
+  min-height: 0;
+  overflow: auto;
+  padding: 1.1rem 1.2rem 1.3rem;
+  font-size: 0.88rem;
+}
+
+/* ------------------------------------------------------------- búsqueda --- */
+
+.buscarProducto {
+  position: relative;
+  z-index: 3;
+}
+
+.buscar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0 0.9rem;
+  border-radius: 12px;
+  color: var(--wp-ink-3);
+  background: var(--wp-field);
+  box-shadow: inset 0 2px 6px rgb(0 0 0 / 0.4), inset 0 0 0 1px var(--wp-line);
+  transition: box-shadow 200ms var(--ease-quart);
+}
+
+.buscar:focus-within {
+  box-shadow:
+    inset 0 2px 6px rgb(0 0 0 / 0.4),
+    inset 0 0 0 1px var(--wp-accent),
+    0 0 0 3px color-mix(in oklab, var(--wp-accent) 18%, transparent);
+}
+
+.buscarCampo {
+  flex: 1;
+  min-width: 0;
+  height: 44px;
+  border: 0;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--wp-ink);
+  background: none;
+  outline: none;
+}
+
+.sugerencias {
+  position: absolute;
+  inset: calc(100% + 6px) 0 auto;
+  display: grid;
+  gap: 1px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--wp-panel);
+  box-shadow:
+    0 0 0 1px rgb(0 0 0 / 0.4),
+    inset 0 0 0 1px var(--wp-metal-edge),
+    0 18px 36px -18px rgb(0 0 0 / 0.85);
+  list-style: none;
+  animation: bajar 260ms var(--ease-expo) both;
+}
+
+@keyframes bajar {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -4px, 0);
+  }
+}
+
+.sugerencia {
+  display: grid;
+  grid-template-columns: 7rem minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.8rem;
+  width: 100%;
+  padding: 0.55rem 0.7rem;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  text-align: left;
+  color: var(--wp-ink);
+  background: none;
+  cursor: pointer;
+}
+
+.sugerencia[aria-selected="true"] {
+  background: var(--wp-sel);
+  box-shadow: inset 3px 0 0 var(--wp-accent);
+}
+
+.sugerencia[data-servicio] {
+  opacity: 0.55;
+}
+
+.sugerenciaCodigo {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--wp-ink-3);
+}
+
+.sugerenciaNombre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sugerenciaNombre small {
+  color: var(--wp-ink-3);
+}
+
+.sugerenciaExistencia {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--wp-ink-2);
+}
+
+/* --------------------------------------------------------------- líneas --- */
+
+.vacio {
+  display: grid;
+  gap: 0.3rem;
+  place-content: center;
+  min-height: 150px;
+  padding: 1.4rem;
+  border-radius: 14px;
+  text-align: center;
+  color: var(--wp-ink-3);
+  background: repeating-linear-gradient(135deg, transparent 0 10px, var(--wp-hover) 10px 11px);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.vacioTitulo {
+  font-weight: 800;
+  font-variation-settings: "wdth" 66;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--wp-ink-2);
+}
+
+.tablaScroll {
+  min-width: 0;
+  overflow-x: auto;
+}
+
+.lineas {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.lineas th {
+  padding: 0 0.5rem 0.45rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-align: left;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.lineas td {
+  padding: 0.45rem 0.5rem;
+  border-top: 1px solid var(--wp-line);
+  vertical-align: middle;
+}
+
+.lineas tbody tr {
+  animation: bajar 320ms var(--ease-expo) both;
+}
+
+.num {
+  text-align: right !important;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+}
+
+.lineaNombre {
+  display: block;
+  color: var(--wp-ink);
+}
+
+.lineaCodigo {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--wp-ink-3);
+}
+
+.flechaExistencia {
+  color: var(--wp-ink-3);
+}
+
+.num strong {
+  color: var(--wp-ok);
+}
+
+.campoNum {
+  width: 6.4rem;
+  text-align: right;
+}
+
+/* ----------------------------------------------------------------- pie --- */
+
+.pie {
+  display: grid;
+  gap: 0.9rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--wp-line);
+}
+
+.pieCampos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  gap: 1rem;
+}
+
+.campo {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+}
+
+.etiqueta {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.ayuda {
+  font-size: 0.74rem;
+  color: var(--wp-ink-3);
+}
+
+.segmento {
+  display: flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--wp-field);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.45), inset 0 0 0 1px var(--wp-line);
+}
+
+.segmento button {
+  flex: 1;
+  padding: 0.42rem 0.6rem;
+  border: 0;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--wp-ink-2);
+  background: none;
+  cursor: pointer;
+}
+
+.segmento button[aria-checked="true"] {
+  color: var(--wp-ink);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 1px 2px rgb(0 0 0 / 0.4),
+    inset 0 -2px 0 var(--wp-accent);
+}
+
+.segmento button:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 1px;
+}
+
+.pieTotales {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 1rem 1.6rem;
+}
+
+.pieTotales dl {
+  display: flex;
+  gap: 1.6rem;
+}
+
+.pieTotales dt {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.pieTotales dd {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--wp-ink);
+}
+
+.aviso {
+  padding: 0.65rem 0.85rem;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  color: var(--wp-ink);
+  background: var(--wp-hover);
+  box-shadow: inset 3px 0 0 var(--wp-ok);
+}
+
+.aviso[data-tono="error"] {
+  box-shadow: inset 3px 0 0 var(--wp-accent);
+}
+
+/* ---------------------------------------------------------- importación --- */
+
+.zona {
+  display: grid;
+  justify-items: center;
+  gap: 0.35rem;
+  padding: 2.2rem 1rem;
+  border: 1.5px dashed color-mix(in oklab, var(--wp-ink-3) 55%, transparent);
+  border-radius: 16px;
+  font: inherit;
+  color: var(--wp-ink-2);
+  background: var(--wp-field);
+  cursor: pointer;
+  transition:
+    border-color 200ms var(--ease-quart),
+    background-color 200ms var(--ease-quart);
+}
+
+.zona:hover,
+.zona[data-encima] {
+  border-color: var(--wp-accent);
+  background: color-mix(in oklab, var(--wp-accent) 7%, var(--wp-field));
+}
+
+.zona:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 2px;
+}
+
+.zona strong {
+  font-size: 1rem;
+  color: var(--wp-ink);
+}
+
+.zona span:last-of-type {
+  font-size: 0.78rem;
+  color: var(--wp-ink-3);
+}
+
+.zonaIcono {
+  display: grid;
+  place-items: center;
+  width: 46px;
+  height: 46px;
+  margin-bottom: 0.3rem;
+  border-radius: 50%;
+  color: var(--wp-on-accent);
+  background: linear-gradient(180deg, var(--wp-accent-hi), var(--wp-accent-lo));
+  box-shadow: 0 0 16px -2px var(--wp-accent-glow);
+}
+
+.guia {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border-radius: 12px;
+  background: var(--wp-panel-2);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.guia > div {
+  flex: 1 1 320px;
+}
+
+.guiaTitulo {
+  margin-bottom: 0.4rem;
+  font-weight: 700;
+  color: var(--wp-ink);
+}
+
+.guia ul {
+  display: grid;
+  gap: 0.35rem;
+  padding-left: 1.1rem;
+  color: var(--wp-ink-2);
+  font-size: 0.82rem;
+}
+
+.guia em,
+.guia strong {
+  font-style: normal;
+  color: var(--wp-ink);
+}
+
+.archivo {
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  padding: 0.75rem 0.9rem;
+  border-radius: 12px;
+  color: var(--wp-accent-hi);
+  background: var(--wp-panel-2);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.archivo > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.archivoNombre {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+  color: var(--wp-ink);
+}
+
+.archivoDetalle {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--wp-ink-3);
+}
+
+.columnas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  padding: 0;
+  list-style: none;
+}
+
+.columnas li {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.22rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  color: var(--wp-ink-2);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-ok) 45%, transparent);
+  background: color-mix(in oklab, var(--wp-ok) 8%, transparent);
+}
+
+.columnas li b {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wp-ok);
+}
+
+.columnas li[data-ignorada] {
+  opacity: 0.55;
+  text-decoration: line-through;
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  background: none;
+}
+
+.vista,
+.errores {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.vista caption,
+.errores caption {
+  margin-bottom: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.16em;
+  text-align: left;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.vista th,
+.vista td {
+  max-width: 220px;
+  overflow: hidden;
+  padding: 0.35rem 0.55rem;
+  border-bottom: 1px solid var(--wp-line);
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.vista th {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.vista tr[data-error] td {
+  background: color-mix(in oklab, var(--wp-accent) 9%, transparent);
+}
+
+.numFila {
+  font-family: var(--font-mono);
+  color: var(--wp-ink-3);
+}
+
+.opcion {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  color: var(--wp-ink-2);
+  cursor: pointer;
+}
+
+.opcion strong {
+  color: var(--wp-ink);
+}
+
+.resumen {
+  display: grid;
+  gap: 0.7rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  background: var(--wp-panel-2);
+  box-shadow: inset 0 0 0 1px var(--wp-line), inset 3px 0 0 var(--wp-aviso);
+  animation: bajar 320ms var(--ease-expo) both;
+}
+
+.resumen[data-listo] {
+  box-shadow: inset 0 0 0 1px var(--wp-line), inset 3px 0 0 var(--wp-ok);
+}
+
+.resumenTitulo {
+  font-weight: 800;
+  font-variation-settings: "wdth" 66;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.resumen dl {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.6rem;
+}
+
+.resumen dt {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.resumen dd {
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--wp-ink);
+}
+
+.resumen [data-tono="ok"] dd {
+  color: var(--wp-ok);
+}
+
+.resumen [data-tono="error"] dd {
+  color: var(--wp-accent-hi);
+}
+
+.resumenNota {
+  font-size: 0.8rem;
+  color: var(--wp-ink-2);
+}
+
+.errores th,
+.errores td {
+  padding: 0.35rem 0.55rem;
+  border-top: 1px solid var(--wp-line);
+  text-align: left;
+  vertical-align: top;
+}
+
+.errores th {
+  width: 5.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--wp-accent-hi);
+}
+
+.progreso {
+  height: 6px;
+  overflow: hidden;
+  border-radius: 3px;
+  background: var(--wp-field);
+  box-shadow: inset 0 1px 2px rgb(0 0 0 / 0.5);
+}
+
+.progreso span {
+  display: block;
+  height: 100%;
+  background: repeating-linear-gradient(90deg, var(--wp-accent) 0 6px, var(--wp-accent-lo) 6px 8px);
+  box-shadow: 0 0 8px var(--wp-accent-glow);
+  transform-origin: 0 50%;
+  transition: transform 320ms var(--ease-expo);
+}
+
+.acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
+@container (max-width: 620px) {
+  .pieCampos {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .sugerencia {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+  .sugerenciaCodigo {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sugerencias,
+  .lineas tbody tr,
+  .resumen {
+    animation: none;
+  }
+}

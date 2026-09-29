@@ -4,6 +4,9 @@ import { ubicarVehiculo } from "@/app/acciones/vehiculos";
 import type { Apis } from "@/components/datos/apis";
 import type { ImagenProducto } from "@/components/imagenes/api";
 import { centavos } from "@/lib/formato";
+import type { ResultadoImportacion } from "@/lib/inventario";
+import { diasEntre, sumarDias } from "@/lib/reportes/periodos";
+import type { DatosReporte } from "@/lib/reportes/tipos";
 import type { FilaCompat, NivelVehiculo } from "@/lib/vehiculos";
 import {
   calcularTotales,
@@ -479,4 +482,97 @@ const imagenes: Apis["imagenes"] = {
   },
 };
 
-export const APIS_DEMO: Partial<Apis> = { ventas, compatibilidad, imagenes };
+// ------------------------------------------------ entradas e importación ---
+
+const inventario: Apis["inventario"] = {
+  buscar: async (texto) => espera(buscar({ texto, vehiculo: {} }), 90),
+  entrada: async (lineas) => {
+    let unidades = 0;
+    let valor = 0;
+    for (const l of lineas) {
+      const p = PRODUCTOS.find((x) => x.id === l.id_producto);
+      if (!p) return espera({ ok: false as const, error: "Un producto de la lista no existe." });
+      if (!p.controla_inventario) return espera({ ok: false as const, error: `«${p.nombre}» es un servicio: no lleva inventario.` });
+      p.existencia = Number(p.existencia ?? 0) + l.cantidad;
+      p.disponible = p.existencia > 0;
+      unidades += l.cantidad;
+      valor += l.cantidad * (l.costo ?? Number(p.costo ?? 0));
+    }
+    return espera({ ok: true as const, productos: lineas.length, unidades, valor: centavos(valor) }, 400);
+  },
+  // Sin base: valida lo mínimo para ver la interfaz (nombre y categoría en productos nuevos).
+  importar: async (filas, actualizar, probar) => {
+    const r: ResultadoImportacion = { creados: 0, actualizados: 0, saltados: 0, marcas_nuevas: [], errores: [], probado: probar };
+    for (const f of filas) {
+      const existe = f.codigo && PRODUCTOS.some((p) => p.codigo === String(f.codigo).toUpperCase());
+      if (existe) {
+        if (actualizar) r.actualizados++;
+        else r.saltados++;
+      } else if (!f.nombre) r.errores.push({ fila: f._fila, mensaje: "Falta el nombre." });
+      else if (!f.categoria) r.errores.push({ fila: f._fila, mensaje: "Falta la categoría." });
+      else if (typeof f.precio === "string") r.errores.push({ fila: f._fila, mensaje: "Hay un número o dato con formato no válido." });
+      else r.creados++;
+    }
+    return espera({ ok: true as const, resultado: r }, 500);
+  },
+};
+
+// ------------------------------------------------------------- reportes ---
+
+/** Números inventados pero estables (misma fecha → mismo valor) para ver el tablero. */
+function ruido(semilla: string) {
+  let h = 2166136261;
+  for (const c of semilla) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
+  return ((h >>> 0) % 1000) / 1000;
+}
+
+const reportes: Apis["reportes"] = {
+  leer: async (_id, desde, hasta) => {
+    const dias = diasEntre(desde, hasta);
+    const dia = (f: string) => {
+      const semana = new Date(`${f}T00:00:00Z`).getUTCDay();
+      const base = semana === 0 ? 0.2 : semana === 6 ? 1.3 : 1;
+      const facturas = Math.round((3 + ruido(f) * 9) * base);
+      return { fecha: f, facturas, ventas: centavos(facturas * (900 + ruido(`v${f}`) * 1900)) };
+    };
+    const serie = Array.from({ length: dias }, (_, i) => dia(sumarDias(desde, i)));
+    const previa = Array.from({ length: dias }, (_, i) => dia(sumarDias(desde, i - dias)));
+    const suma = (xs: typeof serie, k: "ventas" | "facturas") => centavos(xs.reduce((s, x) => s + x[k], 0));
+    const v = suma(serie, "ventas");
+    const va = suma(previa, "ventas") * 0.92;
+    const f = suma(serie, "facturas");
+    const fa = suma(previa, "facturas");
+    const par = (valor: number, anterior: number) => ({ valor: centavos(valor), anterior: centavos(anterior) });
+    const reparto = (nombres: string[], total: number) =>
+      nombres.map((n, i) => ({ n, t: centavos(total * (0.34 / (i + 1)) * (0.8 + ruido(n) * 0.4)) })).sort((a, b) => b.t - a.t);
+    const datos: DatosReporte = {
+      periodo: { desde, hasta, dias },
+      indicadores: {
+        ventas: par(v, va),
+        facturas: par(f, fa),
+        ticket: par(f ? v / f : 0, fa ? va / fa : 0),
+        utilidad: par(v / 1.15 * 0.36, va / 1.15 * 0.33),
+        margen: par(36.2, 33.4),
+        isv: par(v - v / 1.15, va - va / 1.15),
+        descuentos: par(v * 0.018, va * 0.024),
+        cotizado: par(v * 0.42, va * 0.47),
+        anuladas: par(Math.round(dias / 14), Math.round(dias / 11)),
+      },
+      serie,
+      rankings: {
+        productos: PRODUCTOS.filter((p) => p.controla_inventario)
+          .slice(0, 10)
+          .map((p, i) => {
+            const total = centavos((v * 0.16) / (i + 1.4));
+            return { codigo: p.codigo, descripcion: p.nombre, cantidad: Math.max(1, Math.round(total / p.precio)), total, utilidad: centavos(total * 0.3) };
+          }),
+        categorias: reparto(["Pastillas de freno", "Aceite de motor", "Filtros de aceite", "Amortiguadores", "Bujías", "Baterías"], v).map((x) => ({ nombre: x.n, total: x.t })),
+        vendedores: reparto(["Demo Sandbox", "Karla Mejía", "José Ramos"], v * 2.2).map((x, i) => ({ nombre: x.n, total: x.t, facturas: Math.round(f / (i + 1.6)) })),
+        clientes: reparto(["CONSUMIDOR FINAL", "TRANSPORTES LÓPEZ S. DE R.L.", "TAXI RÁPIDO CAPITALINO", "JUAN PÉREZ"], v * 2).map((x, i) => ({ nombre: x.n, total: x.t, facturas: Math.max(1, Math.round(f / (i + 1.3))) })),
+      },
+    };
+    return espera({ ok: true as const, datos }, 450);
+  },
+};
+
+export const APIS_DEMO: Partial<Apis> = { ventas, compatibilidad, imagenes, inventario, reportes };

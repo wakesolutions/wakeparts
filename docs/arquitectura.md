@@ -15,15 +15,20 @@
 
 ```
 app/
-  layout.tsx              Fuentes, <html data-paleta> leído de cookie
+  layout.tsx              Fuentes, <html data-paleta> leído de cookie, metadata SEO base
   globals.css             Tokens de paletas, texturas, coreografía de carga
-  page.tsx                Login (/)
-  _components/            Componentes de la página de login (arranque = tacómetro)
+  page.tsx                Landing pública + login (/): hero con el tacómetro «Encender»
+  _components/            Arranque (tacómetro de login)
+  _publico/               Piezas de las páginas públicas (encabezado, pie, secciones, JSON-LD, imagen OG)
+  honduras/               /honduras y /honduras/[departamento] (18 páginas estáticas, SEO local)
+  ayuda/                  Manual del propietario (público)
+  robots.ts · sitemap.ts · manifest.ts · icon.svg · apple-icon.png · favicon.ico · opengraph-image.tsx
   auth/
     actions.ts            Server Actions: iniciarSesionConGoogle, cerrarSesion
     callback/route.ts     Intercambia el código OAuth por la sesión
   acciones/               Server Actions: recursos (genéricas), preferencias, empresa, perfil,
-                          productos (fotos, compatibilidad), vehiculos (catálogo), ventas (mostrador)
+                          productos (fotos, compatibilidad), vehiculos (catálogo), ventas (mostrador),
+                          inventario (entradas, importación), reportes
   documentos/[id]/        Vista imprimible de una cotización o factura (RLS)
   bienvenida/             Onboarding: registro de la empresa (primera vez)
   inicio/                 Escritorio (ruta protegida)
@@ -37,6 +42,8 @@ components/
   ventas/                 Mostrador, selector de vehículo, ticket, odómetro, hoja de documento
   compatibilidad/         Editor producto ↔ vehículos
   imagenes/               Galería de fotos + compresión en el navegador
+  inventario/             Entrada de inventario e importación desde Excel
+  reportes/               TableroReporte genérico (indicadores, ecualizador, rankings, Excel)
   datos/apis.tsx          useApi(): Server Actions o datos demo inyectados
   ventanas/               Gestor de ventanas estilo macOS
   ui/                     Controles base e íconos propios
@@ -49,6 +56,9 @@ lib/
   vehiculos.ts            Tipos del catálogo de vehículos y la compatibilidad
   imagenes.ts             URL pública de Storage
   recursos/               DefRecurso por tabla, validación compartida, capa de servidor genérica
+  reportes/               DefReporte por reporte + períodos y formatos
+  inventario.ts           Columnas de importación (alias), números «L 1,250.50», tipos de entradas
+  sitio.ts                URL pública, textos SEO y los 18 departamentos (ISO, cabecera, ciudades)
   supabase/server.ts      Cliente Supabase para servidor (uno por request)
   supabase/proxy.ts       Refresco de sesión + redirecciones
 proxy.ts                  Entrada del proxy de Next
@@ -60,6 +70,15 @@ Convenciones:
 - Carpetas privadas con `_` (`_components`) junto a la ruta que las usa. Cuando algo se comparta entre rutas, se mueve a `components/` en la raíz.
 - Nombres de archivos, funciones y variables de dominio en español (`iniciarSesionConGoogle`, `paletaValida`). Nombres técnicos del framework, en inglés.
 - Server Components por defecto; `"use client"` solo donde hay estado o eventos.
+
+## SEO y páginas públicas
+
+- **Públicas e indexables**: `/` (landing + login), `/honduras`, `/honduras/[departamento]` (`generateStaticParams`, `dynamicParams = false`) y `/ayuda`. Deben estar en `RUTAS_PUBLICAS` del proxy, igual que `robots.txt`, `sitemap.xml`, `manifest.webmanifest`, `opengraph-image`, `twitter-image`, `icon` y `apple-icon`.
+- **Privadas**: `/inicio`, `/bienvenida`, `/documentos/*` y `/dev/*` llevan `robots: { index: false }` y están en `Disallow` de `robots.txt`.
+- `app/layout.tsx`: `metadataBase` = `URL_SITIO` (`NEXT_PUBLIC_SITE_URL`; en Vercel, el dominio de producción), plantilla de título «%s · Wake Parts», Open Graph `es_HN`, tarjeta grande de X, `geo.region` y `<html lang="es-HN">`. Cada página pública define su `canonical`.
+- **JSON-LD** (`<JsonLd>`, sanea `<`): portada = Organization + WebSite + SoftwareApplication (con los 18 departamentos en `areaServed`) + FAQPage; departamento = BreadcrumbList + Service (área y ciudades) + FAQPage; manual = TechArticle + BreadcrumbList.
+- Imágenes para redes generadas con `next/og` (`app/_publico/imagen-og.tsx`), una por página pública. Íconos: `app/icon.svg` (fuente), `favicon.ico` y PNG del manifest generados desde él con `sharp`.
+- Un departamento nuevo o un cambio de ciudades: `DEPARTAMENTOS` en `lib/sitio.ts` (el sitemap, los enlaces y las imágenes salen de ahí). Cada departamento tiene un párrafo propio (`contexto`) para no duplicar contenido.
 
 ## Autenticación
 
@@ -80,7 +99,7 @@ Configuración externa necesaria en Supabase → Authentication → URL Configur
 
 | Variable | Uso |
 |---|---|
-| `NEXT_PUBLIC_SITE_URL` | URL pública; respaldo para `redirectTo` si no hay header `host`. |
+| `NEXT_PUBLIC_SITE_URL` | URL pública canónica: `metadataBase`, sitemap, robots, JSON-LD; respaldo para `redirectTo` si no hay header `host`. |
 | `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto Supabase. |
 | `SUPABASE_PUBLISHABLE_KEY` | Llave publicable. **Solo servidor** hoy. Si algún día hace falta un cliente de navegador (realtime), exponer como `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. |
 | `SUPABASE_SECRET_KEY` | Llave secreta (salta RLS). Solo scripts/admin en servidor; nunca en el cliente. |

@@ -78,3 +78,4 @@ Con Node y [PGlite](https://pglite.dev) (Postgres en WASM), en una carpeta tempo
 | 0006 | `0006_busqueda_complementos.sql` | `buscar_productos()`: complementos solo de las categorías de los 4 primeros resultados y de subcategorías nombradas en el texto; máximo 6 | **Pendiente** |
 | 0007 | `0007_datos_demo.sql` | `cargar_datos_demo(empresa)`: 45 productos, compatibilidades y 3 clientes de ejemplo (botón en Taller; dueño/admin; idempotente; sin CAI) | **Pendiente** |
 | 0008 | `0008_recorrido_guiado.sql` | `usuarios.recorrido_visto_en`: el recorrido guiado del escritorio sale una sola vez por usuario | **Pendiente** |
+| 0009 | `0009_reportes_entradas_importacion.sql` | `reporte_ventas()` (contrato genérico de reportes), `entrada_inventario()` (kardex «compra», costo promedio/último), `importar_productos()` (con modo revisar) y `resolver_categoria()` | **Pendiente** |

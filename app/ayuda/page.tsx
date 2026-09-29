@@ -13,9 +13,13 @@ import { Capitulo, IconoDock, Led, Marco, Nota, Tecla } from "./_componentes/pie
 import { Indice, type EntradaIndice } from "./_componentes/indice";
 import { OdometroDemo } from "./_componentes/odometro-demo";
 import styles from "./ayuda.module.css";
+import { JsonLd } from "../_publico/piezas";
+import { NOMBRE_SITIO, URL_SITIO } from "@/lib/sitio";
 
 export const metadata: Metadata = {
-  title: "Manual del propietario · Wake Parts",
+  title: "Manual del propietario",
+  alternates: { canonical: "/ayuda" },
+  openGraph: { url: "/ayuda", title: "Manual del propietario · Wake Parts" },
   description: "Cómo usar Wake Parts: mostrador, inventario, compatibilidad con vehículos, facturación con CAI, usuarios y roles.",
 };
 
@@ -36,6 +40,8 @@ const PERMISOS: [string, boolean, boolean, boolean][] = [
   ["Cotizar, facturar y crear clientes", true, true, true],
   ["Descuentos sin tope", true, true, false],
   ["Crear y editar productos, fotos y vehículos", true, true, false],
+  ["Cargar inventario e importar desde Excel", true, true, false],
+  ["Ver utilidad y margen en el reporte", true, true, false],
   ["Anular facturas", true, true, false],
   ["Registrar CAI", true, true, false],
   ["Editar el taller y su paleta", true, true, false],
@@ -46,6 +52,29 @@ const PERMISOS: [string, boolean, boolean, boolean][] = [
 export default function Manual() {
   return (
     <div className={`wp-carbono ${styles.pagina}`}>
+      <JsonLd
+        datos={{
+          "@context": "https://schema.org",
+          "@graph": [
+            {
+              "@type": "TechArticle",
+              headline: "Manual del propietario de Wake Parts",
+              description: "Cómo usar Wake Parts: mostrador, inventario, compatibilidad con vehículos, facturación con CAI, usuarios y roles.",
+              inLanguage: "es-HN",
+              url: `${URL_SITIO}/ayuda`,
+              publisher: { "@type": "Organization", name: NOMBRE_SITIO, url: URL_SITIO },
+              hasPart: CAPITULOS.map((c) => ({ "@type": "WebPageElement", name: c.titulo, url: `${URL_SITIO}/ayuda#${c.id}` })),
+            },
+            {
+              "@type": "BreadcrumbList",
+              itemListElement: [
+                { "@type": "ListItem", position: 1, name: NOMBRE_SITIO, item: `${URL_SITIO}/` },
+                { "@type": "ListItem", position: 2, name: "Manual del propietario", item: `${URL_SITIO}/ayuda` },
+              ],
+            },
+          ],
+        }}
+      />
       <header className={`wp-metal ${styles.barra}`}>
         <Link href="/inicio" className={styles.marca}>
           Wake<span className="text-wp-accent">Parts</span>
@@ -382,8 +411,16 @@ export default function Manual() {
               <div>
                 <h3 className={styles.subtitulo}>Kardex</h3>
                 <p>
-                  Cada cambio de existencia queda registrado solo: la inicial, los ajustes a mano, las ventas y las
-                  anulaciones, con quién lo hizo y por qué documento.
+                  Cada cambio de existencia queda registrado solo: la inicial, los ajustes a mano, las compras, las
+                  ventas y las anulaciones, con quién lo hizo y por qué documento.
+                </p>
+                <h3 className={styles.subtitulo}>Entrada de inventario</h3>
+                <p>
+                  En <em>Productos</em>, el botón <strong>Entrada</strong> suma existencias de una compra o un conteo.
+                  Buscá o escaneá el producto: <Tecla>Enter</Tecla> lo agrega y te lleva a la cantidad. Anotá el costo
+                  de la compra y la referencia (factura del proveedor). El costo del producto puede quedar como{" "}
+                  <strong>promedio</strong> con lo que había (recomendado), tomar el <strong>último costo</strong> o no
+                  cambiar. Queda en el kardex como «compra».
                 </p>
               </div>
               <div>
@@ -391,6 +428,14 @@ export default function Manual() {
                 <p>
                   Ya vienen 57 marcas de repuestos y un árbol de 186 categorías con sinónimos de mostrador. Podés
                   agregar las marcas que te falten; el árbol lo mantiene Wake Parts para todos.
+                </p>
+                <h3 className={styles.subtitulo}>Importar desde Excel</h3>
+                <p>
+                  El botón <strong>Importar</strong> recibe un <code className={styles.codigo}>.xlsx</code> o{" "}
+                  <code className={styles.codigo}>.csv</code> (hasta 5000 productos). Descargá la plantilla o usá tu
+                  archivo: se reconocen encabezados como «Código», «Stock» o «Precio de venta». Primero{" "}
+                  <strong>Revisar</strong> (no guarda nada y dice qué fila tiene qué problema), después importar. Con
+                  código, un producto existente se actualiza; las marcas nuevas se crean como propias.
                 </p>
               </div>
             </div>
@@ -444,7 +489,7 @@ export default function Manual() {
             id="ventas"
             numero="06"
             titulo="Ventas y CAI"
-            bajada="Documentos emitidos, clientes y la numeración autorizada por el SAR."
+            bajada="Documentos emitidos, clientes, el reporte de ventas y la numeración autorizada por el SAR."
           >
             <div className={styles.dosColumnas}>
               <div>
@@ -466,6 +511,13 @@ export default function Manual() {
                 <p>
                   Con RTN (14 dígitos) salen con nombre y RTN en la factura; sin RTN, como consumidor final. Cualquier
                   miembro puede crearlos, también desde el mostrador.
+                </p>
+                <h3 className={styles.subtitulo}>Reporte de ventas</h3>
+                <p>
+                  En <em>Ventas › Análisis</em>: ventas con ISV, facturas, ticket promedio, utilidad y margen,
+                  comparados con el período anterior del mismo largo (▲ verde es mejor). Ventas por día, lo más
+                  vendido, categorías, vendedores y clientes. Elegí hoy, 7 o 30 días, el mes o un rango propio, y
+                  exportalo a Excel. Los vendedores no ven utilidad ni costos.
                 </p>
               </div>
               <div>

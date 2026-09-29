@@ -156,8 +156,8 @@ export const PASOS: Paso[] = [
     titulo: "Inventario",
     texto: (
       <>
-        Tus productos con fotos, los vehículos a los que les quedan, existencias mínimas y el kardex de cada
-        movimiento.
+        Tus productos con fotos y los vehículos a los que les quedan. Con <strong>Entrada</strong> sumás lo que
+        compraste y con <strong>Importar</strong> subís tu inventario desde Excel.
       </>
     ),
     objetivo: '[data-dock="inventario"]',
@@ -168,8 +168,8 @@ export const PASOS: Paso[] = [
     titulo: "Ventas",
     texto: (
       <>
-        Las cotizaciones y facturas emitidas (para reimprimir, pasar a carrito o anular), tus clientes y el{" "}
-        <strong>CAI</strong>: registralo aquí antes de facturar.
+        Cotizaciones y facturas emitidas, clientes, el <strong>reporte de ventas</strong> y el <strong>CAI</strong>:
+        registralo aquí antes de facturar.
       </>
     ),
     objetivo: '[data-dock="ventas"]',
