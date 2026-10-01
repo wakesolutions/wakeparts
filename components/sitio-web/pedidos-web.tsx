@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { avisarCambioNotificaciones, escucharDestino, tomarRegistro } from "@/lib/ir-a";
 import { useApi } from "@/components/datos/apis";
 import { MantenimientoRecurso } from "@/components/mantenimiento/mantenimiento-recurso";
 import ui from "@/components/ui/controles.module.css";
@@ -19,6 +20,17 @@ export function PedidosWeb() {
   const [abierto, setAbierto] = useState<{ id: string; numero: string } | null>(null);
   const [version, setVersion] = useState(0);
   const madre = useVentanaActual() ?? undefined;
+
+  // Abierto desde la campanita o el aviso emergente.
+  useEffect(() => {
+    const ir = () => {
+      const id = tomarRegistro("pedidos_web");
+      if (id) setAbierto({ id, numero: "" });
+    };
+    ir();
+    return escucharDestino(ir);
+  }, []);
+
   return (
     <>
       <MantenimientoRecurso
@@ -30,13 +42,20 @@ export function PedidosWeb() {
       {abierto && (
         <VentanaFlotante
           id="pedido-web"
-          titulo={`Pedido web #${abierto.numero}`}
+          titulo={abierto.numero ? `Pedido web #${abierto.numero}` : "Pedido web"}
           padre={madre}
           tamano={{ w: 760, h: 640 }}
           foco={abierto.id}
           onCerrar={() => setAbierto(null)}
         >
-          <DetallePedido key={abierto.id} id={abierto.id} onCambio={() => setVersion((v) => v + 1)} />
+          <DetallePedido
+            key={abierto.id}
+            id={abierto.id}
+            onCambio={() => {
+              setVersion((v) => v + 1);
+              avisarCambioNotificaciones();
+            }}
+          />
         </VentanaFlotante>
       )}
     </>

@@ -15,6 +15,7 @@ const RUTAS_PUBLICAS = [
   "/privacidad",
   "/terminos",
   "/t/",
+  "/demo",
   "/api/registro",
   "/robots.txt",
   "/sitemap.xml",

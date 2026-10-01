@@ -11,8 +11,7 @@ import {
   type PointerEvent as PEvent,
   type ReactNode,
 } from "react";
-import { guardarPreferenciasTabla, leerPreferenciasTabla } from "@/app/acciones/preferencias";
-import { accionConsultar } from "@/app/acciones/recursos";
+import { useApi } from "@/components/datos/apis";
 import ui from "@/components/ui/controles.module.css";
 import {
   IconoAnterior,
@@ -93,6 +92,7 @@ export function TablaMaestra({
   const onEditar = onAbrir ?? (puedeEditar ? onEditarProp : undefined);
   const conAccion = Boolean(onEditar);
   const def = obtenerRecurso(recurso);
+  const api = useApi("recursos");
   const clavePrefs = `tabla:${def.id}`;
 
   // ------------------------------------------------------------ estado ----
@@ -121,7 +121,8 @@ export function TablaMaestra({
   useEffect(() => {
     if (prefsCache.has(clavePrefs)) return;
     let vivo = true;
-    leerPreferenciasTabla(clavePrefs)
+    api
+      .leerPreferencias(clavePrefs)
       .catch(() => null)
       .then((p) => {
         if (!vivo) return;
@@ -135,10 +136,10 @@ export function TablaMaestra({
     return () => {
       vivo = false;
     };
-  }, [clavePrefs, def]);
+  }, [api, clavePrefs, def]);
 
   const guardarDiferido = useRetrasar((cfg: PreferenciasTabla) => {
-    guardarPreferenciasTabla(clavePrefs, cfg).catch(() => {});
+    api.guardarPreferencias(clavePrefs, cfg).catch(() => {});
   }, 700);
 
   const configActual = useRef<PreferenciasTabla>({});
@@ -171,12 +172,12 @@ export function TablaMaestra({
     if (!listo) return;
     const id = ++peticion.current;
     iniciar(async () => {
-      const r = await accionConsultar(def.id, consulta).catch(
+      const r = await api.consultar(def.id, consulta).catch(
         (): ResultadoConsulta => ({ ok: false, error: "Sin conexión con el servidor." }),
       );
       if (id === peticion.current) iniciar(() => setResultado(r));
     });
-  }, [def.id, consulta, listo, version, recargas]);
+  }, [api, def.id, consulta, listo, version, recargas]);
 
   const filas = resultado?.ok ? resultado.filas : [];
   const total = resultado?.ok ? resultado.total : 0;

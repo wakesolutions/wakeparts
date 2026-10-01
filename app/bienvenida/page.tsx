@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { cerrarSesion } from "@/app/auth/actions";
 import { aceptarInvitaciones, obtenerSesion } from "@/lib/sesion";
+import { CONTACTO } from "@/lib/sitio";
 import { RegistroEmpresa } from "./registro-empresa";
 
 export const metadata: Metadata = { title: "Tu empresa", robots: { index: false, follow: false } };
@@ -44,6 +45,18 @@ export default async function Bienvenida() {
           >
             Todo lo que registres (inventario, clientes, facturas) queda dentro de tu empresa. Solo
             el nombre es obligatorio; el resto lo podés completar después.
+          </p>
+          <p className="wp-entra mt-5 max-w-[38ch] text-sm leading-relaxed text-wp-ink-2" style={{ animationDelay: "540ms" }}>
+            ¿Preferís que te lo dejemos listo, con tus productos y tu CAI?{" "}
+            <a
+              href={CONTACTO.whatsappUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-semibold text-wp-ink underline decoration-wp-accent/60 underline-offset-4 hover:text-wp-accent"
+            >
+              Escribinos por WhatsApp
+            </a>
+            .
           </p>
           <form
             action={cerrarSesion}

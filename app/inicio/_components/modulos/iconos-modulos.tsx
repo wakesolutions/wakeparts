@@ -151,3 +151,14 @@ export function IconoSitio() {
     </svg>
   );
 }
+
+export function IconoSeguimiento() {
+  // Lista de talleres con un globo de mensaje
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <rect x="7" y="8" width="26" height="32" rx="3" fill="currentColor" />
+      <path d="M12 16h16M12 22h12M12 28h14" stroke="var(--wp-accent-lo)" strokeWidth="2.2" strokeLinecap="round" />
+      <path d="M27 27h13a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2h-6l-4 3.5V39h-3a2 2 0 0 1-2-2v-8a2 2 0 0 1 2-2z" fill="var(--wp-accent)" />
+    </svg>
+  );
+}

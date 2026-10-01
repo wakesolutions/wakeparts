@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, type ReactNode } from "react";
+import { useSesion } from "@/app/inicio/_components/sesion-contexto";
 import { useApi } from "@/components/datos/apis";
 import { Formulario } from "@/components/formulario/formulario";
 import idStyles from "@/components/identidad/identidad.module.css";
@@ -121,6 +122,7 @@ const CAMPOS_NOSOTROS: readonly DefCampo[] = [
 /** Módulo Sitio web: dirección, publicación, textos, fotos y destacados del sitio público del taller. */
 export function EditorSitio() {
   const api = useApi("sitioWeb");
+  const { demo } = useSesion();
   const [sitio, setSitio] = useState<EstadoSitio | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pestana, setPestana] = useState<Pestana>("general");
@@ -182,7 +184,7 @@ export function EditorSitio() {
           )}
         </div>
         <div className={styles.acciones}>
-          {sitio.slug && (
+          {sitio.slug && !demo && (
             <a href={rutaSitio(sitio.slug)} target="_blank" rel="noopener" className={ui.boton}>
               {sitio.publicado ? "Ver mi sitio ↗" : "Vista previa ↗"}
             </a>
@@ -199,6 +201,12 @@ export function EditorSitio() {
           )}
         </div>
       </header>
+      {demo && (
+        <p className={idStyles.mensaje} style={{ marginTop: "0.8rem" }}>
+          En la demo el sitio no sale a internet. Con tu cuenta queda publicado en tu propia dirección, con tu logo,
+          tus fotos y tus productos.
+        </p>
+      )}
       {aviso && (
         <p className={`${idStyles.mensaje} ${aviso.error ? idStyles.mensajeError : ""}`} role="status" style={{ marginTop: "0.8rem" }}>
           {aviso.texto}

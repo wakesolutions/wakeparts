@@ -19,8 +19,9 @@ export const SITIO_DEMO: SitioPublico = {
   logo: null,
   fondo: null,
   atenuar: 40,
-  publicado: false,
-  esMiembro: true,
+  // Se muestra como publicado (sin el aviso de vista previa) para revisar y fotografiar el sitio.
+  publicado: true,
+  esMiembro: false,
   config: {
     ...SITIO_POR_DEFECTO,
     whatsapp: "98765432",

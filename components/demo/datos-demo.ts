@@ -2,8 +2,16 @@
 
 import { ubicarVehiculo } from "@/app/acciones/vehiculos";
 import type { Apis } from "@/components/datos/apis";
+import { apiRecursos } from "@/components/datos/api-recursos";
+import { CAMPOS_TALLER } from "@/lib/empresa";
+import { CAMPOS_PERFIL } from "@/lib/perfil";
+import { obtenerRecurso } from "@/lib/recursos";
+import { consultarEnMemoria, opcionesEnMemoria } from "@/lib/recursos/memoria";
+import type { Fila, Valores } from "@/lib/recursos/tipos";
+import { validarValores } from "@/lib/recursos/validar";
 import type { ImagenProducto } from "@/components/imagenes/api";
 import type { EstadoSitio, PedidoWeb } from "@/components/sitio-web/api";
+import { armarBandeja } from "@/lib/notificaciones";
 import { normalizarSitio } from "@/lib/sitio-web";
 import { centavos } from "@/lib/formato";
 import type { ResultadoImportacion } from "@/lib/inventario";
@@ -20,7 +28,8 @@ import {
 } from "@/lib/ventas";
 
 /**
- * Datos de demostración en memoria para el sandbox /dev (sin sesión ni base).
+ * Datos de demostración en memoria para el sandbox /dev y la demo pública
+ * /demo (sin sesión ni base): nada de esto sale del navegador del visitante.
  * Imitan lo que hacen buscar_productos(), los carritos y emitir_documento().
  * El catálogo de vehículos sí es el real (lectura pública).
  */
@@ -387,10 +396,10 @@ const ventas: Apis["ventas"] = {
     if (d) d.estado = "anulado";
     return espera({ ok: true as const });
   },
-  urlImpresion: (id) => `/dev/documento?id=${id}`,
+  urlImpresion: (id) => `/demo/documento?id=${id}`,
 };
 
-/** La página /dev/documento lee el documento de sessionStorage (otra pestaña). */
+/** La página /demo/documento (y /dev/documento) lee el documento de sessionStorage (otra pestaña). */
 function guardarDocumentoDemo(doc: Documento) {
   try {
     sessionStorage.setItem(`wp:demo:doc:${doc.id}`, JSON.stringify(doc));
@@ -650,6 +659,7 @@ const sitioWeb: Apis["sitioWeb"] = {
     const p = pedidosDemo.find((x) => x.id === id);
     if (!p) return { ok: false as const, error: "El pedido no existe." };
     p.estado = "atendido";
+    p.atendido_por = "Demo Sandbox";
     return espera({ ok: true as const, carrito: carritos[0]?.id ?? "demo" });
   },
   cambiarEstado: async (id, estado) => {
@@ -660,4 +670,392 @@ const sitioWeb: Apis["sitioWeb"] = {
   pedidosNuevos: async () => espera(pedidosDemo.filter((p) => p.estado === "nuevo").length),
 };
 
-export const APIS_DEMO: Partial<Apis> = { ventas, compatibilidad, imagenes, inventario, reportes, identidad, sitioWeb };
+// --------------------------------------------------------- notificaciones ---
+
+// Igual que el trigger de 0014: cada pedido web «nuevo» es una tarea pendiente.
+const leidasDemo = new Set<string>();
+
+const notificaciones: Apis["notificaciones"] = {
+  leer: async () =>
+    espera(
+      armarBandeja(
+        pedidosDemo.map((p) => ({
+          id: `n-${p.id}`,
+          tipo: "pedido_web",
+          titulo: `Pedido web #${p.numero} · ${p.cliente_nombre}`,
+          cuerpo: [p.vehiculo, p.mensaje].filter(Boolean).join(" · ") || null,
+          enlace: { modulo: "ventas", seccion: "pedidos_web", recurso: "pedidos_web", id: p.id },
+          esTarea: true,
+          pendiente: p.estado === "nuevo",
+          leida: leidasDemo.has(`n-${p.id}`),
+          creadoEn: p.creado_en,
+          resueltaEn: p.estado === "nuevo" ? null : new Date().toISOString(),
+          resueltaPor: p.estado === "atendido" ? "Demo Sandbox" : null,
+        })),
+      ),
+    ),
+  marcarLeidas: async (ids) => {
+    for (const p of pedidosDemo) if (!ids || ids.includes(`n-${p.id}`)) leidasDemo.add(`n-${p.id}`);
+  },
+};
+
+/** Sandbox: simula que entra un pedido web nuevo (para ver la campanita y el aviso). */
+const SIMULADOS = [
+  { cliente_nombre: "Carlos Mejía", vehiculo: "NISSAN FRONTIER 2012", mensaje: "¿Tienen el filtro original?" },
+  { cliente_nombre: "Taller Hermanos Reyes", vehiculo: "TOYOTA HILUX 2015", mensaje: "Necesito 4 amortiguadores, ¿hacen descuento?" },
+  { cliente_nombre: "Daniela Castro", vehiculo: "HONDA CIVIC 2009", mensaje: null },
+];
+
+export function simularPedidoWeb() {
+  const numero = 1043 + pedidosDemo.length;
+  const quien = SIMULADOS[(pedidosDemo.length - 1) % SIMULADOS.length];
+  pedidosDemo.unshift({
+    ...pedidosDemo[pedidosDemo.length - 1],
+    id: `00000000-0000-0000-0000-${String(numero).padStart(12, "0")}`,
+    numero,
+    creado_en: new Date().toISOString(),
+    ...quien,
+    estado: "nuevo",
+  });
+}
+
+// ------------------------------------------------ tablas genéricas (demo) ---
+
+const HOY = Date.now();
+const haceDias = (d: number) => new Date(HOY - d * 86_400_000).toISOString();
+
+const MARCAS = [...new Set(PRODUCTOS.map((p) => p.marca).filter(Boolean) as string[])].sort();
+const idMarca = (nombre: string | null) => (nombre ? MARCAS.indexOf(nombre) + 1 : null);
+const CATEGORIAS = [...new Map(PRODUCTOS.map((p) => [p.id_categoria, p.categoria])).entries()];
+
+/** Filas «de la vista» de cada recurso, calculadas de los datos vivos de la demo. */
+const BASES: Record<string, () => Fila[]> = {
+  productos: () =>
+    PRODUCTOS.map((p) => {
+      const precioFinal = Math.round(p.precio * (p.exento ? 1 : 1.15) * 100) / 100;
+      return {
+        id: p.id,
+        imagen: fotos.get(p.id)?.[0]?.ruta_miniatura ?? fotos.get(p.id)?.[0]?.ruta ?? null,
+        codigo: p.codigo,
+        nombre: p.nombre,
+        categoria_ruta: p.categoria,
+        marca: p.marca,
+        oem: p.oem,
+        numero_parte: p.numero_parte,
+        referencias: null,
+        existencia: p.existencia,
+        existencia_minima: 2,
+        costo: p.costo,
+        precio: p.precio,
+        precio_final: precioFinal,
+        utilidad: p.precio - (p.costo ?? 0),
+        margen: p.precio > 0 ? Math.round(((p.precio - (p.costo ?? 0)) / p.precio) * 10000) / 100 : null,
+        compatibilidades: compat.filter((f) => productoDe(f) === p.id).length || null,
+        ubicacion: p.ubicacion,
+        condicion: p.condicion,
+        unidad: p.unidad,
+        activo: true,
+        visible_catalogo: true,
+        actualizado_en: haceDias(p.id % 9),
+        id_categoria: p.id_categoria,
+        id_marca_producto: idMarca(p.marca),
+        bajo_minimo: p.controla_inventario && (p.existencia ?? 0) <= 2,
+        exento: p.exento,
+        controla_inventario: p.controla_inventario,
+        descripcion: null,
+        notas: null,
+        codigo_barras: null,
+      };
+    }),
+  movimientos: () => [
+    ...PRODUCTOS.map((p) => ({
+      id: p.id,
+      creado_en: haceDias(30),
+      codigo: p.codigo,
+      producto: p.nombre,
+      tipo: "inicial",
+      cantidad: (p.existencia ?? 0) + 2,
+      existencia: (p.existencia ?? 0) + 2,
+      referencia: "Inventario inicial",
+      usuario: "Ana Demo",
+    })),
+    ...documentos
+      .filter((d) => d.tipo === "factura")
+      .flatMap((d, i) =>
+        d.lineas.map((l, j) => ({
+          id: 10_000 + i * 100 + j,
+          creado_en: d.fecha,
+          codigo: l.codigo,
+          producto: l.descripcion,
+          tipo: "venta",
+          cantidad: -l.cantidad,
+          existencia: PRODUCTOS.find((p) => p.codigo === l.codigo)?.existencia ?? null,
+          referencia: d.numero,
+          usuario: d.vendedor,
+        })),
+      ),
+  ],
+  marcas_productos: () =>
+    MARCAS.map((nombre, i) => ({
+      id: i + 1,
+      nombre,
+      pais: null,
+      global: true,
+      productos: PRODUCTOS.filter((p) => p.marca === nombre).length,
+      activa: true,
+      id_empresa: null,
+    })),
+  categorias: () =>
+    CATEGORIAS.map(([id, nombre], i) => ({
+      id,
+      ruta: nombre,
+      nivel: 1,
+      sinonimos: PRODUCTOS.find((p) => p.id_categoria === id)?.sinonimos ?? null,
+      subcategorias: 0,
+      relacionadas: RELACIONES[id]?.length ?? 0,
+      es_servicio: /mano de obra|servicio/i.test(nombre),
+      orden: i,
+      slug: nombre.toLowerCase().replace(/\W+/g, "-"),
+      activa: true,
+      global: true,
+      id_padre: null,
+      orden_arbol: String(i).padStart(4, "0"),
+      id_empresa: null,
+    })),
+  clientes: () =>
+    clientes.map((c) => {
+      const docs = documentos.filter((d) => d.cliente_nombre === c.nombre);
+      return {
+        id: c.id,
+        nombre: c.nombre,
+        rtn: c.rtn,
+        telefono: c.telefono,
+        correo: null,
+        direccion: null,
+        facturas: docs.filter((d) => d.tipo === "factura").length,
+        ultima_compra: docs.at(-1)?.fecha ?? null,
+        activo: true,
+      };
+    }),
+  cai: () => [
+    {
+      id: 1,
+      cai: "35A2B1-8C9D4E-F0A1B2-C3D4E5-F6A7B8-9C",
+      tipo_documento: "01",
+      establecimiento: "000",
+      punto_emision: "001",
+      rango_inicial: 1,
+      rango_final: 5000,
+      siguiente: correlativoFac,
+      disponibles: 5001 - correlativoFac,
+      usado_pct: Math.round(((correlativoFac - 1) / 5000) * 10000) / 100,
+      fecha_limite: `${new Date().getFullYear()}-12-31`,
+      dias_restantes: Math.ceil((new Date(new Date().getFullYear(), 11, 31).getTime() - HOY) / 86_400_000),
+      vigente: true,
+      activo: true,
+    },
+  ],
+  documentos: () =>
+    documentos.map((d) => ({
+      id: d.id,
+      fecha: d.fecha,
+      tipo: d.tipo,
+      numero: d.numero,
+      cliente_nombre: d.cliente_nombre,
+      cliente_rtn: d.cliente_rtn,
+      vehiculo: d.vehiculo,
+      total: d.total,
+      isv: d.isv,
+      descuento: d.descuento,
+      estado: d.estado,
+      vence: d.vence,
+      vendedor: d.vendedor,
+    })),
+  pedidos_web: () =>
+    pedidosDemo.map((p) => ({
+      id: p.id,
+      numero: p.numero,
+      creado_en: p.creado_en,
+      estado: p.estado,
+      cliente_nombre: p.cliente_nombre,
+      cliente_telefono: p.cliente_telefono,
+      vehiculo: p.vehiculo,
+      lineas: p.lineas.length,
+      total_estimado: p.total_estimado,
+      atendido_por: p.atendido_por,
+      mensaje: p.mensaje,
+    })),
+  miembros: () => [
+    { id_usuario: "00000000-0000-0000-0000-000000000000", nombre: "Ana Demo", correo: "ana@yonkerdemo.hn", telefono: "9876-0000", rol: "dueno", activo: true, creado_en: haceDias(120) },
+    { id_usuario: "00000000-0000-0000-0000-000000000001", nombre: "Luis Vendedor", correo: "luis@yonkerdemo.hn", telefono: null, rol: "vendedor", activo: true, creado_en: haceDias(60) },
+  ],
+  invitaciones: () => [
+    { id: 1, correo: "caja@yonkerdemo.hn", rol: "vendedor", invitado_por: "Ana Demo", creado_en: haceDias(2) },
+  ],
+  actividad: () =>
+    [
+      ["sesion", "info", "sesion.inicio", "Inició sesión", "Ana Demo", 0.02],
+      ["cambio", "info", "productos.editar", "Cambió el precio de Filtro de aceite", "Ana Demo", 0.5],
+      ["cambio", "info", "documentos.crear", "Emitió una cotización", "Luis Vendedor", 1.2],
+      ["sesion", "info", "sesion.inicio", "Inició sesión", "Luis Vendedor", 1.3],
+      ["cambio", "aviso", "productos.eliminar", "Eliminó un producto duplicado", "Ana Demo", 3],
+    ].map(([tipo, nivel, evento, mensaje, usuario, dias], i) => ({
+      id: i + 1,
+      creado_en: haceDias(dias as number),
+      tipo,
+      nivel,
+      evento,
+      mensaje,
+      usuario,
+      correo: null,
+      ip: "190.92.0.10",
+      dispositivo: i % 2 ? "Celular · Android 14 · Chrome" : "Computadora · Windows · Edge",
+      ruta: "/inicio",
+    })),
+};
+BASES.actividad_plataforma = BASES.actividad;
+
+// Lo que el visitante crea, edita o elimina en la demo (vive solo en esta pestaña).
+const creados: Record<string, Fila[]> = {};
+const editados: Record<string, Map<string, Fila>> = {};
+const eliminados: Record<string, Set<string>> = {};
+let siguienteId = 90_000;
+
+function filasDemo(recurso: string): Fila[] | null {
+  const base = BASES[recurso];
+  if (!base) return null;
+  const clave = obtenerRecurso(recurso).clave;
+  const cambios = editados[recurso];
+  const fuera = eliminados[recurso];
+  return [...(creados[recurso] ?? []), ...base()]
+    .filter((f) => !fuera?.has(String(f[clave])))
+    .map((f) => ({ ...f, ...(cambios?.get(String(f[clave])) ?? {}) }));
+}
+
+/** Etiquetas de relaciones para que una fila nueva o editada se vea bien en la tabla. */
+function completar(recurso: string, datos: Valores): Fila {
+  if (recurso !== "productos") return datos;
+  const precio = Number(datos.precio ?? 0);
+  const costo = Number(datos.costo ?? 0);
+  return {
+    ...datos,
+    categoria_ruta: CATEGORIAS.find(([id]) => id === Number(datos.id_categoria))?.[1] ?? null,
+    marca: MARCAS[Number(datos.id_marca_producto) - 1] ?? null,
+    precio_final: Math.round(precio * (datos.exento ? 1 : 1.15) * 100) / 100,
+    utilidad: precio - costo,
+    margen: precio > 0 ? Math.round(((precio - costo) / precio) * 10000) / 100 : null,
+  };
+}
+
+const recursos: Apis["recursos"] = {
+  // Lo que no tiene datos de demo (catálogo de vehículos) se lee del real: es público.
+  consultar: async (recurso, consulta) => {
+    const filas = filasDemo(recurso);
+    if (!filas) return apiRecursos.consultar(recurso, consulta);
+    return espera(consultarEnMemoria(obtenerRecurso(recurso), filas, consulta), 160);
+  },
+  opciones: async (recurso, o) => {
+    const filas = filasDemo(recurso);
+    if (!filas) return apiRecursos.opciones(recurso, o);
+    return espera(opcionesEnMemoria(filas, o));
+  },
+  leer: async (recurso, clave) => {
+    const filas = filasDemo(recurso);
+    if (!filas) return apiRecursos.leer(recurso, clave);
+    const k = obtenerRecurso(recurso).clave;
+    return espera(filas.find((f) => String(f[k]) === String(clave)) ?? null);
+  },
+  guardar: async (recurso, clave, valores) => {
+    const def = obtenerRecurso(recurso);
+    if (!BASES[recurso] || def.escritura === "ninguna") {
+      return { ok: false as const, error: "En la demo esto no se puede cambiar." };
+    }
+    const v = validarValores(def.campos, valores, { edicion: clave !== null });
+    if (!v.ok) return { ok: false as const, error: "Revisá los campos marcados.", errores: v.errores };
+    const datos = completar(recurso, v.datos);
+    if (clave === null) {
+      const id = siguienteId++;
+      const fila: Fila = { ...datos, [def.clave]: id, activo: datos.activo ?? true, creado_en: new Date().toISOString() };
+      if (recurso === "productos") {
+        // También al mostrador: así se puede vender lo que se acaba de crear.
+        PRODUCTOS.unshift(
+          P(id, String(datos.codigo), String(datos.nombre), (fila.marca as string) ?? null, Number(datos.id_categoria),
+            String(fila.categoria_ruta ?? ""), "", Number(datos.precio ?? 0), Number(datos.costo ?? 0),
+            Number(datos.existencia ?? 0)),
+        );
+      } else {
+        (creados[recurso] ??= []).unshift(fila);
+      }
+      if (recurso === "clientes") clientes.push({ id, nombre: String(datos.nombre), rtn: (datos.rtn as string) ?? null, telefono: (datos.telefono as string) ?? null });
+      return espera({ ok: true as const, id }, 300);
+    }
+    (editados[recurso] ??= new Map()).set(String(clave), { ...(editados[recurso].get(String(clave)) ?? {}), ...datos });
+    if (recurso === "productos") {
+      const p = PRODUCTOS.find((x) => String(x.id) === String(clave));
+      if (p) Object.assign(p, { nombre: datos.nombre ?? p.nombre, codigo: datos.codigo ?? p.codigo, precio: Number(datos.precio ?? p.precio), costo: Number(datos.costo ?? p.costo) });
+    }
+    return espera({ ok: true as const, id: clave }, 300);
+  },
+  eliminar: async (recurso, clave) => {
+    const def = obtenerRecurso(recurso);
+    if (!BASES[recurso] || def.escritura === "ninguna") return { ok: false as const, error: "En la demo esto no se puede eliminar." };
+    (eliminados[recurso] ??= new Set()).add(String(clave));
+    return espera({ ok: true as const });
+  },
+  leerPreferencias: async () => null,
+  guardarPreferencias: async () => {},
+};
+
+// ---------------------------------------------------------- empresa y perfil ---
+
+let empresaDemo = {
+  nombre: "Yonker Demo",
+  razon_social: "Yonker Demo S. de R.L.",
+  rtn: "08019015123456",
+  telefono: "2556-1234",
+  correo: "ventas@yonkerdemo.hn",
+  direccion: "Barrio Guamilito, 6 calle, San Pedro Sula",
+  paleta: "rojo-negro",
+  creado_en: haceDias(120),
+  descuento_maximo_vendedor: 10,
+};
+
+const empresa: Apis["empresa"] = {
+  leer: async () => espera({ ...empresaDemo }),
+  actualizar: async (valores) => {
+    const v = validarValores(CAMPOS_TALLER, valores);
+    if (!v.ok) return { ok: false as const, error: "Revisá los campos marcados.", errores: v.errores };
+    empresaDemo = { ...empresaDemo, ...(v.datos as Partial<typeof empresaDemo>) };
+    return espera({ ok: true as const, id: "demo" }, 300);
+  },
+  cargarDemo: async () => espera({ ok: true as const, productos: 0, compatibilidades: 0, clientes: 0 }, 400),
+  cambiarPaleta: async () => ({ ok: true as const }),
+};
+
+let perfilDemo = { nombre: "Ana Demo", telefono: "9876-0000", id_empresa_activa: "demo", creado_en: haceDias(120) };
+
+const perfil: Apis["perfil"] = {
+  leer: async () => espera({ ...perfilDemo }),
+  actualizar: async (valores) => {
+    const v = validarValores(CAMPOS_PERFIL, valores);
+    if (!v.ok) return { ok: false as const, error: "Revisá los campos marcados.", errores: v.errores };
+    perfilDemo = { ...perfilDemo, ...(v.datos as Partial<typeof perfilDemo>) };
+    return espera({ ok: true as const, id: "demo" }, 300);
+  },
+  restablecerTablas: async () => ({ ok: true as const }),
+  marcarRecorrido: async () => ({ ok: true as const }),
+};
+
+export const APIS_DEMO: Partial<Apis> = {
+  recursos,
+  empresa,
+  perfil,
+  ventas,
+  compatibilidad,
+  imagenes,
+  inventario,
+  reportes,
+  identidad,
+  sitioWeb,
+  notificaciones,
+};

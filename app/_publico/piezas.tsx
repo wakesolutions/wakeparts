@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { IconoBuscar } from "@/components/ui/iconos";
@@ -17,11 +18,15 @@ export function EncabezadoPublico() {
       </Link>
       <nav aria-label="Principal" className={styles.nav}>
         <Link href="/#funciones">Funciones</Link>
+        <Link href="/#sitio-web">Sitio web</Link>
         <Link href="/#facturacion-cai">Facturación CAI</Link>
         <Link href="/honduras">Departamentos</Link>
         <Link href="/ayuda">Manual</Link>
         <Link href="/#contacto">Contacto</Link>
       </nav>
+      <Link href="/demo" className={styles.probar}>
+        Probar demo
+      </Link>
       <Link href="/#encender" className={styles.entrar}>
         Entrar
       </Link>
@@ -170,6 +175,16 @@ export const FUNCIONES = [
       "Piezas nuevas, usadas o reconstruidas con su condición, fotos y los vehículos a los que les quedan. Lo que el cliente pregunta, a la vista.",
   },
   {
+    titulo: "Tu catálogo en internet",
+    texto:
+      "Tu propia página con buscador por vehículo, fotos y precios si querés. El cliente arma su lista y el pedido te llega con una campanita para atenderlo en el mostrador.",
+  },
+  {
+    titulo: "Con tu marca",
+    texto:
+      "Tu logo, una foto de fondo para el escritorio de todo el equipo, el color de tu marca y el diseño de tu factura. Se siente tuyo desde el primer día.",
+  },
+  {
     titulo: "Tu equipo, con roles",
     texto:
       "Invitá a tus vendedores con su correo. Dueño, administrador y vendedor, cada uno con lo que le toca. Nadie ve los datos de otra empresa.",
@@ -288,6 +303,14 @@ export const PREGUNTAS: Pregunta[] = [
     r: "Sí. Registrás el CAI que te autorizó el SAR, con su rango y fecha límite, y cada factura toma el siguiente número del rango sin saltos, con el formato 000-001-01-00000001. Incluye RTN del cliente o consumidor final, ISV 15 % y total en letras. Revisá con tu contador los requisitos de tu régimen.",
   },
   {
+    p: "¿Puedo probarlo sin registrarme?",
+    r: "Sí. En wakeparts…/demo tenés el sistema completo con un yonker de ejemplo: cotizá, facturá, mirá el inventario y el sitio web. No pide cuenta y nada de lo que hagás se guarda. Cuando te convenza, entrás con tu cuenta y registrás tu negocio.",
+  },
+  {
+    p: "¿Mis clientes pueden ver mis productos en internet?",
+    r: "Sí, si lo publicás. Cada taller tiene su sitio con su logo y colores: buscador por vehículo, ficha de cada pieza y una lista que el cliente te manda como pedido. Vos decidís si se muestran los precios, y nunca se ve tu costo.",
+  },
+  {
     p: "¿Tengo que instalar algo?",
     r: "No. Wake Parts funciona en el navegador de la computadora, la tablet o el celular. Entrás con tu cuenta y listo.",
   },
@@ -317,7 +340,7 @@ export const PREGUNTAS: Pregunta[] = [
   },
   {
     p: "¿Cómo empiezo?",
-    r: "Entrá, registrá tu negocio y, si querés practicar, marcá «Cargar productos de ejemplo». Un recorrido guiado te enseña a cotizar y facturar en dos minutos.",
+    r: `Probá la demo sin cuenta o entrá y registrá tu negocio; si querés practicar, marcá «Cargar productos de ejemplo». Un recorrido guiado te enseña a cotizar y facturar en dos minutos. ¿Preferís que te lo dejemos listo? Escribinos al WhatsApp ${CONTACTO.whatsapp}.`,
   },
 ];
 
@@ -352,10 +375,18 @@ export function LlamadoFinal({ texto = "Encendé tu tablero hoy." }: { texto?: s
       <h2 id="llamado-titulo" className={`wp-grabado ${styles.llamadoTitulo}`}>
         {texto}
       </h2>
-      <p>Entrá, registrá tu negocio y practicá con productos de ejemplo.</p>
-      <Link href="/#encender" className={styles.llamadoBoton}>
-        Empezar ahora
-      </Link>
+      <p>Probalo ahora sin cuenta, o entrá y registrá tu negocio. Si querés, te lo dejamos listo por WhatsApp.</p>
+      <div className={styles.llamadoAcciones}>
+        <Link href="/demo" className={styles.llamadoBoton}>
+          Probar la demo
+        </Link>
+        <Link href="/#encender" className={styles.probar}>
+          Entrar con mi cuenta
+        </Link>
+        <a href={CONTACTO.whatsappUrl} target="_blank" rel="noopener noreferrer" className={styles.enlaceWhatsapp}>
+          Que me ayuden por WhatsApp
+        </a>
+      </div>
     </section>
   );
 }
@@ -440,3 +471,62 @@ export const preguntasDe = (d: Departamento): Pregunta[] => [
 ];
 
 export { DEPARTAMENTOS };
+
+/** Junto al arranque: probar sin cuenta (lo primero) y ayuda humana por WhatsApp. */
+export function ProbarSinCuenta() {
+  return (
+    <div className={styles.probarBloque}>
+      <Link href="/demo" className={styles.probarGrande}>
+        Probalo sin cuenta <span aria-hidden="true">→</span>
+      </Link>
+      <p className={styles.probarNota}>Un yonker de ejemplo, listo para cotizar y facturar. Sin registrarte.</p>
+      <a href={CONTACTO.whatsappUrl} target="_blank" rel="noopener noreferrer" className={styles.enlaceWhatsapp}>
+        ¿Preferís que te lo dejemos listo? Escribinos por WhatsApp
+      </a>
+    </div>
+  );
+}
+
+/** Sección «Tu taller en internet»: catálogo web, pedidos con campanita y tu marca. */
+export function TallerEnInternet() {
+  return (
+    <div className={styles.sitioWeb}>
+      <ul className={styles.lista}>
+        <li>
+          <strong>Tu vitrina, con tu marca</strong>
+          Tu dirección, tu logo, tu foto de fondo y tu color. Portada, catálogo, ficha de cada pieza y «Nosotros» con tu
+          historia y fotos.
+        </li>
+        <li>
+          <strong>El cliente busca por su carro</strong>
+          El mismo buscador del mostrador: elige marca, modelo y año y ve primero lo que le queda. Precios con ISV si vos
+          querés; tu costo, nunca.
+        </li>
+        <li>
+          <strong>El pedido te llega como tarea</strong>
+          Arma su lista y la manda con su teléfono. Suena la campanita, se marca en Ventas y con un clic se vuelve un
+          carrito del mostrador para cotizar o facturar.
+        </li>
+        <li>
+          <strong>Sin pagos en línea ni comisiones</strong>
+          Vos confirmás precio, existencia y entrega. Y si prefieren, te escriben por WhatsApp desde cada pieza.
+        </li>
+      </ul>
+      <figure className={styles.navegador}>
+        <div className={styles.navegadorBarra} aria-hidden="true">
+          <span />
+          <span />
+          <span />
+          <p>wakeparts…/t/tu-taller/catalogo</p>
+        </div>
+        <Image
+          src="/capturas/catalogo.webp"
+          alt="Catálogo web de un yonker de ejemplo en Wake Parts: repuestos que le quedan a un Toyota Corolla, con precio con ISV y botón para agregar a la lista"
+          width={1920}
+          height={1200}
+          sizes="(min-width: 1024px) 50vw, 100vw"
+        />
+      </figure>
+    </div>
+  );
+}

@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useState, useSyncExternalStore, useTransition } from "react";
-import { cambiarPaletaEmpresa } from "@/app/acciones/empresa";
 import { cerrarSesion } from "@/app/auth/actions";
+import { useApi } from "@/components/datos/apis";
 import { useIdentidad } from "@/components/identidad/contexto";
+import { Campana } from "@/components/notificaciones/campana";
 import { useVentanas } from "@/components/ventanas/contexto";
 import { PALETAS, type PaletaId } from "@/lib/paletas";
 import { aplicarPaleta } from "@/lib/paletas-cliente";
@@ -38,6 +40,7 @@ function Reloj() {
 }
 
 function SelectorPaleta({ inicial }: { inicial: PaletaId }) {
+  const api = useApi("empresa");
   const [actual, setActual] = useState(inicial);
   const [, iniciar] = useTransition();
 
@@ -46,7 +49,7 @@ function SelectorPaleta({ inicial }: { inicial: PaletaId }) {
     aplicarPaleta(id);
     setActual(id);
     iniciar(async () => {
-      const r = await cambiarPaletaEmpresa(id).catch(() => ({ ok: false as const }));
+      const r = await api.cambiarPaleta(id).catch(() => ({ ok: false as const }));
       if (!r.ok) {
         aplicarPaleta(anterior);
         setActual(anterior);
@@ -74,7 +77,7 @@ function SelectorPaleta({ inicial }: { inicial: PaletaId }) {
 }
 
 export function BarraMenu() {
-  const { usuario, empresa, rol } = useSesion();
+  const { usuario, empresa, rol, demo } = useSesion();
   const { identidad } = useIdentidad();
   const { enfocada, modulos, ventanas, abrir } = useVentanas();
   const moduloActivo =
@@ -104,6 +107,7 @@ export function BarraMenu() {
 
       <div className={styles.barraDerecha}>
         {empresa && administra && <SelectorPaleta key={empresa.paleta} inicial={empresa.paleta} />}
+        <Campana />
         <Reloj />
         <button
           type="button"
@@ -127,11 +131,17 @@ export function BarraMenu() {
         <a href="/ayuda" target="_blank" rel="noopener" className={styles.manual} title="Manual del propietario">
           Manual
         </a>
-        <form action={cerrarSesion}>
-          <button type="submit" className={styles.apagar}>
+        {demo ? (
+          <Link href="/" className={styles.apagar} title="Salir de la demo">
             Salir
-          </button>
-        </form>
+          </Link>
+        ) : (
+          <form action={cerrarSesion}>
+            <button type="submit" className={styles.apagar}>
+              Salir
+            </button>
+          </form>
+        )}
       </div>
     </header>
   );

@@ -18,6 +18,8 @@ export type Sesion = {
   empresa: { id: string; nombre: string; paleta: PaletaId; identidad: Identidad } | null;
   rol: Rol | null;
   empresas: { id: string; nombre: string; rol: Rol }[];
+  /** Demo pública (/demo): datos en memoria, sin cuenta. Cambia «Salir» y muestra la franja de la demo. */
+  demo?: boolean;
 };
 
 type Membresia = {

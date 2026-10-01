@@ -2,7 +2,8 @@
 //
 //   npm run dev                      (en otra terminal)
 //   npm run capturas                 → public/capturas/*.webp
-//   npm run capturas -- reporte      → solo una (mostrador, factura, reporte, compatibilidad, celular)
+//   npm run capturas -- reporte      → solo una (mostrador, factura, reporte, compatibilidad, celular,
+//                                      sitio, catalogo, avisos)
 //
 // Variables: BASE_URL (defecto http://localhost:3000) y CHROME_PATH (Chrome o Edge instalado;
 // playwright-core no descarga navegadores).
@@ -45,6 +46,8 @@ async function contexto({ ancho = 1440, alto = 900, movil = false } = {}) {
   await ctx.addInitScript(() => {
     try {
       localStorage.setItem("wp:recorrido:00000000-0000-0000-0000-000000000000", "visto");
+      // El aviso de cookies tapa el dock: como un visitante que ya lo leyó.
+      localStorage.setItem("wp:aviso-cookies", new Date().toISOString());
     } catch {}
   });
   return ctx;
@@ -140,6 +143,46 @@ const capturas = {
     await panel.screenshot({ path: `${SALIDA}/compatibilidad.png` });
     await ctx.close();
   },
+  async sitio() {
+    const ctx = await contexto();
+    const p = await ctx.newPage();
+    await p.goto(`${BASE}/t/demo`, { waitUntil: "networkidle" });
+    await p.addStyleTag({ content: "nextjs-portal{display:none!important}" });
+    await pausa(1500);
+    await terminarAnimaciones(p);
+    await p.screenshot({ path: `${SALIDA}/sitio.png` });
+    await ctx.close();
+  },
+  async catalogo() {
+    const ctx = await contexto();
+    const p = await ctx.newPage();
+    // Toyota Corolla 2005 (ids del catálogo real).
+    await p.goto(`${BASE}/t/demo/catalogo?marca=75&modelo=771&anio=7929`, { waitUntil: "networkidle" });
+    await p.addStyleTag({ content: "nextjs-portal{display:none!important}" });
+    await pausa(2500);
+    await terminarAnimaciones(p);
+    await p.screenshot({ path: `${SALIDA}/catalogo.png` });
+    await ctx.close();
+  },
+  async avisos() {
+    const ctx = await contexto();
+    const p = await ctx.newPage();
+    await escritorio(p);
+    for (let i = 0; i < 2; i++) {
+      await p.getByRole("button", { name: "Simular pedido web" }).click();
+      await pausa(900);
+    }
+    // Sin el aviso emergente ni el botón del sandbox: solo la campanita abierta.
+    await p.addStyleTag({ content: "[aria-live=polite]>*{display:none!important} main{visibility:hidden}" });
+    await p.evaluate(() =>
+      [...document.querySelectorAll("button")].find((b) => b.textContent === "Simular pedido web")?.parentElement?.remove(),
+    );
+    await p.locator('[aria-label^="Notificaciones"]').click();
+    await pausa(800);
+    await terminarAnimaciones(p);
+    await p.screenshot({ path: `${SALIDA}/avisos.png` });
+    await ctx.close();
+  },
   async celular() {
     const ctx = await contexto({ ancho: 390, alto: 844, movil: true });
     const p = await ctx.newPage();
@@ -162,7 +205,16 @@ for (const [nombre, fn] of Object.entries(capturas)) {
 await navegador.close();
 
 // PNG a WebP livianos en public/capturas (ancho en px).
-const ANCHOS = { mostrador: 1920, reporte: 1920, documento: 1200, compatibilidad: 1600, celular: 780 };
+const ANCHOS = {
+  mostrador: 1920,
+  reporte: 1920,
+  documento: 1200,
+  compatibilidad: 1600,
+  celular: 780,
+  sitio: 1920,
+  catalogo: 1920,
+  avisos: 1920,
+};
 for (const [nombre, ancho] of Object.entries(ANCHOS)) {
   const origen = path.join(SALIDA, `${nombre}.png`);
   if (!fs.existsSync(origen)) continue;

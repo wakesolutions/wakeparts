@@ -61,6 +61,179 @@
   transform: translate3d(0, -1px, 0);
 }
 
+/* Probar sin cuenta: secundario en el encabezado, protagonista junto al arranque */
+.probar {
+  padding: 0.42rem 1rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  transition:
+    background-color 200ms var(--ease-quart),
+    box-shadow 200ms var(--ease-quart);
+}
+
+.probar:hover {
+  background: var(--wp-hover);
+  box-shadow: inset 0 0 0 1px var(--wp-ink-3);
+}
+
+@media (max-width: 520px) {
+  .encabezado .probar {
+    display: none;
+  }
+}
+
+.probarBloque {
+  display: grid;
+  justify-items: center;
+  gap: 0.6rem;
+  margin-top: 2rem;
+  text-align: center;
+  animation: aparecerProbar 600ms var(--ease-expo) 900ms both;
+}
+
+@keyframes aparecerProbar {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+}
+
+.probarGrande {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.95rem 1.6rem;
+  border-radius: 999px;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--wp-ink);
+  background: color-mix(in oklab, var(--wp-panel) 80%, transparent);
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px var(--wp-line),
+    0 16px 32px -18px rgb(0 0 0 / 0.6);
+  transition:
+    background-color 200ms var(--ease-quart),
+    box-shadow 200ms var(--ease-quart);
+}
+
+.probarGrande span {
+  color: var(--wp-accent-hi);
+  transition: transform 240ms var(--ease-expo);
+}
+
+.probarGrande:hover {
+  background: var(--wp-panel);
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px color-mix(in oklab, var(--wp-accent) 60%, transparent),
+    0 16px 32px -18px rgb(0 0 0 / 0.6);
+}
+
+.probarGrande:hover span {
+  transform: translate3d(3px, 0, 0);
+}
+
+.probarGrande:focus-visible,
+.probar:focus-visible,
+.enlaceWhatsapp:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 3px;
+}
+
+.probarNota {
+  max-width: 34ch;
+  font-size: 0.84rem;
+  color: var(--wp-ink-3);
+}
+
+.enlaceWhatsapp {
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--wp-ok);
+  text-decoration: underline;
+  text-decoration-color: color-mix(in oklab, var(--wp-ok) 40%, transparent);
+  text-underline-offset: 4px;
+}
+
+.enlaceWhatsapp:hover {
+  text-decoration-color: currentColor;
+}
+
+.llamadoAcciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.8rem 1.4rem;
+}
+
+/* «Tu taller en internet»: lista + captura en un marco de navegador */
+.sitioWeb {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: clamp(2rem, 5vw, 4.5rem);
+  align-items: center;
+}
+
+@media (max-width: 960px) {
+  .sitioWeb {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.navegador {
+  margin: 0;
+  overflow: hidden;
+  border-radius: 14px;
+  background: var(--wp-panel);
+  box-shadow:
+    0 0 0 1px var(--wp-line),
+    0 40px 80px -40px rgb(0 0 0 / 0.75);
+}
+
+.navegadorBarra {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 34px;
+  padding: 0 0.9rem;
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow: inset 0 -1px 0 var(--wp-line);
+}
+
+.navegadorBarra span {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--wp-ink) 22%, var(--wp-panel));
+}
+
+.navegadorBarra p {
+  flex: 1;
+  max-width: 340px;
+  margin-left: 0.8rem;
+  padding: 0.2rem 0.7rem;
+  overflow: hidden;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--wp-ink-3);
+  background: var(--wp-field);
+}
+
+.navegador img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+
 .encabezado a:focus-visible,
 .pie a:focus-visible,
 .departamento:focus-visible,

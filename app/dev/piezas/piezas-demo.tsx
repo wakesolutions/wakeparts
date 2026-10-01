@@ -4,7 +4,7 @@ import { useState } from "react";
 import { EditorCompatibilidad } from "@/components/compatibilidad/editor-compatibilidad";
 import { ApisProvider } from "@/components/datos/apis";
 import { GaleriaProducto } from "@/components/imagenes/galeria-producto";
-import { APIS_DEMO } from "../datos-demo";
+import { APIS_DEMO } from "@/components/demo/datos-demo";
 
 export function PiezasDemo() {
   const [pestana, setPestana] = useState<"vehiculos" | "fotos">("vehiculos");

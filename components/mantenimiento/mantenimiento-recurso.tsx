@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import { accionEliminar, accionGuardar, accionLeer } from "@/app/acciones/recursos";
+import { useApi } from "@/components/datos/apis";
 import { Formulario } from "@/components/formulario/formulario";
 import { invalidarOpciones } from "@/components/tabla-maestra/opciones-cache";
 import { TablaMaestra } from "@/components/tabla-maestra/tabla-maestra";
@@ -66,6 +66,7 @@ export function MantenimientoRecurso({
   editaGlobales = false,
 }: Props) {
   const def = obtenerRecurso(recurso);
+  const api = useApi("recursos");
   const ventanaMadre = useVentanaActual() ?? undefined;
   const [edicion, setEdicion] = useState<Edicion | null>(null);
   const [pestana, setPestana] = useState("datos");
@@ -112,7 +113,7 @@ export function MantenimientoRecurso({
   // para seguir con fotos, compatibilidad, etc.
   async function trasCrear(id: string | number) {
     if (!pestanas) return cerrar();
-    const fila = await accionLeer(def.id, id).catch(() => null);
+    const fila = await api.leer(def.id, id).catch(() => null);
     if (fila) setEdicion({ modo: "editar", fila, recienCreado: true });
     else cerrar();
   }
@@ -194,12 +195,12 @@ export function MantenimientoRecurso({
                 valoresIniciales={edicion.modo === "editar" ? edicion.fila : undefined}
                 onCancelar={cerrar}
                 onGuardar={async (valores) => {
-                  const r = await accionGuardar(def.id, clave, valores);
+                  const r = await api.guardar(def.id, clave, valores);
                   if (r.ok) {
                     refrescar(r.id);
                     if (clave === null) await trasCrear(r.id);
                     else if (pestanas) {
-                      const fila = await accionLeer(def.id, r.id).catch(() => null);
+                      const fila = await api.leer(def.id, r.id).catch(() => null);
                       if (fila) setEdicion({ modo: "editar", fila });
                     } else cerrar();
                   }
@@ -208,7 +209,7 @@ export function MantenimientoRecurso({
                 onGuardarYSeguir={
                   edicion.modo === "nuevo"
                     ? async (valores) => {
-                        const r = await accionGuardar(def.id, null, valores);
+                        const r = await api.guardar(def.id, null, valores);
                         if (r.ok) refrescar(r.id);
                         return r;
                       }
@@ -217,7 +218,7 @@ export function MantenimientoRecurso({
                 onEliminar={
                   clave !== null && puedeEliminar && !bloqueada
                     ? async () => {
-                        const r = await accionEliminar(def.id, clave);
+                        const r = await api.eliminar(def.id, clave);
                         if (r.ok) {
                           refrescar(null);
                           cerrar();

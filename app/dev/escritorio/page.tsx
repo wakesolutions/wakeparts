@@ -1,12 +1,12 @@
 import { notFound } from "next/navigation";
-import { SESION_DEMO } from "../sesion-demo";
+import { SESION_DEMO } from "@/components/demo/sesion-demo";
 import { EscritorioDemo } from "./escritorio-demo";
 
 /**
  * Sandbox de desarrollo: el escritorio con una sesión ficticia para revisar UI
  * sin iniciar sesión. El catálogo de vehículos es el real (lectura pública);
  * el mostrador, las fotos y la compatibilidad usan datos en memoria
- * (app/dev/datos-demo.ts). Las tablas genéricas leen como `anon`.
+ * (components/demo/datos-demo.ts), igual que la demo pública /demo.
  */
 export default function PaginaEscritorioDemo() {
   if (process.env.NODE_ENV !== "development") notFound();

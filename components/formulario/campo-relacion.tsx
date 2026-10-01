@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState, type KeyboardEvent } from "react";
-import { accionOpciones } from "@/app/acciones/recursos";
+import { useApi } from "@/components/datos/apis";
 import ui from "@/components/ui/controles.module.css";
 import { IconoChevron } from "@/components/ui/iconos";
 import type { FuenteOpciones, Opcion } from "@/lib/recursos/tipos";
@@ -31,6 +31,7 @@ export function CampoRelacion({
   onCambiar,
 }: Props) {
   const listaId = useId();
+  const api = useApi("recursos");
   const [abierto, setAbierto] = useState(false);
   const [texto, setTexto] = useState("");
   const [opciones, setOpciones] = useState<Opcion[]>([]);
@@ -46,13 +47,13 @@ export function CampoRelacion({
   useEffect(() => {
     if (!valorTexto) return;
     let vivo = true;
-    accionOpciones(fuente.recurso, { valor: fuente.valor, etiqueta: fuente.etiqueta, valores: [valorTexto], limite: 1 })
+    api.opciones(fuente.recurso, { valor: fuente.valor, etiqueta: fuente.etiqueta, valores: [valorTexto], limite: 1 })
       .then((o) => vivo && setEtiqueta(o[0]?.etiqueta ?? `#${valorTexto}`))
       .catch(() => {});
     return () => {
       vivo = false;
     };
-  }, [fuente, valorTexto]);
+  }, [api, fuente, valorTexto]);
 
   // Búsqueda
   const padreTexto = valorPadre === null || valorPadre === undefined ? "" : String(valorPadre);
@@ -61,7 +62,7 @@ export function CampoRelacion({
     let vivo = true;
     const t = setTimeout(() => {
       setCargando(true);
-      accionOpciones(fuente.recurso, {
+      api.opciones(fuente.recurso, {
         valor: fuente.valor,
         etiqueta: fuente.etiqueta,
         busqueda: texto,
@@ -81,7 +82,7 @@ export function CampoRelacion({
       vivo = false;
       clearTimeout(t);
     };
-  }, [abierto, texto, fuente, padreTexto]);
+  }, [api, abierto, texto, fuente, padreTexto]);
 
   useEffect(() => {
     if (!abierto) return;

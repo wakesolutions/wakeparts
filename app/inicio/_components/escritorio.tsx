@@ -3,6 +3,8 @@
 import { useEffect, useMemo, type ReactNode } from "react";
 import { AmbienteEmpresa } from "@/components/identidad/ambiente-empresa";
 import { IdentidadProvider } from "@/components/identidad/contexto";
+import { AvisosRecien } from "@/components/notificaciones/campana";
+import { NotificacionesProvider } from "@/components/notificaciones/contexto";
 import { CapaVentanas } from "@/components/ventanas/ventana";
 import { VentanasProvider } from "@/components/ventanas/contexto";
 import { IDENTIDAD_VACIA } from "@/lib/identidad";
@@ -36,15 +38,18 @@ export function Escritorio({
     <SesionProvider value={sesion}>
       <IdentidadProvider key={sesion.empresa?.id} inicial={sesion.empresa?.identidad ?? IDENTIDAD_VACIA}>
         <VentanasProvider modulos={modulos}>
-          <RecorridoProvider pendiente={recorrido}>
-            <div className="wp-carbono flex min-h-dvh flex-col">
-              <AmbienteEmpresa />
-              <BarraMenu />
-              {children}
-              <CapaVentanas />
-              <Dock />
-            </div>
-          </RecorridoProvider>
+          <NotificacionesProvider>
+            <RecorridoProvider pendiente={recorrido}>
+              <div className="wp-carbono flex min-h-dvh flex-col">
+                <AmbienteEmpresa />
+                <BarraMenu />
+                {children}
+                <CapaVentanas />
+                <Dock />
+                <AvisosRecien />
+              </div>
+            </RecorridoProvider>
+          </NotificacionesProvider>
         </VentanasProvider>
       </IdentidadProvider>
     </SesionProvider>

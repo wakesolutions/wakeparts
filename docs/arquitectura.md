@@ -37,6 +37,7 @@ app/
   inicio/                 Escritorio (ruta protegida)
     _components/          escritorio, barra-menu, dock, sesion-contexto
       modulos/            Registro MODULOS + un componente por módulo
+  demo/                   Demo pública sin cuenta (/demo y /demo/documento): el escritorio con datos en memoria
   dev/                    Sandbox con sesión ficticia (solo desarrollo)
 components/
   tabla-maestra/          TablaMaestra genérica
@@ -47,10 +48,13 @@ components/
   imagenes/               Galería de fotos + compresión en el navegador
   inventario/             Entrada de inventario e importación desde Excel
   reportes/               TableroReporte genérico (indicadores, ecualizador, rankings, Excel)
-  datos/apis.tsx          useApi(): Server Actions o datos demo inyectados
+  datos/apis.tsx          useApi(): Server Actions o datos demo inyectados (también recursos, empresa y perfil: api-recursos.ts)
+  demo/                   Datos en memoria de la demo y el sandbox (datos-demo.ts), sesiones ficticias, impresión demo
+  seguimiento/            Módulo Seguimiento (admin de plataforma)
   ventanas/               Gestor de ventanas estilo macOS
   identidad/              Identidad de la empresa: contexto, fondo del escritorio, Apariencia, editor de factura
   sitio-web/              Módulo Sitio web (editor) y Ventas › Pedidos web
+  notificaciones/         Campanita (barra), avisos emergentes, insignias del dock y su proveedor
   ui/                     Controles base e íconos propios
 lib/
   paletas.ts              Registro de paletas + cookie (paletas-cliente.ts la aplica en el DOM)
@@ -67,6 +71,8 @@ lib/
   identidad.ts            Logo/fondo/acento/formato de documentos de cada empresa (tokens de acento)
   sitio-web.ts            Configuración del sitio público (ConfigSitio), slug, WhatsApp, precio con ISV
   sitio-datos.ts          Lectura del sitio público por RPC (server-only); /t/demo usa sitio-demo.ts en desarrollo
+  notificaciones.ts       Tipos de la bandeja, insignias por módulo, «hace 5 minutos»
+  ir-a.ts                 «Ir a» en el escritorio: módulo → sección (ModuloTablas) → registro
   supabase/server.ts      Cliente Supabase para servidor (uno por request)
   supabase/proxy.ts       Refresco de sesión + redirecciones
 proxy.ts                  Entrada del proxy de Next
@@ -91,6 +97,22 @@ Convenciones:
 - **Es una demo**: la portada lo aclara (nota bajo el arranque y sección `#contacto` con `BloqueDemo`: precio a convenir, soporte 24/7, ajustes a la medida, WhatsApp y correo). El contacto sale de `CONTACTO` en `lib/sitio.ts` (también en el pie, la FAQ de precio, el `contactPoint` del JSON-LD y las páginas legales); nunca escribas el número o el correo sueltos.
 - **Páginas legales**: `PaginaLegal` (`app/_publico/legal.tsx`) da el marco común (h1, resumen, contacto, enlaces cruzados, JSON-LD). `PAGINAS_LEGALES` alimenta el sitemap; `LEGAL_ACTUALIZADO` es la fecha visible: cambiala al editar cualquier texto legal. Los textos no fueron revisados por un abogado.
 - Un departamento nuevo o un cambio de ciudades: `DEPARTAMENTOS` en `lib/sitio.ts` (el sitemap, los enlaces y las imágenes salen de ahí). Cada departamento tiene un párrafo propio (`contexto`) para no duplicar contenido.
+
+## Demo pública (/demo)
+
+- El escritorio real (`Escritorio`, módulos, mostrador, campanita) con `SESION_DEMO_PUBLICA` (`demo: true`) y `APIS_DEMO`: **todo dato pasa por `useApi()`** y en la demo lo responde `components/demo/datos-demo.ts` en memoria. Nada sale del navegador ni toca la base; recargar la página la reinicia.
+- Las tablas genéricas usan `lib/recursos/memoria.ts` (búsqueda, filtros, orden y páginas como `servidor.ts`). Lo que la demo no tiene (catálogo de vehículos) se lee del real, que es público.
+- **Regla para código nuevo del escritorio**: nunca importes una Server Action directo en un componente; agregala a una API de `components/datos/apis.tsx` y a `APIS_DEMO`. Si no, en la demo falla o, peor, intenta escribir sin sesión.
+- La demo muestra una franja fija («Estás en la demo · nada se guarda» + «Usar con mi taller» + WhatsApp) y, una sola vez, una invitación después de la primera cotización o factura. Sin contadores falsos ni trampas para salir (decisión: ver bitácora).
+- Pública en el proxy, indexable y en el sitemap; `/demo/documento` es noindex.
+
+## Notificaciones
+
+- `NotificacionesProvider` (en `Escritorio`) consulta `leerNotificaciones()` **cada 30 s con la pestaña visible**, al volver a la pestaña y cuando un componente llama `avisarCambioNotificaciones()` (p. ej. al atender un pedido). No hay websockets: la llave de Supabase no llega al navegador (regla 7).
+- La campanita (`components/notificaciones/campana.tsx`) muestra **Por atender** (tareas) y **Recientes**; las tareas que llegan con el escritorio abierto salen como aviso emergente. El dock muestra cuántas tareas tiene cada módulo (`enlace.modulo`).
+- Tocar una notificación: `abrir(modulo)` + `pedirDestino(enlace)` (`lib/ir-a.ts`). `ModuloTablas` toma la `seccion` y el componente de la sección toma el `recurso` + `id` (`tomarRegistro`), tanto si ya estaba abierto como si se monta después. Para que un módulo nuevo responda, usá `tomarSeccion`/`tomarRegistro` + `escucharDestino`.
+- Sandbox: botón «Simular pedido web» en `/dev/escritorio`.
+- **Capturas de la landing**: `npm run capturas` (con `npm run dev` corriendo) genera mostrador, factura, reporte, compatibilidad, celular, sitio, catálogo y campanita en `public/capturas/`. El script da por leídos el recorrido y el aviso de cookies.
 
 ## Cookies y datos locales
 

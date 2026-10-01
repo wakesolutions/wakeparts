@@ -9,6 +9,15 @@ import {
 } from "@/components/compatibilidad/api";
 import { apiIdentidad, type ApiIdentidad } from "@/components/identidad/api";
 import { apiImagenes, type ApiImagenes } from "@/components/imagenes/api";
+import {
+  apiEmpresa,
+  apiPerfil,
+  apiRecursos,
+  type ApiEmpresa,
+  type ApiPerfil,
+  type ApiRecursos,
+} from "./api-recursos";
+import { apiNotificaciones, type ApiNotificaciones } from "@/components/notificaciones/api";
 import { apiInventario, type ApiInventario } from "@/components/inventario/api";
 import { apiReportes, type ApiReportes } from "@/components/reportes/api";
 import { apiSitioWeb, type ApiSitioWeb } from "@/components/sitio-web/api";
@@ -17,8 +26,9 @@ import { apiVentas, type ApiVentas } from "@/components/ventas/api";
 /**
  * Acceso a datos de los módulos interactivos (mostrador, fotos, compatibilidad,
  * entradas e importación, reportes, apariencia de la empresa, sitio web).
- * Por defecto son Server Actions; el sandbox de desarrollo inyecta datos de
- * demostración con <ApisProvider valor={…}> para revisar la UI sin sesión.
+ * Por defecto son Server Actions; el sandbox (/dev) y la demo pública (/demo)
+ * inyectan datos en memoria con <ApisProvider valor={…}>: sin sesión ni base.
+ * Las tablas y formularios genéricos, la empresa y el perfil también pasan por aquí.
  */
 export type Apis = {
   compatibilidad: ApiCompatibilidad;
@@ -29,6 +39,10 @@ export type Apis = {
   reportes: ApiReportes;
   identidad: ApiIdentidad;
   sitioWeb: ApiSitioWeb;
+  notificaciones: ApiNotificaciones;
+  recursos: ApiRecursos;
+  empresa: ApiEmpresa;
+  perfil: ApiPerfil;
 };
 
 const REALES: Apis = {
@@ -40,6 +54,10 @@ const REALES: Apis = {
   reportes: apiReportes,
   identidad: apiIdentidad,
   sitioWeb: apiSitioWeb,
+  notificaciones: apiNotificaciones,
+  recursos: apiRecursos,
+  empresa: apiEmpresa,
+  perfil: apiPerfil,
 };
 
 const Ctx = createContext<Partial<Apis>>({});

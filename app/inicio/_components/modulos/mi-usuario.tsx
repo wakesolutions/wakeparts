@@ -1,8 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState, useTransition } from "react";
-import { actualizarPerfil, leerPerfil, restablecerTablas } from "@/app/acciones/perfil";
+import type { leerPerfil } from "@/app/acciones/perfil";
+import { useApi } from "@/components/datos/apis";
 import { cerrarSesion } from "@/app/auth/actions";
 import { Formulario } from "@/components/formulario/formulario";
 import { olvidarPreferenciasTablas } from "@/components/tabla-maestra/tabla-maestra";
@@ -26,6 +28,7 @@ export function ModuloMiUsuario() {
   const [aviso, setAviso] = useState<string | null>(null);
   const [trabajando, iniciar] = useTransition();
   const recorrido = useRecorrido();
+  const api = useApi("perfil");
 
   useEffect(() => {
     let vivo = true;
@@ -35,13 +38,13 @@ export function ModuloMiUsuario() {
       id_empresa_activa: sesion.empresa?.id ?? null,
       creado_en: "",
     };
-    leerPerfil()
+    api.leer()
       .catch(() => null)
       .then((p) => vivo && setPerfil(p ?? respaldo));
     return () => {
       vivo = false;
     };
-  }, [sesion.usuario.nombre, sesion.empresa?.id]);
+  }, [api, sesion.usuario.nombre, sesion.empresa?.id]);
 
   // Con más de una empresa, se puede elegir con cuál trabajar.
   const campos = useMemo<readonly DefCampo[]>(
@@ -101,7 +104,7 @@ export function ModuloMiUsuario() {
             valoresIniciales={perfil}
             textoGuardar="Guardar perfil"
             onGuardar={async (valores) => {
-              const r = await actualizarPerfil(valores);
+              const r = await api.actualizar(valores);
               if (r.ok) {
                 setPerfil((p) => (p ? { ...p, ...(valores as Partial<Perfil>) } : p));
                 setAviso("Perfil guardado.");
@@ -127,7 +130,7 @@ export function ModuloMiUsuario() {
               disabled={trabajando}
               onClick={() =>
                 iniciar(async () => {
-                  const r = await restablecerTablas();
+                  const r = await api.restablecerTablas();
                   if (r.ok) olvidarPreferenciasTablas();
                   setAviso(r.ok ? "Tablas restablecidas." : "No se pudieron restablecer las tablas.");
                 })
@@ -156,11 +159,17 @@ export function ModuloMiUsuario() {
               <p className={styles.bloqueTitulo}>Sesión</p>
               <p className={styles.bloqueTexto}>Cerrar la sesión en este equipo.</p>
             </div>
-            <form action={cerrarSesion}>
-              <button type="submit" className={`${ui.boton} ${ui.peligro}`}>
-                Cerrar sesión
-              </button>
-            </form>
+            {sesion.demo ? (
+              <Link href="/" className={`${ui.boton} ${ui.peligro}`}>
+                Salir de la demo
+              </Link>
+            ) : (
+              <form action={cerrarSesion}>
+                <button type="submit" className={`${ui.boton} ${ui.peligro}`}>
+                  Cerrar sesión
+                </button>
+              </form>
+            )}
           </div>
           {aviso && (
             <p className={styles.avisoOk} role="status">

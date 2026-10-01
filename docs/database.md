@@ -309,6 +309,24 @@ Lo que manda un visitante desde `/t/<slug>`. Columnas: `numero` (identity global
 
 Desde 0013, **`anon` ya no puede ejecutar `buscar_productos`** (devolvía el precio aunque el taller lo ocultara).
 
+## Notificaciones (0014)
+
+### `notificaciones` / `notificaciones_leidas`
+
+Avisos de la campanita. `id_empresa`, `id_usuario` (null = para todos los miembros), `tipo` (`pedido_web`…), `titulo` (≤ 160), `cuerpo` (≤ 400), `enlace` jsonb `{modulo, seccion, recurso, id}` (adónde lleva en el escritorio), `es_tarea` + `resuelta_en`/`resuelta_por` (tarea **compartida**: la resuelve cualquiera del equipo), `origen_tabla` + `origen_id` (registro que la generó). Leído es **por usuario** (`notificaciones_leidas`).
+
+- **Se crean solo desde la base** (triggers security definer); la API no puede insertar, editar ni borrar. Miembros leen las de su empresa (y las dirigidas a ellos).
+- **Fuente actual**: trigger `zy_notificar` en `pedidos_web`: pedido nuevo → tarea «Pedido web #n · Cliente»; `atendido`/`descartado` → resuelta; vuelve a `nuevo` → pendiente otra vez. Si falla, solo emite un `warning`: el pedido se guarda igual.
+- `v_notificaciones` (security invoker): + `pendiente`, `leida` (del usuario) y nombre de quien la resolvió. `resumen_notificaciones(empresa)`: `{pendientes, no_leidas, ultima}`. `marcar_notificaciones_leidas(empresa, ids?)` (null = todas). `limpiar_notificaciones(dias = 90)` borra viejas leídas o resueltas (a mano o pg_cron).
+- **Otra fuente nueva** (CAI por vencer, existencia baja…): un trigger o función que inserte en `notificaciones` con su `enlace` y `origen_*`, y que la resuelva cuando corresponda. La campanita no cambia.
+- Sin auditoría `zz_registrar_cambio`: son avisos, no datos del negocio (el pedido ya se audita).
+
+## Seguimiento de talleres (0015, solo admin de plataforma)
+
+- `seguimiento_empresas()` (security definer; vacía si no sos admin de plataforma) → una fila por empresa activa: `empresa`, `registrada_en`, `dias_registrada`, dueño (`dueno`, `correo`, `telefono` de `usuarios`), `telefono_empresa`, `miembros`, `productos`, `cotizaciones`, `facturas`, `ultimo_documento`, `ultimo_acceso` (`auth.users.last_sign_in_at` de sus miembros), `dias_sin_entrar`, `sitio_publicado`, `pedidos_web`, `etapa` (`sin_productos` · `sin_cotizar` · `cotizando` · `facturando`) y la nota de contacto. `v_seguimiento_empresas` la expone para TablaMaestra.
+- `seguimiento_contactos` (`id_empresa` PK, `contactado_en`, `nota` ≤ 1000, `actualizado_*`): lo anota el admin desde el módulo Seguimiento. RLS: solo `es_admin_plataforma()`.
+- Nada se manda solo: el módulo arma el mensaje y abre WhatsApp o el correo del admin.
+
 ## Funciones
 
 | Función | Qué hace |

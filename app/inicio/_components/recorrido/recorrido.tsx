@@ -12,7 +12,7 @@ import {
   type ReactNode,
 } from "react";
 import { createPortal } from "react-dom";
-import { marcarRecorrido } from "@/app/acciones/perfil";
+import { useApi } from "@/components/datos/apis";
 import { useVentanas } from "@/components/ventanas/contexto";
 import ui from "@/components/ui/controles.module.css";
 import { useSesion } from "../sesion-contexto";
@@ -56,6 +56,7 @@ function guardarLocal(usuario: string, visto: boolean) {
  */
 export function RecorridoProvider({ pendiente, children }: { pendiente: boolean | null; children: ReactNode }) {
   const sesion = useSesion();
+  const api = useApi("perfil");
   const [activo, setActivo] = useState(false);
   const usuario = sesion.usuario.id;
 
@@ -70,8 +71,8 @@ export function RecorridoProvider({ pendiente, children }: { pendiente: boolean 
   const terminar = useCallback(() => {
     setActivo(false);
     guardarLocal(usuario, true);
-    void marcarRecorrido(true).catch(() => {});
-  }, [usuario]);
+    void api.marcarRecorrido(true).catch(() => {});
+  }, [api, usuario]);
 
   const valor = useMemo(
     () => ({

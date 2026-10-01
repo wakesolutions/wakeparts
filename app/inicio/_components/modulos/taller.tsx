@@ -2,7 +2,8 @@
 
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-import { actualizarEmpresa, cargarDatosDemo, leerEmpresa, type ResultadoDemo } from "@/app/acciones/empresa";
+import type { leerEmpresa, ResultadoDemo } from "@/app/acciones/empresa";
+import { useApi } from "@/components/datos/apis";
 import { Formulario } from "@/components/formulario/formulario";
 import { AparienciaEmpresa } from "@/components/identidad/apariencia-empresa";
 import { useIdentidad } from "@/components/identidad/contexto";
@@ -42,6 +43,7 @@ export function ModuloTaller() {
   const { empresa, rol, usuario } = useSesion();
   const { identidad } = useIdentidad();
   const router = useRouter();
+  const api = useApi("empresa");
   const [pestana, setPestana] = useState<Pestana>("datos");
   const [datos, setDatos] = useState<Empresa | null>(null);
   const [error, setError] = useState(false);
@@ -52,7 +54,7 @@ export function ModuloTaller() {
   async function cargarDemo() {
     setCargando(true);
     setDemo(null);
-    const r = await cargarDatosDemo().catch(() => ({
+    const r = await api.cargarDemo().catch(() => ({
       ok: false as const,
       error: "Sin conexión. Intentá de nuevo.",
     }));
@@ -62,7 +64,8 @@ export function ModuloTaller() {
 
   useEffect(() => {
     let vivo = true;
-    leerEmpresa()
+    api
+      .leer()
       .then((d) => {
         if (!vivo) return;
         if (d) setDatos(d);
@@ -72,7 +75,7 @@ export function ModuloTaller() {
     return () => {
       vivo = false;
     };
-  }, [empresa?.id]);
+  }, [api, empresa?.id]);
 
   return (
     <div className={styles.hojaModulo}>
@@ -166,7 +169,7 @@ export function ModuloTaller() {
                 soloLectura={!editable}
                 textoGuardar="Guardar cambios"
                 onGuardar={async (valores) => {
-                  const r = await actualizarEmpresa(valores);
+                  const r = await api.actualizar(valores);
                   if (r.ok) {
                     setDatos((d) => (d ? { ...d, ...(valores as Partial<Empresa>) } : d));
                     router.refresh();

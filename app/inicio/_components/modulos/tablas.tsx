@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import { MantenimientoRecurso } from "@/components/mantenimiento/mantenimiento-recurso";
+import { escucharDestino, tomarSeccion } from "@/lib/ir-a";
 import { obtenerRecurso } from "@/lib/recursos";
 import { puedeEscribir, useSesion } from "../sesion-contexto";
 import styles from "./modulos.module.css";
@@ -71,6 +72,17 @@ export function ModuloTablas({
       // sin almacenamiento
     }
   }
+
+  // «Ir a» desde la campanita: al montarse o si ya estaba abierto.
+  useEffect(() => {
+    const ir = () => {
+      const seccion = tomarSeccion(id);
+      if (seccion && todos.some((i) => claveDe(i) === seccion)) elegir(seccion);
+    };
+    ir();
+    return escucharDestino(ir);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
 
   return (
     <div className={styles.modulo}>

@@ -10,6 +10,7 @@ import {
   IconoLlave,
   IconoMostrador,
   IconoPerfil,
+  IconoSeguimiento,
   IconoSitio,
   IconoTaller,
   IconoVentas,
@@ -18,6 +19,7 @@ import { ModuloActividad } from "./actividad";
 import { ModuloCotizar } from "./cotizar";
 import { ModuloInventario } from "./inventario";
 import { ModuloMiUsuario } from "./mi-usuario";
+import { ModuloSeguimiento } from "./seguimiento";
 import { ModuloSitioWeb } from "./sitio-web";
 import { ModuloMantenimiento, ModuloUsuarios } from "./tablas";
 import { ModuloTaller } from "./taller";
@@ -87,6 +89,14 @@ export const MODULOS: ModuloEscritorio[] = [
     componente: ModuloActividad,
     tamano: { w: 1240, h: 740 },
     visible: (s) => administra(s) || s.usuario.esAdminPlataforma,
+  },
+  {
+    id: "seguimiento",
+    nombre: "Seguimiento",
+    icono: <IconoSeguimiento />,
+    componente: ModuloSeguimiento,
+    tamano: { w: 1240, h: 740 },
+    visible: (s) => s.usuario.esAdminPlataforma,
   },
   {
     id: "taller",

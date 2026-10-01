@@ -2,6 +2,23 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-01 · Demo sin cuenta, landing y seguimiento de talleres (migración 0015)
+
+- **Demo pública `/demo`** (pedido del usuario: que la gente pruebe el sistema sí o sí). El usuario pidió «un patrón oscuro»; se decidió **no** usar engaños (contadores falsos, reseñas inventadas, avergonzar al que no se registra, trabas para salir): mercado chico de boca en boca, se vende confianza fiscal, riesgo con la ley de protección al consumidor y con la revisión de Google OAuth. En su lugar: **cero fricción** (el sistema completo sin cuenta), CTA siempre visible y una invitación en el mejor momento (justo después de la primera venta). Todo dice que es una demo y que nada se guarda.
+- **La demo es el escritorio real**, no una maqueta: se volvieron inyectables las tablas genéricas, la empresa y el perfil (`useApi("recursos" | "empresa" | "perfil")`) y se agregó un motor en memoria para TablaMaestra. Lo que mejora en el producto aparece solo en la demo.
+- **Ayuda humana por WhatsApp** junto al arranque, en el llamado final, en la demo y en el registro de la empresa: en pymes hondureñas acompañar convierte más que cualquier pantalla.
+- **Seguimiento manual, no automático**: el usuario prefirió ver quién se registró y no avanzó para escribirle él mismo. Módulo **Seguimiento** (solo admin de plataforma) con etapa de cada taller, mensaje sugerido por etapa (editable), botones a WhatsApp/correo y nota de contacto. No se guardan consentimientos de marketing porque no hay envíos automáticos.
+- Landing: «Probar demo» en el encabezado, «Probalo sin cuenta» bajo el arranque, sección «Tu taller, en internet» (catálogo web, pedidos con campanita) y capturas nuevas (sitio, catálogo, campanita).
+
+## 2026-10-01 · Notificaciones y tareas pendientes (migración 0014)
+
+- **Pedido del usuario**: que los pedidos web «tengan que ser atendidos» y avisen con una campanita.
+- **Tareas que se cierran solas**: la base crea la tarea al entrar el pedido y la resuelve cuando se atiende o descarta (trigger). Nadie tiene que acordarse de marcarla; no hay forma de que la tarea y el pedido digan cosas distintas.
+- **Tarea compartida, leído por usuario**: cualquiera del equipo puede atender el pedido y desaparece para todos; «leído» es de cada uno.
+- **Genérico desde el inicio** (`tipo`, `enlace`, `origen_*`): la próxima fuente (CAI por vencer, existencia baja) es solo un trigger más. No se agregó la del CAI porque los umbrales («80 % del rango, 30 días») siguen marcados «a confirmar» en negocio.md §3.5.
+- **Consulta cada 30 s en vez de tiempo real**: Supabase Realtime pide la llave en el navegador y la regla 7 lo impide. Solo con la pestaña visible; al atender se refresca al instante.
+- **Insignia en el ícono del módulo del dock** y aviso emergente breve (9 s): se nota sin interrumpir. Sin sonido ni notificaciones del sistema operativo (pedirían permiso al navegador).
+
 ## 2026-10-01 · Catálogo web por empresa (migración 0013)
 
 - **Decisiones del usuario**: dirección `/t/<slug>`; los precios los muestra u oculta cada taller; los pedidos son «carrito → cotización» sin pagos en línea.

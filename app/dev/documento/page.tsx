@@ -1,5 +1,5 @@
 import { notFound } from "next/navigation";
-import { DocumentoDemo } from "./documento-demo";
+import { DocumentoDemo } from "@/components/demo/documento-demo";
 
 /** Vista de impresión del sandbox: lee el documento demo guardado en el navegador. */
 export default function PaginaDocumentoDemo() {

@@ -13,6 +13,8 @@ import {
   PiePublico,
   PreguntasFrecuentes,
   Seccion,
+  ProbarSinCuenta,
+  TallerEnInternet,
   esquemaPreguntas,
   FUNCIONES,
 } from "./_publico/piezas";
@@ -166,8 +168,9 @@ export default async function Portada({ searchParams }: PageProps<"/">) {
 
           <section id="encender" aria-label="Entrar" className="flex scroll-mt-20 flex-col items-center lg:col-span-5 lg:-ml-10">
             <Arranque error={mensaje} />
+            <ProbarSinCuenta />
             <p
-              className="wp-entra mt-8max-w-[38ch] text-center text-sm leading-relaxed text-wp-ink-2 text-pretty"
+              className="wp-entra mt-8 max-w-[38ch] text-center text-sm leading-relaxed text-wp-ink-2 text-pretty"
               style={{ animationDelay: "1350ms" }}
             >
               <strong className="text-wp-ink">Esto es una demo</strong> de lo que podemos montar para tu negocio.{" "}
@@ -196,7 +199,7 @@ export default async function Portada({ searchParams }: PageProps<"/">) {
               por dentro<span className="text-wp-accent">.</span>
             </>
           }
-          bajada="Esto es lo que vas a usar desde el primer día: el mostrador, la factura con CAI, el reporte de ventas, la compatibilidad por vehículo y la vista en el celular."
+          bajada="Esto es lo que vas a usar desde el primer día: el mostrador, la factura con CAI, el sitio web de tu taller, los pedidos con campanita, el reporte de ventas y la vista en el celular. O mejor: probalo vos en la demo."
         >
           <Vitrina />
         </Seccion>
@@ -214,6 +217,21 @@ export default async function Portada({ searchParams }: PageProps<"/">) {
           bajada="Hecho para cómo se venden repuestos en Honduras: el cliente llega con el carro, el vendedor busca, cotiza y factura. Sin cuadernos ni hojas sueltas."
         >
           <Funciones />
+        </Seccion>
+
+        <Seccion
+          id="sitio-web"
+          sobretitulo="Catálogo web y pedidos"
+          titulo={
+            <>
+              Tu taller,
+              <br />
+              en internet<span className="text-wp-accent">.</span>
+            </>
+          }
+          bajada="Cada taller tiene su propio sitio para que los clientes busquen por su carro y te manden su lista. El pedido llega a tu mostrador como tarea, con campanita, hasta que alguien lo atiende."
+        >
+          <TallerEnInternet />
         </Seccion>
 
         <Seccion

@@ -16,6 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "monthly" as const,
       priority: 0.7,
     })),
+    { url: `${URL_SITIO}/demo`, lastModified: hoy, changeFrequency: "monthly", priority: 0.8 },
     { url: `${URL_SITIO}/ayuda`, lastModified: hoy, changeFrequency: "monthly", priority: 0.6 },
     ...talleres.flatMap((t) =>
       ["", "/catalogo", "/nosotros"].map((sub) => ({

@@ -174,7 +174,8 @@ export default function Manual() {
               <div>
                 <h3 className={styles.subtitulo}>Barra de menú</h3>
                 <p>
-                  Muestra el módulo activo y tu taller (con su logo, si subiste uno). A la derecha: las perillas de <strong>paleta</strong> (solo
+                  Muestra el módulo activo y tu taller (con su logo, si subiste uno). A la derecha: la{" "}
+                  <strong>campanita</strong> (lo que hay que atender, como los pedidos web, y avisos recientes), las perillas de <strong>paleta</strong> (solo
                   dueño y administrador; cambian los colores de todo el taller), el reloj, tu nombre (abre{" "}
                   <em>Mi usuario</em>), el enlace a este manual y <strong>Salir</strong> para cerrar sesión.
                 </p>
@@ -519,9 +520,9 @@ export default function Manual() {
                 </ul>
                 <h3 className={styles.subtitulo}>Pedidos web</h3>
                 <p>
-                  Lo que los clientes mandan desde tu sitio web llega aquí como <em>Nuevo</em>, con su nombre,
+                  Lo que los clientes mandan desde tu sitio web llega aquí como <em>Nuevo</em> (y suena la campanita, con un número en Ventas del dock), con su nombre,
                   teléfono, vehículo y la lista de piezas. Abrilo y tocá <strong>Atender en el mostrador</strong>: se
-                  vuelve un carrito con el precio de hoy, listo para cotizar o facturar. Si no procede, descartalo.
+                  vuelve un carrito con el precio de hoy, listo para cotizar o facturar. Si no procede, descartalo. Al atenderlo o descartarlo, la tarea desaparece para todo el equipo.
                 </p>
                 <h3 className={styles.subtitulo}>Clientes</h3>
                 <p>
