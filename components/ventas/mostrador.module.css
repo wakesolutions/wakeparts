@@ -68,7 +68,7 @@
   color: var(--wp-ink);
   background: linear-gradient(180deg, var(--wp-metal-lo), var(--wp-metal-hi));
   box-shadow:
-    inset 0 2px 5px rgb(0 0 0 / 0.35),
+    inset 0 1px 2px rgb(0 0 0 / 0.18),
     0 0 0 1.5px var(--wp-accent);
 }
 
@@ -107,7 +107,7 @@
 .pestana[aria-current] .pestanaCuenta {
   color: var(--wp-on-accent);
   background: var(--wp-accent);
-  box-shadow: 0 0 8px var(--wp-accent-glow);
+  box-shadow: 0 0 4px var(--wp-accent-glow);
 }
 
 .nuevo {
@@ -182,7 +182,7 @@
   color: var(--wp-ink-3);
   background: var(--wp-field);
   box-shadow:
-    inset 0 3px 8px rgb(0 0 0 / 0.4),
+    inset 0 1px 3px rgb(0 0 0 / 0.16),
     inset 0 0 0 1px var(--wp-line),
     0 1px 0 var(--wp-bevel-light);
   transition: box-shadow 180ms var(--ease-quart);
@@ -191,7 +191,7 @@
 .buscar:focus-within {
   color: var(--wp-accent-hi);
   box-shadow:
-    inset 0 3px 8px rgb(0 0 0 / 0.4),
+    inset 0 1px 3px rgb(0 0 0 / 0.16),
     inset 0 0 0 1.5px var(--wp-accent),
     0 0 0 4px color-mix(in oklab, var(--wp-accent) 18%, transparent);
 }
@@ -244,7 +244,7 @@
   height: 2px;
   opacity: 0;
   background: linear-gradient(90deg, transparent, var(--wp-accent-hi), transparent);
-  box-shadow: 0 0 10px var(--wp-accent-glow);
+  box-shadow: 0 0 4px var(--wp-accent-glow);
   transform: translateX(-100%);
 }
 
@@ -288,7 +288,6 @@
   letter-spacing: -0.02em;
   text-transform: uppercase;
   color: var(--wp-ink-2);
-  text-shadow: 0 1px 0 var(--wp-engrave);
 }
 
 /* ------------------------------------------------------------ bloques ----- */
@@ -376,7 +375,7 @@
   transition:
     background-color 120ms var(--ease-quart),
     box-shadow 160ms var(--ease-quart);
-  animation: entrarFila 380ms var(--ease-expo) both;
+  animation: entrarFila 360ms var(--ease-expo) both;
 }
 
 @keyframes entrarFila {
@@ -668,7 +667,7 @@
 .emitidoAcciones {
   display: flex;
   gap: 0.5rem;
-  animation: entrarFila 500ms var(--ease-expo) 350ms both;
+  animation: entrarFila 360ms var(--ease-expo) 350ms both;
 }
 
 .emitidoAcciones a {

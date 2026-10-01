@@ -70,7 +70,7 @@ export function PiePublico() {
             <Link href="/#preguntas">Preguntas frecuentes</Link>
           </li>
           <li>
-            <Link href="/#encender">Entrar con Google</Link>
+            <Link href="/#encender">Entrar</Link>
           </li>
         </ul>
         <p className={`${styles.pieTitulo} mt-5`}>Legal</p>
@@ -172,7 +172,7 @@ export const FUNCIONES = [
   {
     titulo: "Tu equipo, con roles",
     texto:
-      "Invitá a tus vendedores con su correo de Google. Dueño, administrador y vendedor, cada uno con lo que le toca. Nadie ve los datos de otra empresa.",
+      "Invitá a tus vendedores con su correo. Dueño, administrador y vendedor, cada uno con lo que le toca. Nadie ve los datos de otra empresa.",
   },
   {
     titulo: "Compu o celular",
@@ -289,7 +289,7 @@ export const PREGUNTAS: Pregunta[] = [
   },
   {
     p: "¿Tengo que instalar algo?",
-    r: "No. Wake Parts funciona en el navegador de la computadora, la tablet o el celular. Entrás con tu cuenta de Google y listo.",
+    r: "No. Wake Parts funciona en el navegador de la computadora, la tablet o el celular. Entrás con tu cuenta y listo.",
   },
   {
     p: "¿Sirve para un yonker o solo para tiendas de repuestos?",
@@ -317,7 +317,7 @@ export const PREGUNTAS: Pregunta[] = [
   },
   {
     p: "¿Cómo empiezo?",
-    r: "Entrá con Google, registrá tu negocio y, si querés practicar, marcá «Cargar productos de ejemplo». Un recorrido guiado te enseña a cotizar y facturar en dos minutos.",
+    r: "Entrá, registrá tu negocio y, si querés practicar, marcá «Cargar productos de ejemplo». Un recorrido guiado te enseña a cotizar y facturar en dos minutos.",
   },
 ];
 
@@ -352,7 +352,7 @@ export function LlamadoFinal({ texto = "Encendé tu tablero hoy." }: { texto?: s
       <h2 id="llamado-titulo" className={`wp-grabado ${styles.llamadoTitulo}`}>
         {texto}
       </h2>
-      <p>Entrá con tu cuenta de Google, registrá tu negocio y practicá con productos de ejemplo.</p>
+      <p>Entrá, registrá tu negocio y practicá con productos de ejemplo.</p>
       <Link href="/#encender" className={styles.llamadoBoton}>
         Empezar ahora
       </Link>
@@ -423,7 +423,7 @@ export function Migas({ items }: { items: { nombre: string; href?: string }[] })
 export const preguntasDe = (d: Departamento): Pregunta[] => [
   {
     p: `¿Wake Parts funciona en ${d.ciudades[0]} y el resto de ${d.nombre}?`,
-    r: `Sí. Wake Parts funciona en línea en todo ${d.nombre}: ${d.ciudades.slice(0, 5).join(", ")} y los demás municipios. Solo necesitás internet y una cuenta de Google.`,
+    r: `Sí. Wake Parts funciona en línea en todo ${d.nombre}: ${d.ciudades.slice(0, 5).join(", ")} y los demás municipios. Solo necesitás internet.`,
   },
   {
     p: `¿Puedo facturar con CAI desde ${d.cabecera}?`,

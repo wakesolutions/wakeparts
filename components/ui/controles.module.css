@@ -22,11 +22,10 @@
   background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
   box-shadow:
     inset 0 1px 0 var(--wp-bevel-light),
-    inset 0 -1px 0 var(--wp-bevel-dark),
-    0 0 0 1px rgb(0 0 0 / 0.28),
-    0 1px 2px rgb(0 0 0 / 0.25);
+    0 0 0 1px var(--wp-line),
+    0 1px 1px rgb(0 0 0 / 0.12);
   transition:
-    transform 120ms var(--ease-quart),
+    background-color 160ms var(--ease-quart),
     box-shadow 160ms var(--ease-quart),
     color 160ms var(--ease-quart);
 }
@@ -36,10 +35,9 @@
 }
 
 .boton:active {
-  transform: translateY(1px);
   box-shadow:
-    inset 0 2px 4px rgb(0 0 0 / 0.35),
-    0 0 0 1px rgb(0 0 0 / 0.3);
+    inset 0 1px 2px rgb(0 0 0 / 0.2),
+    0 0 0 1px var(--wp-line);
 }
 
 .boton:disabled {
@@ -52,28 +50,23 @@
 .boton[aria-expanded="true"] {
   color: var(--wp-accent-hi);
   box-shadow:
-    inset 0 2px 5px rgb(0 0 0 / 0.35),
-    0 0 0 1px rgb(0 0 0 / 0.3);
-  background: linear-gradient(180deg, var(--wp-metal-lo), var(--wp-metal-hi));
+    inset 0 1px 2px rgb(0 0 0 / 0.18),
+    0 0 0 1px var(--wp-line);
+  background: var(--wp-sel);
 }
 
 .primario {
   color: var(--wp-on-accent);
-  background: linear-gradient(180deg, var(--wp-accent-hi), var(--wp-accent) 55%, var(--wp-accent-lo));
+  background: linear-gradient(180deg, var(--wp-accent-hi), var(--wp-accent));
   box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.35),
-    inset 0 -1px 1px rgb(0 0 0 / 0.35),
-    0 0 0 1px rgb(0 0 0 / 0.35),
-    0 2px 6px -2px var(--wp-accent-glow);
+    inset 0 1px 0 rgb(255 255 255 / 0.2),
+    0 0 0 1px color-mix(in oklab, var(--wp-accent-lo) 60%, transparent),
+    0 1px 2px rgb(0 0 0 / 0.15);
 }
 
 .primario:hover {
   color: var(--wp-on-accent);
-  box-shadow:
-    inset 0 1px 0 rgb(255 255 255 / 0.35),
-    inset 0 -1px 1px rgb(0 0 0 / 0.35),
-    0 0 0 1px rgb(0 0 0 / 0.35),
-    0 0 16px var(--wp-accent-glow);
+  background: var(--wp-accent-hi);
 }
 
 .peligro {
@@ -104,7 +97,6 @@
   line-height: 16px;
   color: var(--wp-on-accent);
   background: var(--wp-accent);
-  box-shadow: 0 0 8px var(--wp-accent-glow);
 }
 
 /* ---------------------------------------------------------------- campos ---- */
@@ -120,9 +112,8 @@
   color: var(--wp-ink);
   background: var(--wp-field);
   box-shadow:
-    inset 0 2px 4px rgb(0 0 0 / 0.35),
-    inset 0 0 0 1px var(--wp-line),
-    0 1px 0 var(--wp-bevel-light);
+    inset 0 1px 2px rgb(0 0 0 / 0.14),
+    inset 0 0 0 1px var(--wp-line);
   transition: box-shadow 160ms var(--ease-quart);
   outline: none;
 }
@@ -143,14 +134,13 @@ textarea.campo {
 .campo:focus-visible {
   outline: none;
   box-shadow:
-    inset 0 2px 4px rgb(0 0 0 / 0.35),
     inset 0 0 0 1px var(--wp-accent),
-    0 0 0 3px color-mix(in oklab, var(--wp-accent) 22%, transparent);
+    0 0 0 3px color-mix(in oklab, var(--wp-accent) 18%, transparent);
 }
 
 .campo[aria-invalid="true"] {
   box-shadow:
-    inset 0 2px 4px rgb(0 0 0 / 0.35),
+    inset 0 1px 2px rgb(0 0 0 / 0.14),
     inset 0 0 0 1px var(--wp-accent-hi);
 }
 
@@ -185,7 +175,7 @@ select.campo {
   border-radius: 4px;
   background: var(--wp-field);
   box-shadow:
-    inset 0 1px 3px rgb(0 0 0 / 0.5),
+    inset 0 1px 2px rgb(0 0 0 / 0.2),
     inset 0 0 0 1px var(--wp-line);
   cursor: pointer;
   display: grid;
@@ -206,7 +196,6 @@ select.campo {
 
 .casilla:checked::after {
   background: var(--wp-accent-hi);
-  box-shadow: 0 0 6px var(--wp-accent-glow);
 }
 
 /* --------------------------------------------------------------- popover ---- */
@@ -221,9 +210,9 @@ select.campo {
   background: var(--wp-panel);
   box-shadow:
     inset 0 1px 0 var(--wp-bevel-light),
-    0 0 0 1px rgb(0 0 0 / 0.3),
-    0 18px 40px -12px rgb(0 0 0 / 0.6);
-  animation: aparecerPopover 220ms var(--ease-expo) both;
+    0 0 0 1px var(--wp-line),
+    0 14px 32px -14px rgb(0 0 0 / 0.45);
+  animation: aparecerPopover 180ms var(--ease-expo) both;
   transform-origin: top left;
 }
 

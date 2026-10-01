@@ -90,7 +90,7 @@ export const invitaciones: DefRecurso = {
   campos: [
     {
       nombre: "correo",
-      etiqueta: "Correo de Google",
+      etiqueta: "Correo",
       tipo: "texto",
       requerido: true,
       minusculas: true,
@@ -100,7 +100,7 @@ export const invitaciones: DefRecurso = {
       mensajePatron: "Correo no válido.",
       placeholder: "empleado@gmail.com",
       ancho: "completo",
-      ayuda: "Cuando esa persona entre a Wake Parts con esta cuenta de Google, quedará dentro de tu empresa.",
+      ayuda: "Cuando esa persona entre a Wake Parts con este correo, quedará dentro de tu empresa.",
     },
     {
       nombre: "rol",

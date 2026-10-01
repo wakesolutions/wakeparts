@@ -24,7 +24,7 @@ import { CONTACTO, DEPARTAMENTOS, DESCRIPCION_SITIO, LEMA, NOMBRE_SITIO, URL_SIT
 
 const ERRORES: Record<string, string> = {
   auth: "No pudimos completar el inicio de sesión. Intentá de nuevo.",
-  oauth: "Google no respondió. Revisá tu conexión e intentá otra vez.",
+  oauth: "No pudimos iniciar sesión. Revisá tu conexión e intentá otra vez.",
 };
 
 export const metadata: Metadata = {
@@ -166,11 +166,8 @@ export default async function Portada({ searchParams }: PageProps<"/">) {
 
           <section id="encender" aria-label="Entrar" className="flex scroll-mt-20 flex-col items-center lg:col-span-5 lg:-ml-10">
             <Arranque error={mensaje} />
-            <p className="wp-entra mt-8 text-sm text-wp-ink-3" style={{ animationDelay: "1300ms" }}>
-              El acceso es solo con tu cuenta de Google.
-            </p>
             <p
-              className="wp-entra mt-4 max-w-[38ch] text-center text-sm leading-relaxed text-wp-ink-2 text-pretty"
+              className="wp-entra mt-8max-w-[38ch] text-center text-sm leading-relaxed text-wp-ink-2 text-pretty"
               style={{ animationDelay: "1350ms" }}
             >
               <strong className="text-wp-ink">Esto es una demo</strong> de lo que podemos montar para tu negocio.{" "}

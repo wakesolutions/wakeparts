@@ -178,7 +178,7 @@ export const PASOS: Paso[] = [
   {
     id: "dock-usuarios",
     titulo: "Tu equipo",
-    texto: <>Invitá a tus vendedores con su correo de Google y dales un rol. A quien se va, se le desactiva.</>,
+    texto: <>Invitá a tus vendedores con su correo y dales un rol. A quien se va, se le desactiva.</>,
     objetivo: '[data-dock="usuarios"]',
     preparar: (c) => c.minimizarTodas(),
     aplica: administra,

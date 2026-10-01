@@ -173,7 +173,7 @@
   text-transform: uppercase;
   color: var(--wp-on-accent);
   background: var(--wp-accent);
-  box-shadow: 0 0 10px var(--wp-accent-glow);
+  box-shadow: 0 0 4px var(--wp-accent-glow);
 }
 
 .fotoAcciones {
@@ -262,7 +262,7 @@
   bottom: 0;
   height: 2px;
   background: linear-gradient(90deg, transparent, var(--wp-accent-hi), transparent);
-  box-shadow: 0 0 8px var(--wp-accent-glow);
+  box-shadow: 0 0 4px var(--wp-accent-glow);
   animation: barrer 1000ms cubic-bezier(0.65, 0, 0.35, 1) infinite;
 }
 

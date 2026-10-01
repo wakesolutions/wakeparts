@@ -9,7 +9,7 @@
     inset 0 1px 0 var(--wp-bevel-light),
     0 0 0 1px rgb(0 0 0 / 0.35),
     var(--wp-sombra-ventana);
-  animation: entrarPanel 900ms var(--ease-expo) 250ms both;
+  animation: entrarPanel 340ms var(--ease-expo) 250ms both;
 }
 
 @keyframes entrarPanel {
@@ -63,5 +63,4 @@
   font-variation-settings: "wdth" 66;
   letter-spacing: -0.02em;
   text-transform: uppercase;
-  text-shadow: 0 1px 0 var(--wp-engrave);
 }

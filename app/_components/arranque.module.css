@@ -31,7 +31,7 @@
     0 12px 24px -8px rgb(0 0 0 / 0.5),
     inset 0 2px 1px var(--wp-bevel-light),
     inset 0 -2px 2px var(--wp-bevel-dark);
-  animation: aparecerCluster 1100ms var(--ease-expo) 150ms both;
+  animation: aparecerCluster 700ms var(--ease-expo) both;
 }
 
 .cluster::before {
@@ -50,11 +50,11 @@
 @keyframes aparecerCluster {
   from {
     opacity: 0;
-    transform: scale(0.94) rotate(-6deg);
+    transform: scale(0.97);
   }
   to {
     opacity: 1;
-    transform: scale(1) rotate(0);
+    transform: scale(1);
   }
 }
 
@@ -85,7 +85,6 @@
   stroke: var(--wp-accent);
   stroke-width: 7;
   opacity: 0.9;
-  filter: drop-shadow(0 0 6px var(--wp-accent-glow));
 }
 
 .numero,
@@ -120,20 +119,17 @@
   transform-origin: 200px 200px;
   transform: rotate(-104deg);
   /* Barrido de encendido: al tope y de vuelta a ralentí */
-  animation: barrido 2100ms var(--ease-inout) 650ms both;
+  animation: barrido 1400ms var(--ease-inout) 300ms both;
 }
 
 .agujaCuerpo {
   fill: var(--wp-accent-hi);
-  filter: drop-shadow(0 0 5px var(--wp-accent-glow))
-    drop-shadow(0 4px 3px rgb(0 0 0 / 0.5));
+  filter: drop-shadow(0 3px 2px rgb(0 0 0 / 0.4));
 }
 
 .vibracion {
   transform-box: view-box;
   transform-origin: 200px 200px;
-  animation: ralenti 140ms cubic-bezier(0.45, 0, 0.55, 1) 2800ms infinite
-    alternate;
 }
 
 @keyframes barrido {
@@ -148,22 +144,8 @@
   }
 }
 
-@keyframes ralenti {
-  from {
-    transform: rotate(-0.7deg);
-  }
-  to {
-    transform: rotate(0.7deg);
-  }
-}
-
 .dial[data-revolucionando] .aguja {
   animation: acelerar 900ms var(--ease-expo) both;
-}
-
-.dial[data-revolucionando] .vibracion {
-  animation-duration: 70ms;
-  animation-delay: 0ms;
 }
 
 @keyframes acelerar {
@@ -224,26 +206,10 @@
   inset: 7%;
   border-radius: 50%;
   background: var(--wp-accent-lo);
-  box-shadow:
-    inset 0 0 0 2px rgb(0 0 0 / 0.55),
-    0 0 0 0 transparent;
-  animation: respirar 3200ms cubic-bezier(0.45, 0, 0.55, 1) 2600ms infinite;
-}
-
-@keyframes respirar {
-  0%,
-  100% {
-    background: var(--wp-accent-lo);
-    box-shadow:
-      inset 0 0 0 2px rgb(0 0 0 / 0.55),
-      0 0 0 0 transparent;
-  }
-  50% {
-    background: var(--wp-accent);
-    box-shadow:
-      inset 0 0 0 2px rgb(0 0 0 / 0.35),
-      0 0 22px 2px var(--wp-accent-glow);
-  }
+  box-shadow: inset 0 0 0 2px rgb(0 0 0 / 0.45);
+  transition:
+    background-color 200ms var(--ease-quart),
+    box-shadow 200ms var(--ease-quart);
 }
 
 .tapa {
@@ -275,26 +241,14 @@
   text-transform: uppercase;
   line-height: 1;
   color: var(--wp-accent-hi);
-  text-shadow: 0 0 10px var(--wp-accent-glow);
 }
 
-.google {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4em;
-  font-size: calc(var(--b) * 0.075);
-  font-weight: 500;
-  letter-spacing: 0.04em;
-  color: rgb(243 238 232 / 0.72);
-}
-
-.boton:hover .anillo {
-  animation-play-state: paused;
+.boton:hover .anillo,
+.boton:focus-visible .anillo {
   background: var(--wp-accent);
   box-shadow:
     inset 0 0 0 2px rgb(0 0 0 / 0.3),
-    0 0 26px 4px var(--wp-accent-glow);
+    0 0 18px 2px var(--wp-accent-glow);
 }
 
 .boton:active .tapa {
@@ -309,7 +263,7 @@
 }
 
 .boton:disabled .anillo {
-  animation: parpadeo 420ms cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
+  animation: parpadeo 600ms cubic-bezier(0.45, 0, 0.55, 1) infinite alternate;
 }
 
 @keyframes parpadeo {
@@ -336,18 +290,11 @@
   letter-spacing: 0.16em;
   text-transform: uppercase;
   color: var(--wp-lcd-ink);
-  text-shadow: 0 0 8px var(--wp-accent-glow);
-  background:
-    repeating-linear-gradient(
-      0deg,
-      rgb(0 0 0 / 0.18) 0 1px,
-      transparent 1px 3px
-    ),
-    var(--wp-lcd);
+  background: var(--wp-lcd);
   box-shadow:
-    inset 0 2px 6px rgb(0 0 0 / 0.8),
+    inset 0 1px 3px rgb(0 0 0 / 0.6),
     0 1px 0 var(--wp-bevel-light);
-  animation: aparecerLcd 800ms var(--ease-expo) 1100ms both;
+  animation: aparecerLcd 500ms var(--ease-expo) 500ms both;
 }
 
 .led {
@@ -355,7 +302,6 @@
   height: 7px;
   border-radius: 50%;
   background: var(--wp-lcd-ink);
-  box-shadow: 0 0 6px var(--wp-lcd-ink);
   opacity: 0.45;
 }
 

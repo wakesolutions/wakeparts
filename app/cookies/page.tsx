@@ -113,7 +113,7 @@ export default function Cookies() {
       <h2 className={styles.legalTitulo}>Terceros</h2>
       <p>
         Las fuentes tipográficas se sirven desde nuestro propio sitio. Las fotos de productos se guardan en Supabase
-        Storage y se cargan sin cookies. El inicio de sesión lo hace Google: al tocar «Encender» pasás por su página y
+        Storage y se cargan sin cookies. El inicio de sesión lo hace Google: al tocar «Entrar» pasás por su página y
         aplican sus propias políticas.
       </p>
 
@@ -126,7 +126,7 @@ export default function Cookies() {
 
       <h2 className={styles.legalTitulo}>Cómo borrarlas</h2>
       <p>
-        Cerrar sesión (botón <strong>Apagar</strong>) borra las cookies de sesión. Para borrar todo, usá la opción de
+        Cerrar sesión (botón <strong>Salir</strong>) borra las cookies de sesión. Para borrar todo, usá la opción de
         borrar datos de sitios de tu navegador. Si bloqueás las cookies necesarias no vas a poder iniciar sesión.
       </p>
 

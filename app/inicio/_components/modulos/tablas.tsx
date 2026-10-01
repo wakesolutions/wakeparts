@@ -174,7 +174,7 @@ export function ModuloUsuarios() {
       secciones={[
         {
           titulo: "Equipo",
-          nota: "Las personas entran con su cuenta de Google. Invitalas por correo.",
+          nota: "Invitá a las personas por correo.",
           items: [
             {
               recurso: "miembros",
@@ -183,7 +183,7 @@ export function ModuloUsuarios() {
             {
               recurso: "invitaciones",
               descripcion:
-                "Invitaciones pendientes. Cuando la persona entre con ese correo de Google, queda dentro de la empresa.",
+                "Invitaciones pendientes. Cuando la persona entre con ese correo, queda dentro de la empresa.",
             },
           ],
         },

@@ -118,7 +118,7 @@ export function BarraMenu() {
         </a>
         <form action={cerrarSesion}>
           <button type="submit" className={styles.apagar}>
-            Apagar
+            Salir
           </button>
         </form>
       </div>

@@ -164,7 +164,7 @@
   align-items: start;
   padding: 0.55rem 0;
   border-bottom: 1px solid var(--wp-line);
-  animation: entrarLinea 420ms var(--ease-expo) both;
+  animation: entrarLinea 360ms var(--ease-expo) both;
 }
 
 @keyframes entrarLinea {

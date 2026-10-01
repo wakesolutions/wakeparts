@@ -90,7 +90,7 @@ export default function Manual() {
 
       <div className={styles.hero}>
         <p className={`wp-entra ${styles.sobretitulo}`} style={{ animationDelay: "80ms" }}>
-          Edición 2026 · Leé antes de encender
+          Edición 2026 · Leé antes de empezar
         </p>
         <h1 className={`wp-grabado ${styles.heroTitulo}`}>
           <span className="wp-linea">
@@ -121,8 +121,8 @@ export default function Manual() {
           >
             <ol className={styles.pasos}>
               <li>
-                <strong>Entrá con Google.</strong> No hay contraseñas: el botón <em>Encender</em> de la portada usa tu
-                cuenta de Google.
+                <strong>Entrá con un toque.</strong> No hay contraseñas que recordar: tocá <em>Entrar</em> en la
+                portada.
               </li>
               <li>
                 <strong>Registrá tu taller.</strong> La primera vez te pide nombre comercial y, si querés, razón social,
@@ -172,7 +172,7 @@ export default function Manual() {
                 <p>
                   Muestra el módulo activo y tu taller. A la derecha: las perillas de <strong>paleta</strong> (solo
                   dueño y administrador; cambian los colores de todo el taller), el reloj, tu nombre (abre{" "}
-                  <em>Mi usuario</em>), el enlace a este manual y <strong>Apagar</strong> para cerrar sesión.
+                  <em>Mi usuario</em>), el enlace a este manual y <strong>Salir</strong> para cerrar sesión.
                 </p>
                 <h3 className={styles.subtitulo}>Dock</h3>
                 <p>
@@ -596,7 +596,7 @@ export default function Manual() {
             id="equipo"
             numero="08"
             titulo="Usuarios y roles"
-            bajada="Invitá a tu equipo con su correo de Google y dale el rol justo."
+            bajada="Invitá a tu equipo con su correo y dale el rol justo."
           >
             <p>
               En <em>Usuarios</em> (solo dueño y administrador) invitás un correo con un rol. Al entrar con ese correo,

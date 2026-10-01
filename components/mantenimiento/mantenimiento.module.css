@@ -30,8 +30,7 @@
   letter-spacing: -0.025em;
   text-transform: uppercase;
   text-wrap: balance;
-  text-shadow: 0 1px 0 var(--wp-engrave);
-  animation: subir 600ms var(--ease-expo) both;
+  animation: subir 340ms var(--ease-expo) both;
 }
 
 .hojaTitulo::first-letter {
@@ -102,7 +101,7 @@
   height: 2px;
   border-radius: 2px;
   background: var(--wp-accent-hi);
-  box-shadow: 0 0 8px var(--wp-accent-glow);
+  box-shadow: 0 0 4px var(--wp-accent-glow);
   animation: encender 320ms var(--ease-expo) both;
 }
 

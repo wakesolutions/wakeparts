@@ -17,7 +17,7 @@
 app/
   layout.tsx              Fuentes, <html data-paleta> leído de cookie, metadata SEO base
   globals.css             Tokens de paletas, texturas, coreografía de carga
-  page.tsx                Landing pública + login (/): hero con el tacómetro «Encender»
+  page.tsx                Landing pública + login (/): hero con el tacómetro y el botón «Entrar»
   _components/            Arranque (tacómetro de login)
   _publico/               Piezas de las páginas públicas (encabezado, pie, secciones, JSON-LD, imagen OG)
   honduras/               /honduras y /honduras/[departamento] (18 páginas estáticas, SEO local)

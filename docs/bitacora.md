@@ -2,6 +2,12 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-01 · Diseño para el uso diario y menos «Google»
+
+- **Híbrido cabina + minimalismo estilo Apple** (pedido del usuario: el diseño gusta, pero «tanto efecto todos los días cansa»). Se conserva la identidad (paletas, tipografía Saira/Mono, semáforo, dock, placa, odómetro, sello) y se baja el volumen: metal satinado sin cepillado, sin fibra de carbono en el escritorio, biseles y campos hundidos más leves, halos de LED a la mitad (`--wp-accent-glow`), sombras de ventana más suaves, títulos de ventana en tipo oración, sin texto grabado en la UI diaria.
+- **Menos movimiento repetido**: la barra y el dock ya no entran animados en cada carga; magnificación del dock de 1.28 a 1.08; entradas de módulos y formularios ~340 ms; los puntos de alerta de las tablas ya no laten. El tacómetro del login conserva el barrido (más corto) pero sin vibración de ralentí ni LED que respira.
+- **No repetir «Google»**: el botón dice **Entrar** (antes «Encender con Google») y la barra **Salir** (antes «Apagar»). Google se nombra solo donde es información necesaria: páginas legales (`/privacidad`, `/cookies`, `/terminos`) y una mención en el manual.
+
 ## 2026-09-29 · Registro de actividad
 
 - **Una sola tabla `registros`** para visitas, sesiones, errores y cambios (pedido del usuario: «saber qué pasó en cada momento», incluso visitas a /privacidad). Más simple de consultar y de mostrar con una sola `TablaMaestra` que varias tablas por tipo.

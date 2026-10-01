@@ -195,7 +195,7 @@
     inset 0 1px 0 var(--wp-bevel-light),
     inset 0 0 0 1px var(--wp-line),
     0 8px 18px -14px rgb(0 0 0 / 0.8);
-  animation: entrar 560ms var(--ease-expo) both;
+  animation: entrar 340ms var(--ease-expo) both;
 }
 
 @keyframes entrar {
@@ -335,7 +335,7 @@
   font-size: 1rem;
   font-weight: 700;
   color: var(--wp-accent-hi);
-  text-shadow: 0 0 10px var(--wp-accent-glow);
+  text-shadow: none;
 }
 
 .lecturaSecundaria {
@@ -421,7 +421,7 @@
     linear-gradient(to top, transparent 0, transparent calc(100% - 4px), rgb(255 255 255 / 0.35) calc(100% - 4px)),
     repeating-linear-gradient(to top, var(--wp-accent-lo) 0 4px, transparent 4px 6px);
   transform-origin: 50% 100%;
-  animation: crecer 720ms var(--ease-expo) both;
+  animation: crecer 360ms var(--ease-expo) both;
   transition: filter 160ms var(--ease-quart);
 }
 
@@ -546,7 +546,7 @@
   background: linear-gradient(90deg, var(--wp-accent-lo), var(--wp-accent-hi));
   box-shadow: 0 0 6px var(--wp-accent-glow);
   transform-origin: 0 50%;
-  animation: llenar 760ms var(--ease-expo) both;
+  animation: llenar 360ms var(--ease-expo) both;
 }
 
 @keyframes llenar {

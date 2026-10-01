@@ -23,7 +23,7 @@ export function RegistroEmpresa() {
 
       <Formulario
         campos={CAMPOS_REGISTRO}
-        textoGuardar="Encender tablero"
+        textoGuardar="Entrar al tablero"
         // Vista previa en vivo de la paleta elegida
         onCambio={(v) => aplicarPaleta(paletaValida(String(v.paleta)))}
         onGuardar={async (valores) => {
