@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { identidadDeFila, type Identidad } from "@/lib/identidad";
 import { paletaValida, type PaletaId } from "@/lib/paletas";
 
 export type Rol = "dueno" | "admin" | "vendedor";
@@ -13,14 +14,15 @@ export type Sesion = {
     avatar?: string;
     esAdminPlataforma: boolean;
   };
-  empresa: { id: string; nombre: string; paleta: PaletaId } | null;
+  /** `identidad`: logo, fondo, color de marca y formato de documentos (0012). */
+  empresa: { id: string; nombre: string; paleta: PaletaId; identidad: Identidad } | null;
   rol: Rol | null;
   empresas: { id: string; nombre: string; rol: Rol }[];
 };
 
 type Membresia = {
   rol: Rol;
-  empresas: { id: string; nombre: string; paleta: string } | null;
+  empresas: ({ id: string; nombre: string; paleta: string } & Record<string, unknown>) | null;
 };
 
 /**
@@ -64,7 +66,8 @@ export const obtenerSesion = cache(async (): Promise<Sesion | null> => {
       .maybeSingle(),
     supabase
       .from("empresas_usuarios")
-      .select("rol, empresas(id, nombre, paleta)")
+      // «*»: las columnas de identidad llegan con la migración 0012.
+      .select("rol, empresas(*)")
       .eq("id_usuario", user.id)
       .eq("activo", true)
       .order("creado_en"),
@@ -91,6 +94,7 @@ export const obtenerSesion = cache(async (): Promise<Sesion | null> => {
           id: activa.empresas!.id,
           nombre: activa.empresas!.nombre,
           paleta: paletaValida(activa.empresas!.paleta),
+          identidad: identidadDeFila(activa.empresas),
         }
       : null,
     rol: activa?.rol ?? null,

@@ -188,8 +188,8 @@ export const PASOS: Paso[] = [
     titulo: "Tu taller",
     texto: (
       <>
-        Los datos que salen en tus facturas, el tope de descuento de los vendedores y el botón de{" "}
-        <strong>datos de ejemplo</strong> para practicar.
+        Los datos de tus facturas, tu <strong>logo, fondo y color de marca</strong>, el diseño de la factura y
+        el botón de <strong>datos de ejemplo</strong> para practicar.
       </>
     ),
     objetivo: '[data-dock="taller"]',

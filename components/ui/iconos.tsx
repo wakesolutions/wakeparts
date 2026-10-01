@@ -183,3 +183,18 @@ export const IconoDocumento = (p: Props) => (
     <path d="M9.3 2v3.2h3M5.5 8.5h5M5.5 11h3.5" />
   </Svg>
 );
+
+export const IconoCandado = (p: Props) => (
+  <Svg {...p}>
+    <rect x="3.5" y="7" width="9" height="7" rx="1.4" />
+    <path d="M5.5 7V5a2.5 2.5 0 0 1 5 0v2" />
+  </Svg>
+);
+
+export const IconoImagen = (p: Props) => (
+  <Svg {...p}>
+    <rect x="2" y="3" width="12" height="10" rx="1.5" />
+    <circle cx="5.8" cy="6.5" r="1.1" />
+    <path d="m2.5 12 3.8-3.6 2.6 2.4 2-1.8 2.6 2.6" />
+  </Svg>
+);

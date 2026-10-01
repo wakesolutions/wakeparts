@@ -280,6 +280,69 @@
   box-shadow: 0 0 4px var(--wp-accent-glow);
 }
 
+/* Segmentos: botonera compacta tipo control segmentado (pocas opciones cortas). */
+.segmentos {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 9px;
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 1px 2px rgb(0 0 0 / 0.14),
+    inset 0 0 0 1px var(--wp-line);
+}
+
+.segmento {
+  position: relative;
+  flex: 1 1 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  min-width: 0;
+  min-height: 28px;
+  padding: 0.2rem 0.6rem;
+  border-radius: 7px;
+  font-size: 0.76rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--wp-ink-2);
+  cursor: pointer;
+  transition:
+    color 160ms var(--ease-quart),
+    background-color 160ms var(--ease-quart);
+}
+
+.segmento:hover {
+  color: var(--wp-ink);
+}
+
+.segmento input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.segmento:has(input:focus-visible) {
+  outline: 2px solid var(--wp-accent-hi);
+  outline-offset: 1px;
+}
+
+.segmento[data-activa] {
+  font-weight: 600;
+  color: var(--wp-ink);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px var(--wp-line),
+    0 1px 2px rgb(0 0 0 / 0.18);
+}
+
+.segmento .muestra {
+  width: 12px;
+  height: 12px;
+}
+
 .tarjetaTexto {
   display: inline-flex;
   align-items: center;

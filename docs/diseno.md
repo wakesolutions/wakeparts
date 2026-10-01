@@ -11,7 +11,16 @@
 - Momento firma actual: en el login, el botón **Entrar** es un botón de arranque dentro de un tacómetro. La aguja hace un barrido corto al cargar y acelera al hacer clic (sin vibración de ralentí ni LED que respira).
 - Metáfora de escritorio: barra de menú superior + **dock** inferior estilo macOS. Cada módulo del ERP es una «app» del dock.
 
-## Paletas (temas por empresa)
+## Identidad de cada empresa (0012)
+
+El sistema se viste con la marca de cada taller (Taller › Apariencia y Factura; código en `components/identidad/` y `lib/identidad.ts`):
+
+- **Color de marca**: reemplaza al rojo en todo. Se deriva de un solo hex con `tokensAcento()` y se inyecta como `:root[data-paleta]{…}`. Por eso los componentes **solo** usan `--wp-accent*`: nunca un rojo fijo.
+- **Fondo del escritorio** con velo del color de la paleta (más fuerte a la izquierda, donde va el saludo). Sin fondo propio queda el de Wake Parts.
+- **Logo**: en la barra (reemplaza la marca Wake Parts), en el saludo de Inicio, en la placa de Taller y en los documentos.
+- **Documentos**: `DocumentoVista` recibe `identidad`; `--doc-marca` es el color de la empresa o tinta negra. Variantes por `data-estilo` (moderno, clásico serif, compacto), `data-tabla`, `data-logo` y `data-logo-tamano`.
+
+## Paletas (base del tema)
 
 Todo color sale de tokens CSS definidos en `app/globals.css` bajo `[data-paleta="<id>"]`. El `<html>` lleva el atributo; hoy se lee de la cookie `wp_paleta` y en el futuro vendrá de la empresa.
 

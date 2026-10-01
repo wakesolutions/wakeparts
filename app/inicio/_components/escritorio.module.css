@@ -21,6 +21,23 @@
   text-transform: uppercase;
 }
 
+/* Con logo propio: la barra lleva la marca de la empresa */
+.marcaEmpresa {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.logo {
+  width: auto;
+  height: 20px;
+  max-width: 72px;
+  object-fit: contain;
+}
+
 .barraIzquierda {
   display: flex;
   align-items: center;

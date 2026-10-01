@@ -46,7 +46,7 @@ const PERMISOS: [string, boolean, boolean, boolean][] = [
   ["Ver utilidad y margen en el reporte", true, true, false],
   ["Anular facturas", true, true, false],
   ["Registrar CAI", true, true, false],
-  ["Editar el taller y su paleta", true, true, false],
+  ["Editar el taller, su apariencia y el formato de factura", true, true, false],
   ["Invitar y administrar usuarios", true, true, false],
   ["Ver la actividad: quién entró y qué cambió", true, true, false],
   ["Cambiar el rol de un dueño", true, false, false],
@@ -170,7 +170,7 @@ export default function Manual() {
               <div>
                 <h3 className={styles.subtitulo}>Barra de menú</h3>
                 <p>
-                  Muestra el módulo activo y tu taller. A la derecha: las perillas de <strong>paleta</strong> (solo
+                  Muestra el módulo activo y tu taller (con su logo, si subiste uno). A la derecha: las perillas de <strong>paleta</strong> (solo
                   dueño y administrador; cambian los colores de todo el taller), el reloj, tu nombre (abre{" "}
                   <em>Mi usuario</em>), el enlace a este manual y <strong>Salir</strong> para cerrar sesión.
                 </p>
@@ -576,9 +576,19 @@ export default function Manual() {
               <div>
                 <h3 className={styles.subtitulo}>Taller</h3>
                 <p>
-                  Nombre, razón social, RTN, contacto y dirección: son los que salen en las facturas. Aquí también se
-                  define el <strong>tope de descuento de los vendedores</strong> y se cargan los datos de ejemplo.
-                  Editan el dueño y los administradores.
+                  <strong>Datos</strong>: nombre, razón social, RTN, contacto y dirección, que son los que salen en las
+                  facturas, el <strong>tope de descuento de los vendedores</strong> y los datos de ejemplo.
+                </p>
+                <p>
+                  <strong>Apariencia</strong>: subí tu <strong>logo</strong> y una foto de <strong>fondo</strong> para el
+                  escritorio de todo el equipo (con un velo para que se lea bien, o «Restablecer el de Wake Parts»).
+                  Elegí la base clara u oscura y el <strong>color de tu marca</strong>: reemplaza al rojo en todo el
+                  sistema. Lo ves en vivo antes de guardar.
+                </p>
+                <p>
+                  <strong>Factura</strong>: el diseño de tus facturas y cotizaciones con vista previa: estilo, color o
+                  solo negro, logo, tipo de tabla, un lema y un mensaje al pie. Los datos que pide el SAR se imprimen
+                  siempre. Todo esto lo editan el dueño y los administradores.
                 </p>
               </div>
               <div>

@@ -73,9 +73,9 @@ export const CAMPOS_REGISTRO: readonly DefCampo[] = [
   },
 ];
 
-/** Campos del módulo Taller: los del onboarding + reglas de venta. */
+/** Campos del módulo Taller › Datos: los del onboarding (sin la paleta, que va en Apariencia) + reglas de venta. */
 export const CAMPOS_TALLER: readonly DefCampo[] = [
-  ...CAMPOS_EMPRESA,
+  ...CAMPOS_EMPRESA.filter((c) => c.nombre !== "paleta"),
   {
     nombre: "descuento_maximo_vendedor",
     etiqueta: "Descuento máximo de un vendedor",

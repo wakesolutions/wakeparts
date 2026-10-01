@@ -7,6 +7,7 @@ import {
   type ApiCatalogoVehiculos,
   type ApiCompatibilidad,
 } from "@/components/compatibilidad/api";
+import { apiIdentidad, type ApiIdentidad } from "@/components/identidad/api";
 import { apiImagenes, type ApiImagenes } from "@/components/imagenes/api";
 import { apiInventario, type ApiInventario } from "@/components/inventario/api";
 import { apiReportes, type ApiReportes } from "@/components/reportes/api";
@@ -14,7 +15,7 @@ import { apiVentas, type ApiVentas } from "@/components/ventas/api";
 
 /**
  * Acceso a datos de los módulos interactivos (mostrador, fotos, compatibilidad,
- * entradas e importación, reportes).
+ * entradas e importación, reportes, apariencia de la empresa).
  * Por defecto son Server Actions; el sandbox de desarrollo inyecta datos de
  * demostración con <ApisProvider valor={…}> para revisar la UI sin sesión.
  */
@@ -25,6 +26,7 @@ export type Apis = {
   ventas: ApiVentas;
   inventario: ApiInventario;
   reportes: ApiReportes;
+  identidad: ApiIdentidad;
 };
 
 const REALES: Apis = {
@@ -34,6 +36,7 @@ const REALES: Apis = {
   ventas: apiVentas,
   inventario: apiInventario,
   reportes: apiReportes,
+  identidad: apiIdentidad,
 };
 
 const Ctx = createContext<Partial<Apis>>({});

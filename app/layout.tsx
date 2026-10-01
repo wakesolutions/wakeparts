@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Saira, JetBrains_Mono } from "next/font/google";
+import { Saira, JetBrains_Mono, Source_Serif_4 } from "next/font/google";
 import { cookies } from "next/headers";
 import { COOKIE_PALETA, paletaValida } from "@/lib/paletas";
 import { DESCRIPCION_SITIO, LEMA, NOMBRE_SITIO, PALABRAS_CLAVE, URL_SITIO } from "@/lib/sitio";
@@ -15,6 +15,13 @@ const saira = Saira({
 const mono = JetBrains_Mono({
   variable: "--font-mono-wp",
   subsets: ["latin"],
+});
+
+// Solo para el estilo «Clásico» de facturas (Taller › Factura): sin precarga.
+const serif = Source_Serif_4({
+  variable: "--font-serif",
+  subsets: ["latin"],
+  preload: false,
 });
 
 // SEO base: cada página pública ajusta título, descripción y canónica; las
@@ -55,7 +62,7 @@ export default async function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="es-HN"
       data-paleta={paleta}
-      className={`${saira.variable} ${mono.variable} h-full antialiased`}
+      className={`${saira.variable} ${mono.variable} ${serif.variable} h-full antialiased`}
     >
       <body className="min-h-full">
         {children}

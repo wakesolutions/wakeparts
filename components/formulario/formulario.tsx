@@ -308,11 +308,21 @@ function Control({
       );
 
     case "opciones":
-      if (campo.presentacion === "tarjetas") {
+      if (campo.presentacion === "tarjetas" || campo.presentacion === "segmentos") {
+        const segmentos = campo.presentacion === "segmentos";
         return (
-          <div role="radiogroup" aria-label={campo.etiqueta} aria-describedby={describedBy} className={styles.tarjetas}>
+          <div
+            role="radiogroup"
+            aria-label={campo.etiqueta}
+            aria-describedby={describedBy}
+            className={segmentos ? styles.segmentos : styles.tarjetas}
+          >
             {campo.opciones?.map((o) => (
-              <label key={String(o.valor)} className={styles.tarjeta} data-activa={String(o.valor) === texto || undefined}>
+              <label
+                key={String(o.valor)}
+                className={segmentos ? styles.segmento : styles.tarjeta}
+                data-activa={String(o.valor) === texto || undefined}
+              >
                 <input
                   type="radio"
                   name={id}
@@ -329,7 +339,7 @@ function Control({
                   />
                 )}
                 <span className={styles.tarjetaTexto}>
-                  {!o.muestra && <span className={styles.tarjetaCodigo}>{o.valor}</span>}
+                  {!o.muestra && !segmentos && <span className={styles.tarjetaCodigo}>{o.valor}</span>}
                   {o.etiqueta}
                 </span>
               </label>

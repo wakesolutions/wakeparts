@@ -575,4 +575,15 @@ const reportes: Apis["reportes"] = {
   },
 };
 
-export const APIS_DEMO: Partial<Apis> = { ventas, compatibilidad, imagenes, inventario, reportes };
+// ------------------------------------------------- apariencia de la empresa ---
+
+// En el sandbox las imágenes quedan como URL locales del navegador; el
+// escritorio guarda el resultado en su propio estado (IdentidadProvider).
+const identidad: Apis["identidad"] = {
+  subir: async (datos) => espera({ ok: true as const, url: URL.createObjectURL(datos.get("archivo") as File) }, 500),
+  quitar: async () => espera({ ok: true as const }),
+  guardarApariencia: async () => espera({ ok: true as const }, 300),
+  guardarFormato: async () => espera({ ok: true as const }, 300),
+};
+
+export const APIS_DEMO: Partial<Apis> = { ventas, compatibilidad, imagenes, inventario, reportes, identidad };

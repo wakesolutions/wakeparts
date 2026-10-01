@@ -73,7 +73,7 @@ export const MODULOS: ModuloEscritorio[] = [
     nombre: "Taller",
     icono: <IconoTaller />,
     componente: ModuloTaller,
-    tamano: { w: 820, h: 720 },
+    tamano: { w: 1100, h: 780 },
   },
   {
     // Se abre desde el nombre en la barra de menú.

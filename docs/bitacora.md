@@ -2,6 +2,18 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-01 · Identidad visual por empresa (migración 0012)
+
+- **Pedido del usuario**: «que esta gente sienta que el sistema se adapta claramente a su empresa». Cada empresa tiene **logo**, **fondo del escritorio** (con «Restablecer el de Wake Parts»), **tema** (base clara/oscura + color de marca) y **formato de factura**. Todo en Taller (pestañas Datos · Apariencia · Factura), solo dueño/admin; los empleados lo ven automáticamente.
+- **Un solo color de marca** y el resto derivado en JS (`tokensAcento` en `lib/identidad.ts`): hover, sombra, selección, LCD. Se inyecta como `:root[data-paleta]{…}` (pesa más que la paleta), así toda la app cambia sin tocar componentes. Se eligió JS y no `color-mix` para calcular también el texto sobre el acento (claro u oscuro según luminancia).
+- **Sin cookie nueva** (regla de cookies): el acento y el fondo viajan en la sesión del servidor; la cookie `wp_paleta` sigue siendo solo caché de la paleta base.
+- **Vista previa en vivo** con `IdentidadProvider`: lo que se elige se ve en el escritorio real antes de guardar; al cerrar Taller sin guardar, vuelve a lo guardado. Las imágenes sí se guardan al subirlas (se reducen a WebP en el navegador: logo 800 px, fondo 2560 px).
+- **Velo sobre el fondo** (0–85 %, color de la paleta) en vez de dejar la foto pura: la barra, el saludo y las ventanas tienen que leerse con cualquier imagen.
+- **Formato de factura**: el editor usa el `Formulario` genérico (nueva presentación `segmentos`) y la hoja real `DocumentoVista` con datos de ejemplo. Solo cambia presentación y lo opcional (vehículo, vendedor, código, lema, mensaje). Lo fiscal (emisor/RTN, CAI y rango, cliente/RTN, detalle con descuentos, totales desglosados, total en letras, leyendas) **no se puede ocultar** (docs/negocio.md §3.5).
+- **El formato se aplica al imprimir, no se congela**: los datos del documento sí quedan fijos (`documentos.emisor`), pero una reimpresión vieja sale con el logo y diseño actuales. Si el contador pide lo contrario, guardar el formato en el documento al emitir.
+- **Clásico** usa Source Serif 4 (sin precarga, solo se descarga si se usa).
+- La paleta salió de Taller › Datos y vive en Apariencia junto al color; las perillas de la barra siguen funcionando.
+
 ## 2026-10-01 · Diseño para el uso diario y menos «Google»
 
 - **Híbrido cabina + minimalismo estilo Apple** (pedido del usuario: el diseño gusta, pero «tanto efecto todos los días cansa»). Se conserva la identidad (paletas, tipografía Saira/Mono, semáforo, dock, placa, odómetro, sello) y se baja el volumen: metal satinado sin cepillado, sin fibra de carbono en el escritorio, biseles y campos hundidos más leves, halos de LED a la mitad (`--wp-accent-glow`), sombras de ventana más suaves, títulos de ventana en tipo oración, sin texto grabado en la UI diaria.

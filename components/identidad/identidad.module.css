@@ -1,0 +1,708 @@
+/* Identidad de la empresa: fondo del escritorio, Taller › Apariencia y
+   Taller › Factura. Solo tokens --wp-*; nada se anima en bucle. */
+
+/* ---------------------------------------------------- fondo de escritorio --- */
+
+.fondo {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background-position: center;
+  background-size: cover;
+  background-repeat: no-repeat;
+  animation: aparecerFondo 600ms var(--ease-quart) both;
+}
+
+@keyframes aparecerFondo {
+  from {
+    opacity: 0;
+  }
+}
+
+/* --------------------------------------------------------- pestañas Taller --- */
+
+.pestanas {
+  display: flex;
+  gap: 2px;
+  width: fit-content;
+  max-width: 100%;
+  margin-top: 1.2rem;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 1px 2px rgb(0 0 0 / 0.14),
+    inset 0 0 0 1px var(--wp-line);
+}
+
+.pestana {
+  height: 30px;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+  color: var(--wp-ink-2);
+  background: none;
+  cursor: pointer;
+  transition:
+    color 160ms var(--ease-quart),
+    background-color 160ms var(--ease-quart);
+}
+
+.pestana:hover {
+  color: var(--wp-ink);
+}
+
+.pestana[aria-selected="true"] {
+  font-weight: 600;
+  color: var(--wp-ink);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px var(--wp-line),
+    0 1px 2px rgb(0 0 0 / 0.18);
+}
+
+.panel {
+  margin-top: 1.4rem;
+  animation: entrarPanel 280ms var(--ease-expo) both;
+}
+
+@keyframes entrarPanel {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+}
+
+/* Logo en la placa de la ficha del taller */
+.fichaLogo {
+  position: absolute;
+  top: 50%;
+  right: 1.6rem;
+  width: auto;
+  height: min(84px, 40%);
+  max-width: 30%;
+  object-fit: contain;
+  transform: translateY(-50%);
+}
+
+/* ------------------------------------------------------------ apariencia --- */
+
+.apariencia {
+  display: grid;
+  gap: 2rem;
+  max-width: 760px;
+}
+
+.seccion {
+  display: grid;
+  grid-template-columns: 200px minmax(0, 1fr);
+  gap: 1.2rem 2rem;
+  padding-top: 1.6rem;
+  border-top: 1px solid var(--wp-line);
+}
+
+.seccion:first-child {
+  padding-top: 0;
+  border-top: 0;
+}
+
+.seccionTitulo {
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.seccionTexto {
+  margin-top: 0.3rem;
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: var(--wp-ink-3);
+  text-wrap: pretty;
+}
+
+.seccionCuerpo {
+  display: grid;
+  gap: 0.9rem;
+  align-content: start;
+  min-width: 0;
+}
+
+.fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+@container (max-width: 620px) {
+  .seccion {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.9rem;
+  }
+}
+
+/* Lugar para soltar una imagen (logo) */
+.soltar {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 132px;
+  aspect-ratio: 1;
+  padding: 14px;
+  border: 0;
+  border-radius: 14px;
+  font: inherit;
+  color: var(--wp-ink-3);
+  cursor: pointer;
+  /* Damero suave: deja ver la transparencia del logo */
+  background:
+    conic-gradient(var(--wp-hover) 25%, transparent 0 50%, var(--wp-hover) 0 75%, transparent 0) 0 0 / 16px 16px,
+    var(--wp-field);
+  box-shadow:
+    inset 0 1px 2px rgb(0 0 0 / 0.14),
+    inset 0 0 0 1px var(--wp-line);
+  transition: box-shadow 160ms var(--ease-quart);
+}
+
+.soltar:hover,
+.soltar[data-encima] {
+  box-shadow:
+    inset 0 0 0 1px var(--wp-accent),
+    0 0 0 3px color-mix(in oklab, var(--wp-accent) 18%, transparent);
+}
+
+.soltar img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.soltarTexto {
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  text-align: center;
+}
+
+.ocupado {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+/* Maqueta del escritorio: muestra fondo, velo, color y logo en vivo */
+.maqueta {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  max-width: 520px;
+  aspect-ratio: 16 / 10;
+  border-radius: 12px;
+  border: 0;
+  padding: 0;
+  font: inherit;
+  text-align: left;
+  color: var(--wp-ink);
+  cursor: pointer;
+  background:
+    radial-gradient(90% 60% at 50% 0%, var(--wp-bg-glow), transparent 70%),
+    var(--wp-bg);
+  box-shadow:
+    0 0 0 1px var(--wp-line),
+    0 14px 30px -18px rgb(0 0 0 / 0.55);
+  transition: box-shadow 160ms var(--ease-quart);
+}
+
+.maqueta:hover,
+.maqueta[data-encima] {
+  box-shadow:
+    0 0 0 1px var(--wp-accent),
+    0 0 0 4px color-mix(in oklab, var(--wp-accent) 18%, transparent),
+    0 14px 30px -18px rgb(0 0 0 / 0.55);
+}
+
+.maquetaFondo {
+  position: absolute;
+  inset: 0;
+  background-position: center;
+  background-size: cover;
+}
+
+.maquetaBarra {
+  position: absolute;
+  inset: 0 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 7%;
+  padding: 0 3%;
+  font-size: clamp(5px, 1.3cqi, 8px);
+  font-weight: 700;
+  background: color-mix(in oklab, var(--wp-panel) 86%, transparent);
+  box-shadow: 0 1px 0 var(--wp-line);
+}
+
+.maquetaBarra img {
+  height: 70%;
+  width: auto;
+}
+
+.maquetaSaludo {
+  position: absolute;
+  left: 7%;
+  top: 34%;
+  display: grid;
+  gap: 4%;
+  max-width: 60%;
+}
+
+.maquetaSaludo img {
+  width: auto;
+  height: clamp(14px, 6cqi, 34px);
+  max-width: 50%;
+  object-fit: contain;
+  margin-bottom: 4px;
+}
+
+.maquetaEtiqueta {
+  font-family: var(--font-mono);
+  font-size: clamp(5px, 1.2cqi, 8px);
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--wp-accent);
+}
+
+.maquetaNombre {
+  font-size: clamp(16px, 7cqi, 40px);
+  font-weight: 800;
+  font-variation-settings: "wdth" 62;
+  line-height: 0.85;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+}
+
+.maquetaDock {
+  position: absolute;
+  left: 50%;
+  bottom: 4%;
+  display: flex;
+  gap: 4px;
+  padding: 4px 5px;
+  border-radius: 8px;
+  background: color-mix(in oklab, var(--wp-panel) 72%, transparent);
+  box-shadow: 0 0 0 1px var(--wp-line);
+  transform: translateX(-50%);
+}
+
+.maquetaDock span {
+  width: clamp(10px, 3.4cqi, 20px);
+  aspect-ratio: 1;
+  border-radius: 25%;
+  background: linear-gradient(180deg, var(--wp-accent-hi), var(--wp-accent) 70%);
+}
+
+.maquetaDock span:nth-child(n + 2) {
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.maquetaVentana {
+  position: absolute;
+  right: 6%;
+  top: 22%;
+  width: 34%;
+  height: 52%;
+  border-radius: 6px;
+  background: var(--wp-panel);
+  box-shadow:
+    0 0 0 1px var(--wp-line),
+    0 10px 20px -12px rgb(0 0 0 / 0.6);
+}
+
+.maquetaVentana::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 13%;
+  border-radius: 6px 6px 0 0;
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+}
+
+.maquetaVentana::after {
+  content: "";
+  position: absolute;
+  left: 10%;
+  right: 40%;
+  bottom: 14%;
+  height: 11%;
+  border-radius: 3px;
+  background: var(--wp-accent);
+}
+
+.contenedorMaqueta {
+  container-type: inline-size;
+}
+
+/* Deslizador de velo */
+.deslizador {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) 4ch;
+  align-items: center;
+  gap: 0.8rem;
+  max-width: 520px;
+  font-size: 0.78rem;
+  color: var(--wp-ink-2);
+}
+
+.deslizador output {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  text-align: right;
+  color: var(--wp-ink);
+}
+
+.rango {
+  width: 100%;
+  height: 22px;
+  margin: 0;
+  background: none;
+  cursor: pointer;
+  appearance: none;
+}
+
+.rango::-webkit-slider-runnable-track {
+  height: 4px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--wp-accent) var(--lleno), var(--wp-field) var(--lleno));
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.rango::-moz-range-track {
+  height: 4px;
+  border-radius: 4px;
+  background: linear-gradient(90deg, var(--wp-accent) var(--lleno), var(--wp-field) var(--lleno));
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.rango::-webkit-slider-thumb {
+  width: 18px;
+  height: 18px;
+  margin-top: -7px;
+  border-radius: 50%;
+  appearance: none;
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px var(--wp-line),
+    0 1px 3px rgb(0 0 0 / 0.3);
+}
+
+.rango::-moz-range-thumb {
+  width: 18px;
+  height: 18px;
+  border: 0;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px var(--wp-line),
+    0 1px 3px rgb(0 0 0 / 0.3);
+}
+
+.rango:focus-visible {
+  outline: none;
+}
+
+.rango:focus-visible::-webkit-slider-thumb {
+  outline: 2px solid var(--wp-accent-hi);
+  outline-offset: 2px;
+}
+
+/* Paleta base: dos tarjetas con mini tablero */
+.bases {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 160px));
+  gap: 0.7rem;
+}
+
+.base {
+  display: grid;
+  gap: 0.5rem;
+  padding: 6px 6px 0.6rem;
+  border: 0;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 500;
+  text-align: left;
+  color: var(--wp-ink-2);
+  cursor: pointer;
+  background: none;
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  transition: box-shadow 160ms var(--ease-quart);
+}
+
+.base span {
+  padding-inline: 0.3rem;
+}
+
+.base[aria-checked="true"] {
+  font-weight: 600;
+  color: var(--wp-ink);
+  box-shadow:
+    inset 0 0 0 1.5px var(--wp-accent),
+    0 0 0 3px color-mix(in oklab, var(--wp-accent) 16%, transparent);
+}
+
+.baseMuestra {
+  position: relative;
+  height: 64px;
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.12);
+}
+
+.baseMuestra::before {
+  content: "";
+  position: absolute;
+  inset: 0 0 auto;
+  height: 12px;
+  background: var(--barra);
+}
+
+.baseMuestra::after {
+  content: "";
+  position: absolute;
+  left: 12px;
+  bottom: 12px;
+  width: 38%;
+  height: 10px;
+  border-radius: 3px;
+  background: var(--wp-accent);
+}
+
+/* Colores de marca */
+.colores {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+}
+
+.color {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  background: var(--c);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.25),
+    0 0 0 1px rgb(0 0 0 / 0.18);
+  transition: box-shadow 160ms var(--ease-quart);
+}
+
+.color[aria-checked="true"] {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.25),
+    0 0 0 2px var(--wp-panel),
+    0 0 0 4px var(--c);
+}
+
+.color svg {
+  color: var(--sobre);
+}
+
+/* «Otro color»: arco iris con el selector nativo encima, invisible */
+.colorPropio {
+  background: conic-gradient(#e5484d, #f5a524, #2fb35b, #0e8fa8, #3e63dd, #8e4ec6, #e5484d);
+}
+
+.colorPropio input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.colorPropio:has(input:focus-visible) {
+  outline: 2px solid var(--wp-accent-hi);
+  outline-offset: 3px;
+}
+
+.nota {
+  font-size: 0.74rem;
+  color: var(--wp-ink-3);
+}
+
+.notaAviso {
+  color: var(--wp-aviso);
+}
+
+/* Barra de guardado al pie (solo con cambios sin guardar) */
+.guardar {
+  position: sticky;
+  bottom: -2rem;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+  margin: 0 calc(-1 * clamp(1rem, 4cqi, 2.4rem)) -2rem;
+  padding: 0.8rem clamp(1rem, 4cqi, 2.4rem);
+  background: color-mix(in oklab, var(--wp-panel) 90%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 -1px 0 var(--wp-line);
+  animation: entrarPanel 220ms var(--ease-expo) both;
+}
+
+.guardarTexto {
+  font-size: 0.8rem;
+  color: var(--wp-ink-2);
+}
+
+.mensaje {
+  font-size: 0.78rem;
+  color: var(--wp-ink-2);
+}
+
+.mensajeError {
+  color: var(--wp-accent-hi);
+}
+
+/* ---------------------------------------------------------------- editor --- */
+
+.editor {
+  display: grid;
+  grid-template-columns: minmax(270px, 320px) minmax(0, 1fr);
+  gap: 1.6rem;
+  align-items: start;
+}
+
+@container (max-width: 760px) {
+  .editor {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.controles {
+  display: grid;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.fijos {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 10px;
+  background: var(--wp-hover);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.fijosTitulo {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.fijos ul {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.72rem;
+  color: var(--wp-ink-3);
+}
+
+.fijos li::before {
+  content: "· ";
+}
+
+.vistaPrevia {
+  position: sticky;
+  top: 0;
+  display: grid;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.vistaBarra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.vistaEtiqueta {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.mesa {
+  overflow: hidden;
+  padding: 18px;
+  border-radius: 12px;
+  background: var(--wp-bg-deep);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.escala {
+  transform-origin: top left;
+}
+
+.escala > * {
+  width: 820px;
+  max-width: none;
+}
+
+.segmentosVista {
+  display: flex;
+  gap: 2px;
+  padding: 2px;
+  border-radius: 9px;
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 1px 2px rgb(0 0 0 / 0.14),
+    inset 0 0 0 1px var(--wp-line);
+}
+
+.segmentosVista button {
+  height: 26px;
+  padding: 0 0.8rem;
+  border: 0;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 0.74rem;
+  color: var(--wp-ink-2);
+  background: none;
+  cursor: pointer;
+}
+
+.segmentosVista button[aria-pressed="true"] {
+  font-weight: 600;
+  color: var(--wp-ink);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px var(--wp-line);
+}

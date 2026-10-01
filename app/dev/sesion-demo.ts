@@ -1,3 +1,4 @@
+import { IDENTIDAD_VACIA } from "@/lib/identidad";
 import type { Sesion } from "@/lib/sesion";
 
 /** Sesión ficticia para el sandbox de desarrollo (/dev/*). No toca Auth. */
@@ -8,7 +9,7 @@ export const SESION_DEMO: Sesion = {
     nombre: "Demo Sandbox",
     esAdminPlataforma: true,
   },
-  empresa: { id: "demo", nombre: "Yonker Demo", paleta: "rojo-negro" },
+  empresa: { id: "demo", nombre: "Yonker Demo", paleta: "rojo-negro", identidad: IDENTIDAD_VACIA },
   rol: "dueno",
   empresas: [{ id: "demo", nombre: "Yonker Demo", rol: "dueno" }],
 };

@@ -119,8 +119,8 @@ export type DefCampo = {
   /** Ocupa las dos columnas del formulario. */
   ancho?: "completo";
   opciones?: readonly Opcion[];
-  /** Presentación de "opciones": lista desplegable o tarjetas. */
-  presentacion?: "lista" | "tarjetas";
+  /** Presentación de "opciones": lista desplegable, tarjetas o segmentos (botonera compacta, pocas opciones). */
+  presentacion?: "lista" | "tarjetas" | "segmentos";
   relacion?: FuenteOpciones;
   /** Valor inicial al crear. */
   porDefecto?: string | number | boolean | null;

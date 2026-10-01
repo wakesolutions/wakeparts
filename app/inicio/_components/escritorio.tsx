@@ -1,8 +1,11 @@
 "use client";
 
 import { useEffect, useMemo, type ReactNode } from "react";
+import { AmbienteEmpresa } from "@/components/identidad/ambiente-empresa";
+import { IdentidadProvider } from "@/components/identidad/contexto";
 import { CapaVentanas } from "@/components/ventanas/ventana";
 import { VentanasProvider } from "@/components/ventanas/contexto";
+import { IDENTIDAD_VACIA } from "@/lib/identidad";
 import { aplicarPaleta, paletaActual } from "@/lib/paletas-cliente";
 import type { Sesion } from "@/lib/sesion";
 import { BarraMenu } from "./barra-menu";
@@ -11,7 +14,7 @@ import { MODULOS } from "./modulos";
 import { RecorridoProvider } from "./recorrido/recorrido";
 import { SesionProvider } from "./sesion-contexto";
 
-/** Shell del escritorio: barra de menú, fondo, ventanas y dock. */
+/** Shell del escritorio: barra de menú, fondo (y color) de la empresa, ventanas y dock. */
 export function Escritorio({
   sesion,
   recorrido = null,
@@ -31,16 +34,19 @@ export function Escritorio({
 
   return (
     <SesionProvider value={sesion}>
-      <VentanasProvider modulos={modulos}>
-        <RecorridoProvider pendiente={recorrido}>
-          <div className="wp-carbono flex min-h-dvh flex-col">
-            <BarraMenu />
-            {children}
-            <CapaVentanas />
-            <Dock />
-          </div>
-        </RecorridoProvider>
-      </VentanasProvider>
+      <IdentidadProvider key={sesion.empresa?.id} inicial={sesion.empresa?.identidad ?? IDENTIDAD_VACIA}>
+        <VentanasProvider modulos={modulos}>
+          <RecorridoProvider pendiente={recorrido}>
+            <div className="wp-carbono flex min-h-dvh flex-col">
+              <AmbienteEmpresa />
+              <BarraMenu />
+              {children}
+              <CapaVentanas />
+              <Dock />
+            </div>
+          </RecorridoProvider>
+        </VentanasProvider>
+      </IdentidadProvider>
     </SesionProvider>
   );
 }

@@ -16,6 +16,7 @@ categorias (árbol) ──< categorias_relacionadas                             
 marcas_productos (global + por empresa)
 
 empresas ──< productos ──< productos_imagenes            (Storage: bucket productos)
+   │  (logo y fondo: Storage, bucket empresas)
                  │    ├──< productos_compatibilidades >── marcas/modelos/años/especificaciones
                  │    └──< movimientos_inventario        (kardex)
          ──< clientes
@@ -43,11 +44,18 @@ Cada usuario pertenece a una o más empresas con un rol. Toda tabla operativa fu
 | `razon_social` | text | sí | |
 | `rtn` | text | sí | 14 dígitos, sin guiones |
 | `telefono`, `correo`, `direccion` | text | sí | Correo validado |
-| `paleta` | text | no | `rojo-negro` (defecto) · `rojo-blanco` |
+| `paleta` | text | no | `rojo-negro` (defecto) · `rojo-blanco`: la **base** del tema |
+| `logo_ruta` | text | sí | (0012) Logo en Storage: `<empresa>/logo/<uuid>.webp` |
+| `fondo_ruta` | text | sí | (0012) Fondo del escritorio: `<empresa>/fondo/<uuid>.webp`. Null = el de Wake Parts |
+| `fondo_atenuar` | smallint | no | (0012) Velo sobre el fondo, 0–85 % (defecto 40) |
+| `acento` | text | sí | (0012) Color de marca `#rrggbb` en minúsculas. Null = el de la paleta |
+| `formato_documento` | jsonb | no | (0012) Diseño de facturas/cotizaciones (`lib/identidad.ts` › `FormatoDocumento`). Objeto < 8 KB; la app lo normaliza |
 | `activo` | bool | no | |
 | `creado_en`, `creado_por` | | | |
 
-RLS: lectura para miembros (y admin de plataforma); edición para `dueno`/`admin`, solo de las columnas de datos (nombre, razón social, RTN, teléfono, correo, dirección, paleta). El trigger `a_normalizar` limpia RTN y correo. **No hay insert directo**: se crea con `crear_empresa()`.
+RLS: lectura para miembros (y admin de plataforma); edición para `dueno`/`admin`, solo de las columnas de datos (nombre, razón social, RTN, teléfono, correo, dirección, paleta, `descuento_maximo_vendedor` y, desde 0012, las de identidad visual).
+
+**Storage `empresas`** (0012): bucket público (el logo sale en documentos impresos sin firmar URLs; las rutas llevan uuid). Lectura para miembros vía API; subir, cambiar y borrar solo dueño/admin de la empresa de la carpeta (`empresa_de_ruta`). Los checks `empresas_logo_ruta_check` y `empresas_fondo_ruta_check` exigen que la ruta esté en la carpeta de la propia empresa. El trigger `a_normalizar` limpia RTN y correo. **No hay insert directo**: se crea con `crear_empresa()`.
 
 Vistas: `v_miembros` (membresías + datos del usuario) y `v_invitaciones` (pendientes + quién invitó).
 

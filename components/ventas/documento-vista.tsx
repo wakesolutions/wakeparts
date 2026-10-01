@@ -1,4 +1,6 @@
+import type { CSSProperties } from "react";
 import { cant, enLetras, fechaDia, fechaYHora, moneda, monto, pct } from "@/lib/formato";
+import { FORMATO_POR_DEFECTO, type Identidad } from "@/lib/identidad";
 import { formatoRtn, type Documento } from "@/lib/ventas";
 import styles from "./documento-vista.module.css";
 
@@ -6,12 +8,34 @@ import styles from "./documento-vista.module.css";
  * Hoja de un documento emitido (cotización o factura). Sirve para la vista en
  * pantalla y para imprimir. Las leyendas fiscales están marcadas «a verificar»
  * en docs/negocio.md §3.5.
+ *
+ * `identidad`: logo, color y formato de la empresa (Taller › Factura). El
+ * formato solo cambia la presentación y lo opcional (vehículo, vendedor,
+ * código, lema, mensaje); los datos fiscales se imprimen siempre.
  */
-export function DocumentoVista({ doc }: { doc: Documento }) {
+export function DocumentoVista({
+  doc,
+  identidad,
+}: {
+  doc: Documento;
+  identidad?: Pick<Identidad, "logo" | "acento" | "formato">;
+}) {
   const factura = doc.tipo === "factura";
   const e = doc.emisor ?? {};
+  const f = identidad?.formato ?? FORMATO_POR_DEFECTO;
+  const logo = f.logo !== "oculto" ? identidad?.logo : null;
+  const marca = f.color === "tinta" ? "var(--wp-papel-tinta)" : (identidad?.acento ?? "var(--wp-accent)");
   return (
-    <article className={styles.hoja} data-anulado={doc.estado === "anulado" || undefined}>
+    <article
+      className={styles.hoja}
+      data-anulado={doc.estado === "anulado" || undefined}
+      data-estilo={f.estilo}
+      data-tabla={f.tabla}
+      data-color={f.color}
+      data-logo={logo ? f.logo : undefined}
+      data-logo-tamano={f.logoTamano}
+      style={{ "--doc-marca": marca } as CSSProperties}
+    >
       {doc.estado === "anulado" && (
         <div className={styles.anulado} aria-label="Documento anulado">
           Anulado
@@ -20,7 +44,12 @@ export function DocumentoVista({ doc }: { doc: Documento }) {
 
       <header className={styles.cabecera}>
         <div className={styles.emisor}>
+          {logo && (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={logo} alt={e.nombre ?? "Logo"} className={styles.logo} />
+          )}
           <p className={styles.nombreComercial}>{e.nombre}</p>
+          {f.lema && <p className={styles.lema}>{f.lema}</p>}
           {e.razon_social && <p className={styles.razon}>{e.razon_social}</p>}
           <p className={styles.datos}>
             {e.rtn && <span>RTN {formatoRtn(e.rtn)}</span>}
@@ -64,7 +93,7 @@ export function DocumentoVista({ doc }: { doc: Documento }) {
             </p>
           )}
         </div>
-        {doc.vehiculo && (
+        {doc.vehiculo && f.mostrarVehiculo && (
           <div>
             <span className={styles.etiqueta}>Vehículo</span>
             <p className={styles.vehiculo}>{doc.vehiculo}</p>
@@ -100,7 +129,7 @@ export function DocumentoVista({ doc }: { doc: Documento }) {
               <td data-num="">{cant(l.cantidad)}</td>
               <td>
                 {l.descripcion}
-                {l.codigo && <span className={styles.codigo}>{l.codigo}</span>}
+                {l.codigo && f.mostrarCodigo && <span className={styles.codigo}>{l.codigo}</span>}
                 {l.exento && <span className={styles.exento}>E</span>}
               </td>
               <td data-num="">{monto(l.precio)}</td>
@@ -121,7 +150,7 @@ export function DocumentoVista({ doc }: { doc: Documento }) {
               <p className={styles.notas}>{doc.notas}</p>
             </>
           )}
-          {doc.vendedor && <p className={styles.vendedor}>Atendió: {doc.vendedor}</p>}
+          {doc.vendedor && f.mostrarVendedor && <p className={styles.vendedor}>Atendió: {doc.vendedor}</p>}
         </div>
         <dl className={styles.totales}>
           <div>
@@ -156,6 +185,7 @@ export function DocumentoVista({ doc }: { doc: Documento }) {
       </section>
 
       <footer className={styles.leyendas}>
+        {f.mensaje && <p className={styles.mensaje}>{f.mensaje}</p>}
         {factura ? (
           <>
             <p>La factura es beneficio de todos. Exíjala.</p>

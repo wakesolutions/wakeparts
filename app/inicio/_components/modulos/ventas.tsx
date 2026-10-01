@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useApi } from "@/components/datos/apis";
+import { useIdentidad } from "@/components/identidad/contexto";
 import { MantenimientoRecurso } from "@/components/mantenimiento/mantenimiento-recurso";
 import { TableroReporte } from "@/components/reportes/tablero-reporte";
 import ui from "@/components/ui/controles.module.css";
@@ -98,6 +99,7 @@ function Documentos() {
 function DetalleDocumento({ id, onCambio }: { id: string; onCambio: () => void }) {
   const api = useApi("ventas");
   const { rol } = useSesion();
+  const { identidad } = useIdentidad();
   const { abrir } = useVentanas();
   const [doc, setDoc] = useState<Documento | null | undefined>(undefined);
   const [anulando, setAnulando] = useState(false);
@@ -175,7 +177,7 @@ function DetalleDocumento({ id, onCambio }: { id: string; onCambio: () => void }
         </form>
       )}
       {aviso && <p className={styles.aviso}>{aviso}</p>}
-      <DocumentoVista doc={doc} />
+      <DocumentoVista doc={doc} identidad={identidad} />
     </div>
   );
 }

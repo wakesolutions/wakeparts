@@ -68,6 +68,7 @@ export const marcas: DefRecurso = {
 | `minusculas` | Convierte a minúsculas (correos). |
 | `relacion` | `{ recurso, valor, etiqueta, dependeDe?: { campo, columna }, fijo?: { columna, valor } }`: combobox con búsqueda en el servidor; `dependeDe` hace cascada (limpia y filtra al cambiar el padre); `fijo` filtra siempre (p. ej. solo categorías activas). |
 | `presentacion: "tarjetas"` | Opciones como botones; si la opción trae `muestra`, dibuja la muestra de color. |
+| `presentacion: "segmentos"` | Control segmentado compacto (2–4 opciones cortas, sin código). Lo usa el editor de formato de factura. |
 | `sufijo`, `placeholder`, `ayuda`, `ancho: "completo"`, `porDefecto` | Presentación. |
 
 ## Componentes

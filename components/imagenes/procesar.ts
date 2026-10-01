@@ -41,3 +41,16 @@ export async function procesarFoto(archivo: File): Promise<FotoProcesada> {
     bitmap.close();
   }
 }
+
+/**
+ * Reduce una imagen de la empresa (logo o fondo) a WebP con lado mayor `lado`.
+ * WebP conserva la transparencia del logo.
+ */
+export async function reducirImagen(archivo: File, lado: number, calidad = 0.86): Promise<File> {
+  const bitmap = await createImageBitmap(archivo, { imageOrientation: "from-image" });
+  try {
+    return (await aWebp(bitmap, lado, calidad, "imagen")).archivo;
+  } finally {
+    bitmap.close();
+  }
+}

@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { recorridoPendiente } from "@/app/acciones/perfil";
+import { LogoEmpresa } from "@/components/identidad/logo-empresa";
 import { aceptarInvitaciones, obtenerSesion } from "@/lib/sesion";
 import { Escritorio } from "./_components/escritorio";
 
@@ -32,6 +33,7 @@ export default async function Inicio() {
     <Escritorio sesion={sesion} recorrido={recorrido}>
       <main className="flex flex-1 items-center px-4 pb-40 sm:px-10 lg:px-20">
         <div>
+          <LogoEmpresa className="wp-entra mb-6 h-[clamp(3rem,8vw,5.5rem)] w-auto max-w-[min(60vw,20rem)] object-contain" />
           <p
             className="wp-entra font-mono text-[0.7rem] tracking-[0.3em] text-wp-accent uppercase"
             style={{ animationDelay: "150ms" }}
