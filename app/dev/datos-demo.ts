@@ -3,6 +3,8 @@
 import { ubicarVehiculo } from "@/app/acciones/vehiculos";
 import type { Apis } from "@/components/datos/apis";
 import type { ImagenProducto } from "@/components/imagenes/api";
+import type { EstadoSitio, PedidoWeb } from "@/components/sitio-web/api";
+import { normalizarSitio } from "@/lib/sitio-web";
 import { centavos } from "@/lib/formato";
 import type { ResultadoImportacion } from "@/lib/inventario";
 import { diasEntre, sumarDias } from "@/lib/reportes/periodos";
@@ -586,4 +588,76 @@ const identidad: Apis["identidad"] = {
   guardarFormato: async () => espera({ ok: true as const }, 300),
 };
 
-export const APIS_DEMO: Partial<Apis> = { ventas, compatibilidad, imagenes, inventario, reportes, identidad };
+// ------------------------------------------------------------- sitio web ---
+
+let sitioDemo: EstadoSitio = {
+  slug: null,
+  sugerencia: "yonker-demo",
+  publicado: false,
+  config: normalizarSitio({}),
+};
+
+const pedidosDemo: PedidoWeb[] = [
+  {
+    id: "00000000-0000-0000-0000-00000000a001",
+    numero: 1042,
+    creado_en: new Date(Date.now() - 25 * 60_000).toISOString(),
+    cliente_nombre: "María López",
+    cliente_telefono: "98765432",
+    cliente_correo: null,
+    mensaje: "Lo paso a traer el sábado en la mañana.",
+    vehiculo: "TOYOTA COROLLA 2008",
+    estado: "nuevo",
+    id_carrito: null,
+    atendido_por: null,
+    total_estimado: 1340.65,
+    lineas: [
+      { id: 1, codigo: "ACT1089", descripcion: "Pastillas de freno delanteras", cantidad: 1, precio: 980, exento: false },
+      { id: 2, codigo: "PH4967", descripcion: "Filtro de aceite", cantidad: 1, precio: 185, exento: false },
+    ],
+  },
+];
+
+const sitioWeb: Apis["sitioWeb"] = {
+  leer: async () => espera({ ok: true as const, sitio: sitioDemo }),
+  guardar: async (cambio) => {
+    sitioDemo = {
+      ...sitioDemo,
+      ...(cambio.slug !== undefined ? { slug: cambio.slug } : {}),
+      ...(cambio.publicado !== undefined ? { publicado: cambio.publicado } : {}),
+      config: cambio.config ? normalizarSitio({ ...sitioDemo.config, ...cambio.config }) : sitioDemo.config,
+    };
+    return espera({ ok: true as const, sitio: sitioDemo }, 300);
+  },
+  // En el sandbox la foto queda como URL local: el sitio público demo no la ve.
+  subirFoto: async () => espera({ ok: false as const, error: "En el sandbox no se suben fotos del sitio." }),
+  quitarFoto: async () => espera({ ok: true as const, sitio: sitioDemo }),
+  buscarProductos: async (texto) =>
+    espera(
+      buscar({ texto, vehiculo: {} })
+        .slice(0, 12)
+        .map((p) => ({ id: p.id, nombre: p.nombre, codigo: p.codigo, imagen: null, publicable: p.disponible })),
+    ),
+  destacados: async (ids) =>
+    espera(
+      ids
+        .map((id) => PRODUCTOS.find((p) => p.id === id))
+        .filter(Boolean)
+        .map((p) => ({ id: p!.id, nombre: p!.nombre, codigo: p!.codigo, imagen: null, publicable: true })),
+    ),
+  pedido: async (id) => espera(pedidosDemo.find((p) => p.id === id) ?? null),
+  atender: async (id) => {
+    const p = pedidosDemo.find((x) => x.id === id);
+    if (!p) return { ok: false as const, error: "El pedido no existe." };
+    p.estado = "atendido";
+    return espera({ ok: true as const, carrito: carritos[0]?.id ?? "demo" });
+  },
+  cambiarEstado: async (id, estado) => {
+    const p = pedidosDemo.find((x) => x.id === id);
+    if (p) p.estado = estado;
+    return espera({ ok: true as const });
+  },
+  pedidosNuevos: async () => espera(pedidosDemo.filter((p) => p.estado === "nuevo").length),
+};
+
+export const APIS_DEMO: Partial<Apis> = { ventas, compatibilidad, imagenes, inventario, reportes, identidad, sitioWeb };

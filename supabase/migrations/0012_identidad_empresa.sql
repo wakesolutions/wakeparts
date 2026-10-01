@@ -23,7 +23,9 @@
 
 begin;
 
-create or replace function pg_temp.agregar_restriccion(p_tabla regclass, p_nombre text, p_def text)
+-- Otras migraciones crean una igual en la misma sesión: se reemplaza.
+drop function if exists pg_temp.agregar_restriccion(regclass, text, text);
+create function pg_temp.agregar_restriccion(p_tabla regclass, p_nombre text, p_def text)
 returns void
 language plpgsql
 as $$

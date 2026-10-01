@@ -13,6 +13,8 @@ type Props = {
   onCambiar: (v: Vehiculo) => void;
   /** Abrir el panel desde afuera (atajo F4). */
   abrirSenal?: number;
+  /** Textos para el visitante del sitio público (sin atajo ni «inventario»). */
+  publico?: boolean;
 };
 
 type Paso = "marca" | "modelo" | "anio" | "motor";
@@ -45,7 +47,7 @@ export async function resolverVehiculo(
  * Selector de vehículo con forma de placa. Se escribe «corolla 05» o se
  * recorre Marca › Modelo › Año › Motor. Cada nivel se puede quitar desde la placa.
  */
-export function SelectorVehiculo({ valor, onCambiar, abrirSenal }: Props) {
+export function SelectorVehiculo({ valor, onCambiar, abrirSenal, publico = false }: Props) {
   const catalogo = useApi("vehiculos");
   const [abierto, setAbierto] = useState(false);
   const [texto, setTexto] = useState("");
@@ -185,7 +187,7 @@ export function SelectorVehiculo({ valor, onCambiar, abrirSenal }: Props) {
       >
         <span className={styles.banda}>
           <span>Vehículo</span>
-          <kbd>F4</kbd>
+          {!publico && <kbd>F4</kbd>}
         </span>
         {valor.marca ? (
           <span className={styles.lectura}>
@@ -200,7 +202,9 @@ export function SelectorVehiculo({ valor, onCambiar, abrirSenal }: Props) {
         ) : (
           <span className={styles.lectura}>
             <span className={styles.titulo}>¿Qué vehículo?</span>
-            <span className={styles.subtitulo}>Sin vehículo: se busca en todo el inventario</span>
+            <span className={styles.subtitulo}>
+              {publico ? "Elegí marca, modelo y año" : "Sin vehículo: se busca en todo el inventario"}
+            </span>
           </span>
         )}
         <span className={styles.icono} aria-hidden="true">

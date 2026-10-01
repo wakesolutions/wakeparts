@@ -101,14 +101,15 @@ export function tokensAcento(hex: string): Record<string, string> {
 
 /**
  * Regla CSS con el acento de la empresa. `:root[data-paleta]` pesa más que
- * `[data-paleta="…"]`, así que gana sobre cualquier paleta.
+ * `[data-paleta="…"]`, así que gana sobre cualquier paleta. El sitio público
+ * (/t/<slug>) pasa su propio selector: allí el tema va en un contenedor, no en <html>.
  */
-export function cssAcento(hex: string | null): string {
+export function cssAcento(hex: string | null, selector = ":root[data-paleta]"): string {
   if (!hex) return "";
   const decl = Object.entries(tokensAcento(hex))
     .map(([k, v]) => `${k}:${v}`)
     .join(";");
-  return `:root[data-paleta]{${decl}}`;
+  return `${selector}{${decl}}`;
 }
 
 // ------------------------------------------------------- formato del documento --

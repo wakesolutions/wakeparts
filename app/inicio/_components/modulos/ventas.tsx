@@ -10,6 +10,7 @@ import { IconoCarrito, IconoImprimir } from "@/components/ui/iconos";
 import { useVentanaActual } from "@/components/ventanas/ventana";
 import { useVentanas } from "@/components/ventanas/contexto";
 import { VentanaFlotante } from "@/components/ventanas/ventana-flotante";
+import { PedidosWeb } from "@/components/sitio-web/pedidos-web";
 import { DocumentoVista } from "@/components/ventas/documento-vista";
 import { abrirCarritoEnMostrador } from "@/components/ventas/mostrador";
 import type { Documento } from "@/lib/ventas";
@@ -17,7 +18,7 @@ import { useSesion } from "../sesion-contexto";
 import { ModuloTablas } from "./tablas";
 import styles from "./modulos.module.css";
 
-/** Ventas: documentos emitidos, clientes, reporte de ventas y CAI. */
+/** Ventas: documentos emitidos, pedidos del sitio web, clientes, reporte de ventas y CAI. */
 export function ModuloVentas() {
   return (
     <ModuloTablas
@@ -31,6 +32,12 @@ export function ModuloVentas() {
               recurso: "documentos",
               descripcion: "Cotizaciones y facturas emitidas. Abrí una para imprimirla, repetirla o anularla.",
               contenido: () => <Documentos />,
+            },
+            {
+              recurso: "pedidos_web",
+              descripcion:
+                "Lo que piden los clientes desde tu sitio web. Abrí uno y pasalo al mostrador para cotizar o facturar.",
+              contenido: () => <PedidosWeb />,
             },
             {
               recurso: "clientes",

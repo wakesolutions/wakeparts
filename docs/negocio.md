@@ -49,12 +49,14 @@ Muchos negocios hacen ambas cosas; el modelo de datos debe soportar las dos form
   - *Pieza única* (yonker): cada unidad con condición (grado A/B/C o texto), fotos, vehículo donante (VIN opcional) y estado (`disponible`, `reservada`, `vendida`).
 - Fotos en Supabase Storage.
 
-### 3.4 Catálogo web (Propuesto)
+### 3.4 Catálogo web (Implementado · 0013)
 
-- Página pública por empresa (subruta o subdominio, a definir) con búsqueda **por vehículo** (marca → modelo → año → motor) y por texto/número de parte.
-- Muestra solo productos marcados como publicados y con existencia.
-- Usa la paleta de la empresa.
-- Contacto directo (WhatsApp es el canal esperado en Honduras). **A verificar** con el usuario si habrá carrito o pagos en línea.
+- **Dirección**: `/t/<slug>` (decidido con el usuario; subdominio o dominio propio quedan para después, sobre esta misma base). El dueño/admin la elige en el módulo **Sitio web** y publica cuando quiere; sin publicar solo lo ven sus miembros.
+- **Páginas**: portada (fondo y logo de la empresa, título y bajada propios, buscador por vehículo, destacados, categorías, historia, contacto), catálogo (por vehículo — marca → modelo → año → motor —, texto/número de parte y categoría), ficha de producto (fotos, datos, vehículos), «Nosotros» (historia, año de apertura, fotos, puntos fuertes) y «Tu lista».
+- Muestra solo productos **«En catálogo» (visible_catalogo), activos y con existencia**; nunca costo, existencia ni ubicación.
+- **Precios**: cada taller decide si se muestran (con ISV 15 %, salvo exentos). Ocultarlos lo hace la base: el público nunca los recibe.
+- **Pedidos**: el visitante arma una lista y la manda con nombre y teléfono (decidido con el usuario: «carrito → cotización», **sin pagos en línea**). Llega a **Ventas › Pedidos web**; el vendedor la atiende y se vuelve un carrito del mostrador con el precio de hoy, de ahí cotización o factura como siempre. Además, WhatsApp para preguntar.
+- Usa la identidad de la empresa (paleta, color de marca, logo, fondo).
 
 ### 3.5 Facturación con CAI (Implementado lo básico · a verificar la normativa)
 

@@ -20,6 +20,15 @@ El sistema se viste con la marca de cada taller (Taller › Apariencia y Factura
 - **Logo**: en la barra (reemplaza la marca Wake Parts), en el saludo de Inicio, en la placa de Taller y en los documentos.
 - **Documentos**: `DocumentoVista` recibe `identidad`; `--doc-marca` es el color de la empresa o tinta negra. Variantes por `data-estilo` (moderno, clásico serif, compacto), `data-tabla`, `data-logo` y `data-logo-tamano`.
 
+## Sitio público de cada taller (0013)
+
+`app/t/[slug]/_componentes/sitio.module.css`. Es una vitrina, así que tiene más aire y más escala que el escritorio, con el mismo sistema: Saira condensada en mayúsculas para títulos (hasta ~9 rem), Mono para etiquetas, solo tokens `--wp-*`.
+
+- **Momento firma**: la portada con la foto de fondo del taller (velo de su paleta) y el buscador «¿Qué carro tenés?» (la misma placa troquelada del mostrador, en modo `publico`) flotando en vidrio esmerilado.
+- Tarjetas de producto planas con filo de 1 px; sello verde «Le queda», ámbar «Confirmá año o motor». Sin foto: ícono de pieza propio, nunca una imagen genérica.
+- Movimiento: el título sube por líneas y el resto entra en cascada corta (≤ 600 ms) solo al cargar; hover de tarjeta de 3 px. Nada en bucle.
+- Celular: navegación inferior fija (Inicio, Catálogo, Nosotros, Tu lista) y botón de lista siempre visible.
+
 ## Paletas (base del tema)
 
 Todo color sale de tokens CSS definidos en `app/globals.css` bajo `[data-paleta="<id>"]`. El `<html>` lleva el atributo; hoy se lee de la cookie `wp_paleta` y en el futuro vendrá de la empresa.

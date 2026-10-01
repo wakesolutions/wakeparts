@@ -1,0 +1,1379 @@
+/* Sitio público de cada taller (/t/<slug>). La paleta y el color de marca
+   van en .raiz (data-paleta + <style> con el acento), no en <html>.
+   Mismo lenguaje que el sistema, más aire: es una vitrina. */
+
+.raiz {
+  --ancho: 1200px;
+  --gutter: clamp(1rem, 4vw, 2.5rem);
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  color: var(--wp-ink);
+  background: var(--wp-bg);
+}
+
+.contenedor {
+  width: 100%;
+  max-width: calc(var(--ancho) + var(--gutter) * 2);
+  margin-inline: auto;
+  padding-inline: var(--gutter);
+}
+
+/* ------------------------------------------------------------ vista previa --- */
+
+.previa {
+  padding: 0.5rem var(--gutter);
+  font-size: 0.8rem;
+  text-align: center;
+  color: #1a1514;
+  background: var(--wp-aviso);
+}
+
+.previa a {
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* -------------------------------------------------------------- encabezado --- */
+
+.encabezado {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: color-mix(in oklab, var(--wp-bg) 78%, transparent);
+  backdrop-filter: blur(18px) saturate(1.3);
+  -webkit-backdrop-filter: blur(18px) saturate(1.3);
+  box-shadow: 0 1px 0 var(--wp-line);
+}
+
+.encabezadoFila {
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+  height: 64px;
+}
+
+.marcaSitio {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+  font-size: 1.15rem;
+  font-weight: 800;
+  font-variation-settings: "wdth" 72;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.marcaSitio img {
+  width: auto;
+  height: 34px;
+  max-width: 120px;
+  object-fit: contain;
+}
+
+.marcaSitio span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.nav {
+  display: flex;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+.nav a {
+  padding: 0.45rem 0.8rem;
+  border-radius: 999px;
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--wp-ink-2);
+  transition:
+    color 160ms var(--ease-quart),
+    background-color 160ms var(--ease-quart);
+}
+
+.nav a:hover {
+  color: var(--wp-ink);
+  background: var(--wp-hover);
+}
+
+.nav a[aria-current="page"] {
+  color: var(--wp-ink);
+  font-weight: 600;
+}
+
+.botonCarrito {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  height: 38px;
+  padding: 0 0.95rem;
+  border-radius: 999px;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--wp-on-accent);
+  background: var(--wp-accent);
+  transition: background-color 160ms var(--ease-quart);
+}
+
+.botonCarrito:hover {
+  background: var(--wp-accent-hi);
+}
+
+.contador {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--wp-accent);
+  background: var(--wp-on-accent);
+}
+
+.contador[data-cambio] {
+  animation: latido 360ms var(--ease-expo);
+}
+
+@keyframes latido {
+  40% {
+    transform: scale(1.3);
+  }
+}
+
+@media (max-width: 760px) {
+  .nav {
+    display: none;
+  }
+  .botonCarrito {
+    margin-left: auto;
+  }
+}
+
+/* Navegación inferior en celular */
+.navMovil {
+  display: none;
+}
+
+@media (max-width: 760px) {
+  .navMovil {
+    position: sticky;
+    bottom: 0;
+    z-index: 30;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    padding: 0.35rem 0.5rem calc(0.35rem + env(safe-area-inset-bottom));
+    background: color-mix(in oklab, var(--wp-panel) 88%, transparent);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    box-shadow: 0 -1px 0 var(--wp-line);
+  }
+  .navMovil a {
+    display: grid;
+    justify-items: center;
+    gap: 0.15rem;
+    padding: 0.35rem 0;
+    font-size: 0.68rem;
+    color: var(--wp-ink-3);
+  }
+  .navMovil a[aria-current="page"] {
+    color: var(--wp-accent);
+  }
+}
+
+/* ------------------------------------------------------------------ portada --- */
+
+.hero {
+  position: relative;
+  isolation: isolate;
+  display: grid;
+  align-items: end;
+  min-height: clamp(560px, 82vh, 820px);
+  padding-block: clamp(5rem, 12vh, 8rem) clamp(2.5rem, 6vh, 4rem);
+  overflow: hidden;
+}
+
+.heroFondo {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background-position: center;
+  background-size: cover;
+}
+
+/* Sin foto propia: resplandor del color de la marca */
+.heroFondo[data-sin-foto] {
+  background:
+    radial-gradient(70% 60% at 85% 20%, color-mix(in oklab, var(--wp-accent) 22%, transparent), transparent 70%),
+    radial-gradient(60% 50% at 10% 100%, color-mix(in oklab, var(--wp-accent) 10%, transparent), transparent 70%),
+    var(--wp-bg);
+}
+
+.heroContenido {
+  display: grid;
+  gap: 1.6rem;
+}
+
+.sobretitulo {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  letter-spacing: 0.26em;
+  text-transform: uppercase;
+  color: var(--wp-accent);
+}
+
+.heroTitulo {
+  max-width: 14ch;
+  font-size: clamp(3rem, 9.5vw, 8.75rem);
+  font-weight: 800;
+  font-variation-settings: "wdth" 60;
+  line-height: 0.84;
+  letter-spacing: -0.035em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.heroBajada {
+  max-width: 48ch;
+  font-size: clamp(1rem, 1.6vw, 1.2rem);
+  line-height: 1.6;
+  color: var(--wp-ink-2);
+  text-wrap: pretty;
+}
+
+.heroLinea {
+  display: block;
+  overflow: hidden;
+  padding-bottom: 0.04em;
+}
+
+.heroLinea > span {
+  display: block;
+  animation: subirLinea 700ms var(--ease-expo) both;
+}
+
+@keyframes subirLinea {
+  from {
+    transform: translate3d(0, 105%, 0);
+  }
+}
+
+.entra {
+  animation: entrar 600ms var(--ease-expo) both;
+}
+
+@keyframes entrar {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0);
+  }
+}
+
+/* Buscador: el momento firma. «¿Qué carro tenés?» */
+.buscador {
+  display: grid;
+  gap: 0.8rem;
+  max-width: 820px;
+  padding: 1rem;
+  border-radius: 18px;
+  background: color-mix(in oklab, var(--wp-panel) 82%, transparent);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px var(--wp-line),
+    0 30px 60px -30px rgb(0 0 0 / 0.6);
+}
+
+.buscadorEtiqueta {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--wp-ink-2);
+}
+
+.buscadorFila {
+  display: grid;
+  grid-template-columns: minmax(0, 1.3fr) minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  align-items: stretch;
+}
+
+@media (max-width: 760px) {
+  .buscadorFila {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.campoTexto {
+  width: 100%;
+  height: 48px;
+  padding: 0 1rem;
+  border: 0;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 0.95rem;
+  color: var(--wp-ink);
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 1px 2px rgb(0 0 0 / 0.14),
+    inset 0 0 0 1px var(--wp-line);
+  outline: none;
+  transition: box-shadow 160ms var(--ease-quart);
+}
+
+.campoTexto::placeholder {
+  color: var(--wp-ink-3);
+}
+
+.campoTexto:focus-visible {
+  box-shadow:
+    inset 0 0 0 1px var(--wp-accent),
+    0 0 0 3px color-mix(in oklab, var(--wp-accent) 20%, transparent);
+}
+
+.botonPrimario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 48px;
+  padding: 0 1.4rem;
+  border: 0;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--wp-on-accent);
+  background: linear-gradient(180deg, var(--wp-accent-hi), var(--wp-accent));
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.2),
+    0 8px 20px -10px var(--wp-accent-glow);
+  cursor: pointer;
+  transition:
+    transform 160ms var(--ease-quart),
+    background-color 160ms var(--ease-quart);
+}
+
+.botonPrimario:hover {
+  background: var(--wp-accent-hi);
+}
+
+.botonPrimario:active {
+  transform: scale(0.98);
+}
+
+.botonPrimario:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.botonSecundario {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 44px;
+  padding: 0 1.2rem;
+  border: 0;
+  border-radius: 12px;
+  font: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--wp-ink);
+  background: var(--wp-panel);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  cursor: pointer;
+  transition: background-color 160ms var(--ease-quart);
+}
+
+.botonSecundario:hover {
+  background: var(--wp-panel-2);
+}
+
+.datosRapidos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.8rem 2.6rem;
+  margin-top: 0.4rem;
+}
+
+.datosRapidos dt {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.datosRapidos dd {
+  margin-top: 0.2rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+/* ---------------------------------------------------------------- secciones --- */
+
+.seccion {
+  padding-block: clamp(4rem, 9vw, 7.5rem);
+}
+
+.seccion + .seccion {
+  padding-top: 0;
+}
+
+.seccionCabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+  margin-bottom: clamp(1.8rem, 4vw, 3rem);
+}
+
+.seccionTitulo {
+  margin-top: 0.6rem;
+  font-size: clamp(2.2rem, 5.2vw, 4.4rem);
+  font-weight: 800;
+  font-variation-settings: "wdth" 62;
+  line-height: 0.88;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.enlaceFlecha {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--wp-accent);
+}
+
+.enlaceFlecha:hover {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+
+/* ----------------------------------------------------------------- tarjetas --- */
+
+.grilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 230px), 1fr));
+  gap: clamp(0.8rem, 1.6vw, 1.2rem);
+}
+
+.tarjeta {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--wp-panel);
+  box-shadow: 0 0 0 1px var(--wp-line);
+  transition:
+    transform 260ms var(--ease-expo),
+    box-shadow 260ms var(--ease-expo);
+}
+
+.tarjeta:hover {
+  transform: translate3d(0, -3px, 0);
+  box-shadow:
+    0 0 0 1px var(--wp-line),
+    0 22px 40px -24px rgb(0 0 0 / 0.55);
+}
+
+.tarjetaEnlace::after {
+  /* Toda la tarjeta es el enlace; el botón «Agregar» va encima. */
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.tarjetaImagen {
+  position: relative;
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  color: var(--wp-ink-3);
+  background:
+    radial-gradient(80% 70% at 50% 30%, var(--wp-hover), transparent 70%),
+    var(--wp-field);
+}
+
+.tarjetaImagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 500ms var(--ease-expo);
+}
+
+.tarjeta:hover .tarjetaImagen img {
+  transform: scale(1.04);
+}
+
+.sello {
+  position: absolute;
+  top: 0.7rem;
+  left: 0.7rem;
+  padding: 0.18rem 0.5rem;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink);
+  background: color-mix(in oklab, var(--wp-panel) 88%, transparent);
+  box-shadow: 0 0 0 1px var(--wp-line);
+}
+
+.sello[data-tono="ajuste"] {
+  color: var(--wp-on-accent);
+  background: var(--wp-ok);
+  box-shadow: none;
+}
+
+.sello[data-tono="verificar"] {
+  color: #1a1514;
+  background: var(--wp-aviso);
+  box-shadow: none;
+}
+
+.tarjetaCuerpo {
+  display: grid;
+  gap: 0.3rem;
+  flex: 1;
+  align-content: start;
+  padding: 0.9rem 1rem 0.2rem;
+}
+
+.tarjetaMarca {
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.tarjetaNombre {
+  font-size: 0.98rem;
+  font-weight: 600;
+  line-height: 1.3;
+  text-wrap: pretty;
+}
+
+.tarjetaPie {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.7rem 1rem 1rem;
+}
+
+.precio {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.precioNota {
+  display: block;
+  font-family: var(--font-sans);
+  font-size: 0.66rem;
+  font-weight: 400;
+  color: var(--wp-ink-3);
+}
+
+.consultar {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--wp-ink-2);
+}
+
+.agregar {
+  position: relative;
+  z-index: 1;
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: 12px;
+  color: var(--wp-on-accent);
+  background: var(--wp-accent);
+  cursor: pointer;
+  transition:
+    transform 160ms var(--ease-quart),
+    background-color 160ms var(--ease-quart);
+}
+
+.agregar:hover {
+  background: var(--wp-accent-hi);
+}
+
+.agregar:active {
+  transform: scale(0.94);
+}
+
+.agregar[data-listo] {
+  background: var(--wp-ok);
+}
+
+/* --------------------------------------------------------------- categorías --- */
+
+.categorias {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border-radius: 16px;
+  background: var(--wp-line);
+  box-shadow: 0 0 0 1px var(--wp-line);
+}
+
+.categoria {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.3rem 1.3rem 1.2rem;
+  background: var(--wp-bg);
+  transition: background-color 200ms var(--ease-quart);
+}
+
+.categoria:hover {
+  background: var(--wp-panel);
+}
+
+.categoriaNombre {
+  font-size: 1.35rem;
+  font-weight: 800;
+  font-variation-settings: "wdth" 66;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.categoria:hover .categoriaNombre {
+  color: var(--wp-accent);
+}
+
+.categoriaCuenta {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--wp-ink-3);
+}
+
+/* -------------------------------------------------------------- nosotros --- */
+
+.historia {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: clamp(2rem, 5vw, 5rem);
+  align-items: center;
+}
+
+@media (max-width: 860px) {
+  .historia {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.historiaTexto {
+  display: grid;
+  gap: 1rem;
+  font-size: 1.05rem;
+  line-height: 1.7;
+  color: var(--wp-ink-2);
+}
+
+.historiaTexto p {
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+.desde {
+  display: flex;
+  align-items: baseline;
+  gap: 1rem;
+}
+
+.desdeAnio {
+  font-size: clamp(4rem, 12vw, 9rem);
+  font-weight: 800;
+  font-variation-settings: "wdth" 58;
+  line-height: 0.8;
+  letter-spacing: -0.04em;
+  color: var(--wp-accent);
+}
+
+.desdeTexto {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.puntos {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr));
+  gap: 1.5rem 2rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  counter-reset: punto;
+}
+
+.puntos li {
+  display: grid;
+  gap: 0.6rem;
+  padding-top: 1rem;
+  font-size: 1.02rem;
+  font-weight: 600;
+  line-height: 1.35;
+  border-top: 1px solid var(--wp-line);
+  counter-increment: punto;
+}
+
+.puntos li::before {
+  content: counter(punto, decimal-leading-zero);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--wp-accent);
+}
+
+.fotos {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  grid-auto-rows: clamp(140px, 18vw, 240px);
+  gap: 0.7rem;
+}
+
+.fotos figure {
+  overflow: hidden;
+  margin: 0;
+  border-radius: 14px;
+  background: var(--wp-field);
+  grid-column: span 2;
+}
+
+/* Mosaico: la primera grande, el resto acompaña */
+.fotos figure:first-child {
+  grid-column: span 4;
+  grid-row: span 2;
+}
+
+.fotos[data-cantidad="1"] figure:first-child {
+  grid-column: 1 / -1;
+}
+
+.fotos img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+@media (max-width: 640px) {
+  .fotos {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .fotos figure,
+  .fotos figure:first-child {
+    grid-column: span 1;
+    grid-row: span 1;
+  }
+  .fotos figure:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+/* ---------------------------------------------------------------- contacto --- */
+
+.contacto {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 240px), 1fr));
+  gap: 1px;
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--wp-line);
+  box-shadow: 0 0 0 1px var(--wp-line);
+}
+
+.contactoDato {
+  display: grid;
+  gap: 0.4rem;
+  align-content: start;
+  padding: 1.4rem;
+  background: var(--wp-panel);
+}
+
+.contactoEtiqueta {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.contactoValor {
+  font-size: 1rem;
+  font-weight: 600;
+  line-height: 1.45;
+}
+
+.contactoValor a:hover {
+  color: var(--wp-accent);
+}
+
+/* -------------------------------------------------------------------- pie --- */
+
+.pie {
+  margin-top: auto;
+  padding-block: 2.5rem;
+  font-size: 0.8rem;
+  color: var(--wp-ink-3);
+  box-shadow: 0 -1px 0 var(--wp-line);
+}
+
+.pieFila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+}
+
+.pie a:hover {
+  color: var(--wp-ink);
+}
+
+.pieEnlaces {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem 1.2rem;
+}
+
+/* ---------------------------------------------------------------- catálogo --- */
+
+.catalogo {
+  display: grid;
+  grid-template-columns: 260px minmax(0, 1fr);
+  gap: clamp(1.5rem, 3vw, 3rem);
+  align-items: start;
+  padding-block: 2rem 5rem;
+}
+
+@media (max-width: 900px) {
+  .catalogo {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.filtros {
+  position: sticky;
+  top: 84px;
+  display: grid;
+  gap: 1.5rem;
+}
+
+@media (max-width: 900px) {
+  .filtros {
+    position: static;
+  }
+}
+
+.filtroTitulo {
+  margin-bottom: 0.6rem;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.listaCategorias {
+  display: grid;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.listaCategorias a {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.6rem;
+  padding: 0.5rem 0.7rem;
+  border-radius: 9px;
+  font-size: 0.9rem;
+  color: var(--wp-ink-2);
+}
+
+.listaCategorias a:hover {
+  color: var(--wp-ink);
+  background: var(--wp-hover);
+}
+
+.listaCategorias a[aria-current="true"] {
+  font-weight: 600;
+  color: var(--wp-ink);
+  background: var(--wp-sel);
+}
+
+.listaCategorias small {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--wp-ink-3);
+}
+
+@media (max-width: 900px) {
+  .listaCategorias {
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+  .listaCategorias a {
+    white-space: nowrap;
+    box-shadow: inset 0 0 0 1px var(--wp-line);
+    border-radius: 999px;
+  }
+}
+
+.resultadosCabecera {
+  display: grid;
+  gap: 1rem;
+  margin-bottom: 1.6rem;
+}
+
+.catalogoTitulo {
+  font-size: clamp(2rem, 4.6vw, 3.6rem);
+  font-weight: 800;
+  font-variation-settings: "wdth" 62;
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.resumen {
+  font-size: 0.9rem;
+  color: var(--wp-ink-2);
+}
+
+.bloque + .bloque {
+  margin-top: 2.6rem;
+}
+
+.bloqueTitulo {
+  display: flex;
+  align-items: baseline;
+  gap: 0.8rem;
+  margin-bottom: 1rem;
+  font-size: 1.15rem;
+  font-weight: 700;
+}
+
+.bloqueNota {
+  font-size: 0.82rem;
+  font-weight: 400;
+  color: var(--wp-ink-3);
+}
+
+.vacio {
+  display: grid;
+  justify-items: start;
+  gap: 1rem;
+  padding: 3rem 2rem;
+  border-radius: 18px;
+  background: var(--wp-panel);
+  box-shadow: 0 0 0 1px var(--wp-line);
+}
+
+.vacioTitulo {
+  font-size: 1.6rem;
+  font-weight: 800;
+  font-variation-settings: "wdth" 66;
+  text-transform: uppercase;
+}
+
+.vacio p {
+  max-width: 52ch;
+  color: var(--wp-ink-2);
+}
+
+/* -------------------------------------------------------------------- ficha --- */
+
+.migas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  padding-block: 1.6rem 1rem;
+  font-size: 0.82rem;
+  color: var(--wp-ink-3);
+}
+
+.migas a:hover {
+  color: var(--wp-ink);
+}
+
+.ficha {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+  gap: clamp(1.5rem, 4vw, 4rem);
+  align-items: start;
+  padding-bottom: 5rem;
+}
+
+@media (max-width: 860px) {
+  .ficha {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.galeria {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.galeriaPrincipal {
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  aspect-ratio: 1;
+  border-radius: 20px;
+  color: var(--wp-ink-3);
+  background:
+    radial-gradient(80% 70% at 50% 30%, var(--wp-hover), transparent 70%),
+    var(--wp-field);
+}
+
+.galeriaPrincipal img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.miniaturas {
+  display: flex;
+  gap: 0.5rem;
+  overflow-x: auto;
+}
+
+.miniatura {
+  flex: none;
+  width: 72px;
+  height: 72px;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  border-radius: 12px;
+  cursor: pointer;
+  background: var(--wp-field);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  opacity: 0.7;
+  transition: opacity 160ms var(--ease-quart);
+}
+
+.miniatura[aria-pressed="true"],
+.miniatura:hover {
+  opacity: 1;
+  box-shadow: inset 0 0 0 2px var(--wp-accent);
+}
+
+.miniatura img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fichaInfo {
+  position: sticky;
+  top: 88px;
+  display: grid;
+  gap: 1.3rem;
+}
+
+.fichaTitulo {
+  font-size: clamp(2rem, 4vw, 3.2rem);
+  font-weight: 800;
+  font-variation-settings: "wdth" 64;
+  line-height: 0.92;
+  letter-spacing: -0.025em;
+  text-transform: uppercase;
+  text-wrap: balance;
+}
+
+.fichaPrecio {
+  font-family: var(--font-mono);
+  font-size: 2rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.fichaAcciones {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.6rem;
+}
+
+.cantidad {
+  display: inline-flex;
+  align-items: center;
+  overflow: hidden;
+  border-radius: 12px;
+  background: var(--wp-field);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.cantidad button {
+  width: 40px;
+  height: 46px;
+  border: 0;
+  font: inherit;
+  font-size: 1.1rem;
+  color: var(--wp-ink-2);
+  background: none;
+  cursor: pointer;
+}
+
+.cantidad button:hover {
+  color: var(--wp-ink);
+  background: var(--wp-hover);
+}
+
+.cantidad output {
+  min-width: 2.4ch;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  text-align: center;
+}
+
+.especificaciones {
+  display: grid;
+  margin: 0;
+  border-radius: 14px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px var(--wp-line);
+}
+
+.especificaciones div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 1rem;
+  font-size: 0.9rem;
+}
+
+.especificaciones div + div {
+  box-shadow: inset 0 1px 0 var(--wp-line);
+}
+
+.especificaciones dt {
+  color: var(--wp-ink-3);
+}
+
+.especificaciones dd {
+  font-weight: 600;
+  text-align: right;
+}
+
+.vehiculos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.vehiculos li {
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 500;
+  background: var(--wp-hover);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.textoAyuda {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--wp-ink-3);
+}
+
+.enlaceWhatsapp {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--wp-ok);
+}
+
+.enlaceWhatsapp:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ----------------------------------------------------------------- carrito --- */
+
+.pedido {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: clamp(1.5rem, 4vw, 3.5rem);
+  align-items: start;
+  padding-block: 2rem 5rem;
+}
+
+@media (max-width: 900px) {
+  .pedido {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.lineas {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 0 0 1px var(--wp-line);
+}
+
+.linea {
+  display: grid;
+  grid-template-columns: 64px minmax(0, 1fr) auto;
+  gap: 1rem;
+  align-items: center;
+  padding: 0.9rem 1rem;
+  background: var(--wp-panel);
+}
+
+.linea + .linea {
+  box-shadow: inset 0 1px 0 var(--wp-line);
+}
+
+.lineaImagen {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  overflow: hidden;
+  border-radius: 10px;
+  color: var(--wp-ink-3);
+  background: var(--wp-field);
+}
+
+.lineaImagen img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.lineaControles {
+  display: grid;
+  justify-items: end;
+  gap: 0.4rem;
+}
+
+.quitar {
+  border: 0;
+  font: inherit;
+  font-size: 0.76rem;
+  color: var(--wp-ink-3);
+  background: none;
+  cursor: pointer;
+}
+
+.quitar:hover {
+  color: var(--wp-accent);
+  text-decoration: underline;
+}
+
+.panelPedido {
+  position: sticky;
+  top: 88px;
+  display: grid;
+  gap: 1rem;
+  padding: 1.4rem;
+  border-radius: 18px;
+  background: var(--wp-panel);
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px var(--wp-line);
+}
+
+.panelTitulo {
+  font-size: 1.4rem;
+  font-weight: 800;
+  font-variation-settings: "wdth" 66;
+  text-transform: uppercase;
+}
+
+.campoGrupo {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.campoGrupo label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--wp-ink-2);
+}
+
+.campoGrupo textarea {
+  height: auto;
+  min-height: 84px;
+  padding: 0.7rem 1rem;
+  resize: vertical;
+  line-height: 1.5;
+}
+
+.totalEstimado {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding-top: 0.8rem;
+  box-shadow: inset 0 1px 0 var(--wp-line);
+}
+
+.error {
+  font-size: 0.85rem;
+  color: var(--wp-accent-hi);
+}
+
+.exito {
+  display: grid;
+  justify-items: start;
+  gap: 1.2rem;
+  max-width: 640px;
+  padding-block: clamp(3rem, 10vh, 6rem);
+}
+
+.exitoNumero {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--wp-ok);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tarjeta:hover {
+    transform: none;
+  }
+}

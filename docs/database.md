@@ -16,7 +16,8 @@ categorias (árbol) ──< categorias_relacionadas                             
 marcas_productos (global + por empresa)
 
 empresas ──< productos ──< productos_imagenes            (Storage: bucket productos)
-   │  (logo y fondo: Storage, bucket empresas)
+   │  (logo, fondo y fotos del sitio: Storage, bucket empresas)
+         ──< pedidos_web ──< pedidos_web_lineas                (0013, sitio público)
                  │    ├──< productos_compatibilidades >── marcas/modelos/años/especificaciones
                  │    └──< movimientos_inventario        (kardex)
          ──< clientes
@@ -50,6 +51,9 @@ Cada usuario pertenece a una o más empresas con un rol. Toda tabla operativa fu
 | `fondo_atenuar` | smallint | no | (0012) Velo sobre el fondo, 0–85 % (defecto 40) |
 | `acento` | text | sí | (0012) Color de marca `#rrggbb` en minúsculas. Null = el de la paleta |
 | `formato_documento` | jsonb | no | (0012) Diseño de facturas/cotizaciones (`lib/identidad.ts` › `FormatoDocumento`). Objeto < 8 KB; la app lo normaliza |
+| `slug` | text | sí | (0013) Dirección del sitio público `/t/<slug>`. Único, `^[a-z0-9]+(-[a-z0-9]+)*$`, 3–40. Reservadas en la app (`lib/sitio-web.ts`) |
+| `sitio_publicado` | bool | no | (0013) El sitio se ve sin sesión. Exige `slug` |
+| `sitio` | jsonb | no | (0013) Configuración del sitio (`ConfigSitio`): textos de portada y Nosotros, WhatsApp, horario, redes, `mostrarPrecios`, `fotos` (rutas `<empresa>/sitio/…`), `destacados` (ids). < 32 KB; la app lo normaliza |
 | `activo` | bool | no | |
 | `creado_en`, `creado_por` | | | |
 
@@ -281,6 +285,29 @@ Las tres son **security invoker** (RLS de quien llama).
 | `carrito_desde_documento(documento)` | Carrito nuevo con cliente, vehículo y líneas del documento (cotización → factura). |
 
 Totales: `bruto = cantidad·precio`; `neto = bruto·(1 − desc. línea)·(1 − desc. general)` redondeado a centavos por línea; ISV = 15 % del gravado redondeado; total = exento + gravado + ISV.
+
+## Sitio web y pedidos (0013)
+
+### `pedidos_web` / `pedidos_web_lineas`
+
+Lo que manda un visitante desde `/t/<slug>`. Columnas: `numero` (identity global, «Web #n»), cliente (`cliente_nombre`, `cliente_telefono` solo dígitos 8–15, `cliente_correo`, `mensaje` ≤ 600), vehículo (`id_marca`…`id_especificacion` + `vehiculo` texto armado en la base), `estado` (`nuevo` · `atendido` · `descartado`), `id_carrito`, `atendido_por`, `atendido_en`, `ip`. Las líneas guardan `id_producto`, `codigo`, `descripcion`, `cantidad` (≤ 999), `precio` y `exento` **tomados de la base**, nunca del navegador.
+
+- **RLS**: miembros leen; solo pueden cambiar `estado` (descartar/recuperar). Nadie inserta ni borra por la API: se crea con `enviar_pedido_web()`.
+- `v_pedidos_web` (security invoker): + `lineas`, `total_estimado` (con ISV 15 % salvo exentos) y nombre de quien atendió. Auditoría `zz_registrar_cambio` si existe 0011.
+
+### Funciones del sitio público (security definer, `anon` + `authenticated`)
+
+| Función | Qué hace |
+|---|---|
+| `sitio_publico(slug)` | Datos públicos de la empresa + `sitio`. Null si no existe o no está publicado (los miembros la ven igual: vista previa). |
+| `portada_web(slug)` | Destacados (elegidos o los últimos con foto, 8) y categorías con productos visibles (12). |
+| `buscar_catalogo_web(slug, texto, marca…categoria, limite)` | Envuelve `buscar_productos`: solo visibles con existencia, sin costo/existencia/ubicación, **precio null si `mostrarPrecios` es false**. |
+| `producto_web(slug, id)` | Ficha: datos, fotos y vehículos a los que le queda (80 máx.). |
+| `sitios_publicados()` | Slugs publicados (sitemap). |
+| `enviar_pedido_web(slug, cliente, vehiculo, lineas)` | Valida todo, toma precios de la base, máx. 40 líneas; **límite**: 6 pedidos/hora por IP (`x-cliente-ip`) y 3 cada 10 min por teléfono. Errores para el visitante con `P0001`. |
+| `atender_pedido_web(pedido)` | (authenticated, miembro) Pedido → carrito del mostrador con el precio de hoy («Web #n», cliente, vehículo, mensaje en notas); marca `atendido`. Si ya se atendió y el carrito sigue abierto, devuelve ese. |
+
+Desde 0013, **`anon` ya no puede ejecutar `buscar_productos`** (devolvía el precio aunque el taller lo ocultara).
 
 ## Funciones
 

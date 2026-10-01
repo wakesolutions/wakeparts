@@ -199,3 +199,44 @@ export const documentos: DefRecurso = {
   ],
   campos: [],
 };
+
+export const ESTADOS_PEDIDO_WEB: readonly Opcion[] = [
+  { valor: "nuevo", etiqueta: "Nuevo" },
+  { valor: "atendido", etiqueta: "Atendido" },
+  { valor: "descartado", etiqueta: "Descartado" },
+];
+
+/** Pedidos del sitio público (0013). Se crean desde /t/<slug>; aquí solo se leen y atienden. */
+export const pedidosWeb: DefRecurso = {
+  id: "pedidos_web",
+  nombre: "pedido web",
+  nombrePlural: "Pedidos web",
+  vista: "v_pedidos_web",
+  tabla: "pedidos_web",
+  clave: "id",
+  ambito: "empresa",
+  escritura: "ninguna",
+  acciones: { crear: false, editar: false, eliminar: false },
+  titulo: "numero",
+  orden: [{ columna: "creado_en", dir: "desc" }],
+  columnas: [
+    { clave: "numero", etiqueta: "N.º", tipo: "entero", ancho: 80 },
+    { clave: "creado_en", etiqueta: "Recibido", tipo: "fecha", ancho: 150 },
+    {
+      clave: "estado",
+      etiqueta: "Estado",
+      tipo: "texto",
+      ancho: 120,
+      opciones: ESTADOS_PEDIDO_WEB,
+      filtro: { tipo: "opciones", opciones: ESTADOS_PEDIDO_WEB },
+    },
+    { clave: "cliente_nombre", etiqueta: "Cliente", tipo: "texto", ancho: 220, buscable: true },
+    { clave: "cliente_telefono", etiqueta: "Teléfono", tipo: "texto", ancho: 130, buscable: true, formato: "codigo" },
+    { clave: "vehiculo", etiqueta: "Vehículo", tipo: "texto", ancho: 220, buscable: true },
+    { clave: "lineas", etiqueta: "Piezas", tipo: "entero", ancho: 90 },
+    { clave: "total_estimado", etiqueta: "Estimado", tipo: "decimal", ancho: 130, formato: "moneda" },
+    { clave: "atendido_por", etiqueta: "Atendió", tipo: "texto", ancho: 160, oculta: true },
+    { clave: "mensaje", etiqueta: "Mensaje", tipo: "texto", ancho: 260, oculta: true },
+  ],
+  campos: [],
+};

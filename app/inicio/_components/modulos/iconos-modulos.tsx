@@ -131,3 +131,23 @@ export function IconoActividad() {
     </svg>
   );
 }
+
+export function IconoSitio() {
+  // Vitrina: toldo de tienda sobre una ventana de navegador
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <rect x="7" y="10" width="34" height="30" rx="3" fill="currentColor" />
+      <path
+        d="M7 13a3 3 0 0 1 3-3h28a3 3 0 0 1 3 3v5H7z"
+        fill="var(--wp-accent-lo)"
+        opacity="0.55"
+      />
+      <path
+        d="M9 18h30l-2.5 5.5a3 3 0 0 1-5.4 0 3 3 0 0 1-5.4 0 3 3 0 0 1-5.4 0 3 3 0 0 1-5.4 0z"
+        fill="var(--wp-accent)"
+      />
+      <rect x="15" y="28" width="9" height="12" rx="1" fill="var(--wp-accent-lo)" />
+      <rect x="27" y="28" width="8" height="6" rx="1" fill="var(--wp-accent-lo)" opacity="0.7" />
+    </svg>
+  );
+}

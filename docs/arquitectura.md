@@ -22,13 +22,16 @@ app/
   _publico/               Piezas de las páginas públicas (encabezado, pie, secciones, JSON-LD, imagen OG)
   honduras/               /honduras y /honduras/[departamento] (18 páginas estáticas, SEO local)
   ayuda/                  Manual del propietario (público)
+  t/[slug]/               Sitio público de cada taller: portada, catalogo, producto/[id], nosotros, carrito (0013)
+    _componentes/         Encabezado, tarjetas, buscador por vehículo, lista (localStorage) y pedido
   robots.ts · sitemap.ts · manifest.ts · icon.svg · apple-icon.png · favicon.ico · opengraph-image.tsx
   auth/
     actions.ts            Server Actions: iniciarSesionConGoogle, cerrarSesion
     callback/route.ts     Intercambia el código OAuth por la sesión
   acciones/               Server Actions: recursos (genéricas), preferencias, empresa, perfil,
                           productos (fotos, compatibilidad), vehiculos (catálogo), ventas (mostrador),
-                          inventario (entradas, importación), reportes
+                          inventario (entradas, importación), reportes, identidad (logo, fondo, tema,
+                          formato de factura), sitio-web (editor y pedidos), pedido-web (público)
   documentos/[id]/        Vista imprimible de una cotización o factura (RLS)
   bienvenida/             Onboarding: registro de la empresa (primera vez)
   inicio/                 Escritorio (ruta protegida)
@@ -46,6 +49,8 @@ components/
   reportes/               TableroReporte genérico (indicadores, ecualizador, rankings, Excel)
   datos/apis.tsx          useApi(): Server Actions o datos demo inyectados
   ventanas/               Gestor de ventanas estilo macOS
+  identidad/              Identidad de la empresa: contexto, fondo del escritorio, Apariencia, editor de factura
+  sitio-web/              Módulo Sitio web (editor) y Ventas › Pedidos web
   ui/                     Controles base e íconos propios
 lib/
   paletas.ts              Registro de paletas + cookie (paletas-cliente.ts la aplica en el DOM)
@@ -59,6 +64,9 @@ lib/
   reportes/               DefReporte por reporte + períodos y formatos
   inventario.ts           Columnas de importación (alias), números «L 1,250.50», tipos de entradas
   sitio.ts                URL pública, textos SEO y los 18 departamentos (ISO, cabecera, ciudades)
+  identidad.ts            Logo/fondo/acento/formato de documentos de cada empresa (tokens de acento)
+  sitio-web.ts            Configuración del sitio público (ConfigSitio), slug, WhatsApp, precio con ISV
+  sitio-datos.ts          Lectura del sitio público por RPC (server-only); /t/demo usa sitio-demo.ts en desarrollo
   supabase/server.ts      Cliente Supabase para servidor (uno por request)
   supabase/proxy.ts       Refresco de sesión + redirecciones
 proxy.ts                  Entrada del proxy de Next
@@ -74,6 +82,7 @@ Convenciones:
 ## SEO y páginas públicas
 
 - **Públicas e indexables**: `/` (landing + login), `/honduras`, `/honduras/[departamento]` (`generateStaticParams`, `dynamicParams = false`), `/ayuda` y las legales `/terminos`, `/privacidad` y `/cookies`. Deben estar en `RUTAS_PUBLICAS` del proxy, igual que `robots.txt`, `sitemap.xml`, `manifest.webmanifest`, `opengraph-image`, `twitter-image`, `icon` y `apple-icon`.
+- **Sitios de los talleres** (`/t/<slug>`, 0013): públicos en el proxy (`/t/`). Cada página arma sus metadatos con `metadatosSitio()` (título con la marca del taller, canonical, OG con su fondo o logo); **sin publicar = noindex** y solo lo ven sus miembros (vista previa con aviso). JSON-LD `AutoPartsStore` en la portada y `Product` en la ficha (con `Offer` solo si el taller muestra precios). El sitemap agrega portada, catálogo y «Nosotros» de los sitios publicados (`sitios_publicados()`); las búsquedas filtradas y `/t/*/carrito` no se indexan. El tema va en un contenedor con `data-paleta` + `cssAcento(…, "[data-sitio][data-paleta]")`, no en `<html>`.
 - **Privadas**: `/inicio`, `/bienvenida`, `/documentos/*` y `/dev/*` llevan `robots: { index: false }` y están en `Disallow` de `robots.txt`.
 - `app/layout.tsx`: `metadataBase` = `URL_SITIO` (`NEXT_PUBLIC_SITE_URL`; en Vercel, el dominio de producción), plantilla de título «%s · Wake Parts», Open Graph `es_HN`, tarjeta grande de X, `geo.region` y `<html lang="es-HN">`. Cada página pública define su `canonical`.
 - **JSON-LD** (`<JsonLd>`, sanea `<`): portada = Organization + WebSite + SoftwareApplication (con los 18 departamentos en `areaServed`) + FAQPage; departamento = BreadcrumbList + Service (área y ciudades) + FAQPage; manual = TechArticle + BreadcrumbList.
@@ -86,7 +95,7 @@ Convenciones:
 ## Cookies y datos locales
 
 - **Cookies (todas necesarias o de preferencia):** sesión de Supabase (`sb-…-auth-token`, hasta cerrar sesión, máx. 400 días; `…-code-verifier` solo durante el login) y `wp_paleta` (1 año). Un visitante que no inicia sesión no recibe ninguna.
-- **localStorage** (no viaja al servidor): `wp:ventanas`, `wp:<módulo>:seccion`, `wp:recorrido:<usuario>`, `wp:aviso-cookies`.
+- **localStorage** (no viaja al servidor): `wp:ventanas`, `wp:<módulo>:seccion`, `wp:recorrido:<usuario>`, `wp:aviso-cookies` y, en los sitios de los talleres, `wp:carrito-web:<slug>` (lista de piezas y último vehículo; viaja solo al mandar el pedido).
 - Sin analítica, publicidad ni terceros; las fuentes se sirven desde el sitio (`next/font`).
 - `components/ui/aviso-cookies.tsx` (en `app/layout.tsx`): aviso **informativo** una sola vez + política en `/cookies` (pública, en sitemap). **Si se agrega una cookie o script opcional (analítica, píxeles, chat), el aviso debe pasar a pedir consentimiento ANTES de cargarlo y hay que actualizar `/cookies`.**
 

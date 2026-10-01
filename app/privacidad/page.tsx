@@ -20,8 +20,9 @@ const DATOS = [
   },
   {
     que: "Tu empresa",
-    detalle: "Nombre comercial, razón social, RTN, teléfono, correo, dirección y colores.",
-    para: "Encabezar cotizaciones y facturas y separar tus datos de los de otras empresas.",
+    detalle:
+      "Nombre comercial, razón social, RTN, teléfono, correo, dirección, colores, logo, fondo y lo que publiques en tu sitio web (textos, fotos, horario, redes).",
+    para: "Encabezar cotizaciones y facturas, separar tus datos de los de otras empresas y mostrar tu sitio público si lo publicás.",
   },
   {
     que: "Tu operación",
@@ -32,6 +33,12 @@ const DATOS = [
     que: "Tus clientes",
     detalle: "Nombre, RTN, teléfono, correo y dirección que registrés en Ventas › Clientes.",
     para: "Emitir documentos a su nombre. Los decide y administra tu empresa.",
+  },
+  {
+    que: "Pedidos desde el sitio de un taller",
+    detalle:
+      "Nombre, teléfono, correo y mensaje que escribe quien manda un pedido en /t/<taller>, las piezas, el vehículo y la dirección IP desde la que se mandó.",
+    para: "Que ese taller te contacte para atender el pedido (solo lo ven sus usuarios) y frenar envíos abusivos.",
   },
   {
     que: "Registro de actividad",

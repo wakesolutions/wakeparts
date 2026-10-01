@@ -7,6 +7,7 @@ import {
   IconoInventario,
   IconoLlave,
   IconoMostrador,
+  IconoSitio,
   IconoTaller,
   IconoVentas,
 } from "@/app/inicio/_components/modulos/iconos-modulos";
@@ -31,7 +32,7 @@ const CAPITULOS: EntradaIndice[] = [
   { id: "inventario", numero: "04", titulo: "Inventario" },
   { id: "tablas", numero: "05", titulo: "Tablas y formularios" },
   { id: "ventas", numero: "06", titulo: "Ventas y CAI" },
-  { id: "taller", numero: "07", titulo: "Taller y Mi usuario" },
+  { id: "taller", numero: "07", titulo: "Taller, sitio web y Mi usuario" },
   { id: "equipo", numero: "08", titulo: "Usuarios y roles" },
   { id: "mantenimiento", numero: "09", titulo: "Mantenimiento" },
   { id: "glosario", numero: "10", titulo: "Glosario" },
@@ -47,6 +48,8 @@ const PERMISOS: [string, boolean, boolean, boolean][] = [
   ["Anular facturas", true, true, false],
   ["Registrar CAI", true, true, false],
   ["Editar el taller, su apariencia y el formato de factura", true, true, false],
+  ["Publicar y editar el sitio web", true, true, false],
+  ["Atender pedidos del sitio web", true, true, true],
   ["Invitar y administrar usuarios", true, true, false],
   ["Ver la actividad: quién entró y qué cambió", true, true, false],
   ["Cambiar el rol de un dueño", true, false, false],
@@ -161,6 +164,7 @@ export default function Manual() {
               <IconoDock icono={<IconoMostrador />} nombre="Cotizar" />
               <IconoDock icono={<IconoInventario />} nombre="Inventario" />
               <IconoDock icono={<IconoVentas />} nombre="Ventas" />
+              <IconoDock icono={<IconoSitio />} nombre="Sitio web" />
               <IconoDock icono={<IconoLlave />} nombre="Mantenim." />
               <IconoDock icono={<IconoEquipo />} nombre="Usuarios" />
               <IconoDock icono={<IconoActividad />} nombre="Actividad" />
@@ -513,6 +517,12 @@ export default function Manual() {
                   </li>
                   <li>Las cotizaciones se numeran aparte (COT-000001) y valen 15 días.</li>
                 </ul>
+                <h3 className={styles.subtitulo}>Pedidos web</h3>
+                <p>
+                  Lo que los clientes mandan desde tu sitio web llega aquí como <em>Nuevo</em>, con su nombre,
+                  teléfono, vehículo y la lista de piezas. Abrilo y tocá <strong>Atender en el mostrador</strong>: se
+                  vuelve un carrito con el precio de hoy, listo para cotizar o facturar. Si no procede, descartalo.
+                </p>
                 <h3 className={styles.subtitulo}>Clientes</h3>
                 <p>
                   Con RTN (14 dígitos) salen con nombre y RTN en la factura; sin RTN, como consumidor final. Cualquier
@@ -569,8 +579,8 @@ export default function Manual() {
           <Capitulo
             id="taller"
             numero="07"
-            titulo="Taller y Mi usuario"
-            bajada="Los datos de tu negocio y los tuyos."
+            titulo="Taller, sitio web y Mi usuario"
+            bajada="Los datos de tu negocio, su vitrina en internet y los tuyos."
           >
             <div className={styles.dosColumnas}>
               <div>
@@ -592,6 +602,15 @@ export default function Manual() {
                 </p>
               </div>
               <div>
+                <h3 className={styles.subtitulo}>Sitio web</h3>
+                <p>
+                  Tu taller en internet, en <em>wakeparts…/t/tu-taller</em>: portada con tu fondo y tu logo, buscador
+                  por vehículo, catálogo, ficha de cada pieza, página <em>Nosotros</em> y una lista que el cliente te
+                  manda como pedido. En el módulo <strong>Sitio web</strong> elegís la dirección, el título de la
+                  portada, tu historia y fotos, los destacados, el WhatsApp y el horario, y si se muestran los precios.
+                  Solo salen los productos marcados «En catálogo» y con existencia, nunca el costo. Hasta que tocás{" "}
+                  <strong>Publicar</strong>, solo lo ven los de tu taller.
+                </p>
                 <h3 className={styles.subtitulo}>Mi usuario</h3>
                 <p>
                   Se abre tocando tu nombre en la barra de menú. Cambiá cómo te llamás en el sistema, reiniciá las

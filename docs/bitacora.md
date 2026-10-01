@@ -2,6 +2,19 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-01 · Catálogo web por empresa (migración 0013)
+
+- **Decisiones del usuario**: dirección `/t/<slug>`; los precios los muestra u oculta cada taller; los pedidos son «carrito → cotización» sin pagos en línea.
+- **Pedido web ≠ carrito directo**: lo del público llega a `pedidos_web` y el vendedor decide atenderlo (se vuelve carrito). Así el spam o las bromas no llenan las pestañas del mostrador, y queda registro de lo que pidió el cliente aunque después se cambie en el mostrador.
+- **Todo lo público pasa por RPC security definer** que devuelven solo lo publicable; a `anon` se le quitó `buscar_productos` porque entregaba el precio aunque el taller lo ocultara. Ocultar precios es una garantía de la base, no un detalle de la interfaz.
+- **El navegador nunca pone precios ni nombres**: `enviar_pedido_web` solo recibe ids y cantidades. Límite anti abuso en la base (6/h por IP, 3 cada 10 min por teléfono); la IP llega por `x-cliente-ip` (un atacante que llame a PostgREST directo puede falsearla: el límite por teléfono sigue valiendo).
+- **La lista vive en localStorage** (`wp:carrito-web:<slug>`), no en una cookie: no hace falta consentimiento y no viaja al servidor hasta mandar el pedido. Declarado en `/cookies`; los datos del pedido, en `/privacidad`.
+- **Mismo motor de búsqueda que el mostrador** (`buscar_productos` envuelta): «le queda / puede quedarle / general» se ve igual en el sitio y en el mostrador.
+- **El tema del sitio va en un contenedor** (`data-paleta` + acento con selector propio) y no en `<html>`: la cookie `wp_paleta` del visitante es de otro contexto.
+- **Destacados elegidos a mano** (lista en `sitio.destacados`) en vez de una columna en `productos`: no obliga a rehacer `v_productos` y el orden lo decide el dueño.
+- **/t/demo** (solo desarrollo) usa datos en memoria para revisar el sitio sin base; el editor y los pedidos tienen API inyectable para el sandbox.
+- **Pendiente propuesto**: aviso de pedidos nuevos (contador en el dock), dominio propio por taller, páginas de categoría indexables.
+
 ## 2026-10-01 · Identidad visual por empresa (migración 0012)
 
 - **Pedido del usuario**: «que esta gente sienta que el sistema se adapta claramente a su empresa». Cada empresa tiene **logo**, **fondo del escritorio** (con «Restablecer el de Wake Parts»), **tema** (base clara/oscura + color de marca) y **formato de factura**. Todo en Taller (pestañas Datos · Apariencia · Factura), solo dueño/admin; los empleados lo ven automáticamente.

@@ -2,11 +2,23 @@
 
 import type { DefModulo } from "@/components/ventanas/contexto";
 import type { Sesion } from "@/lib/sesion";
-import { IconoActividad, IconoEquipo, IconoInicio, IconoInventario, IconoLlave, IconoMostrador, IconoPerfil, IconoTaller, IconoVentas } from "./iconos-modulos";
+import {
+  IconoActividad,
+  IconoEquipo,
+  IconoInicio,
+  IconoInventario,
+  IconoLlave,
+  IconoMostrador,
+  IconoPerfil,
+  IconoSitio,
+  IconoTaller,
+  IconoVentas,
+} from "./iconos-modulos";
 import { ModuloActividad } from "./actividad";
 import { ModuloCotizar } from "./cotizar";
 import { ModuloInventario } from "./inventario";
 import { ModuloMiUsuario } from "./mi-usuario";
+import { ModuloSitioWeb } from "./sitio-web";
 import { ModuloMantenimiento, ModuloUsuarios } from "./tablas";
 import { ModuloTaller } from "./taller";
 import { ModuloVentas } from "./ventas";
@@ -44,6 +56,14 @@ export const MODULOS: ModuloEscritorio[] = [
     icono: <IconoVentas />,
     componente: ModuloVentas,
     tamano: { w: 1180, h: 720 },
+  },
+  {
+    id: "sitio",
+    nombre: "Sitio web",
+    icono: <IconoSitio />,
+    componente: ModuloSitioWeb,
+    tamano: { w: 1100, h: 780 },
+    visible: administra,
   },
   {
     id: "mantenimiento",

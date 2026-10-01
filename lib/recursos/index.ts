@@ -27,6 +27,7 @@ export const RECURSOS: Record<string, DefRecurso> = Object.fromEntries(
     ventas.clientes,
     ventas.cai,
     ventas.documentos,
+    ventas.pedidosWeb,
     registro.actividad,
     registro.actividadPlataforma,
   ].map((r) => [r.id, r]),

@@ -5,7 +5,7 @@ import styles from "./publico.module.css";
 import { CONTACTO, NOMBRE_SITIO, URL_SITIO } from "@/lib/sitio";
 
 /** Fecha de la última revisión de los textos legales (ISO). */
-export const LEGAL_ACTUALIZADO = "2026-09-29";
+export const LEGAL_ACTUALIZADO = "2026-10-01";
 const LEGAL_ACTUALIZADO_TEXTO = "29 de septiembre de 2026";
 
 export const PAGINAS_LEGALES = [

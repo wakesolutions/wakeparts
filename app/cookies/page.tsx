@@ -49,6 +49,10 @@ const LOCALES = [
     para: "Que ya viste el recorrido guiado, para no repetirlo.",
   },
   { nombre: "wp:aviso-cookies", para: "Que ya leíste este aviso." },
+  {
+    nombre: "wp:carrito-web:<taller>",
+    para: "Tu lista de piezas en el sitio de un taller y el último vehículo que elegiste. No sale de tu navegador hasta que mandás el pedido.",
+  },
 ];
 
 export default function Cookies() {

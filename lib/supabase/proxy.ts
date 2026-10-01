@@ -2,7 +2,8 @@ import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { contextoDe, registrar } from "@/lib/registro";
 
-// Públicas: portada, manual, páginas por departamento y archivos de metadatos
+// Públicas: portada, manual, páginas por departamento, sitios de los talleres
+// (/t/<slug>) y archivos de metadatos
 // (robots, sitemap, manifest, imágenes para redes e íconos generados).
 // /dev = sandbox de UI con sesión ficticia, solo en desarrollo.
 const RUTAS_PUBLICAS = [
@@ -13,6 +14,7 @@ const RUTAS_PUBLICAS = [
   "/cookies",
   "/privacidad",
   "/terminos",
+  "/t/",
   "/api/registro",
   "/robots.txt",
   "/sitemap.xml",
