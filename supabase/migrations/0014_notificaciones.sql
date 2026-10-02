@@ -22,7 +22,7 @@
 -- Sin trigger de auditoría (0011): son avisos, no datos del negocio; el pedido
 -- ya se audita.
 --
--- ESTADO: PENDIENTE (requiere 0013)
+-- ESTADO: YA APLICADA (confirmado 2026-10-02)
 -- Idempotente y transaccional: se puede ejecutar más de una vez.
 -- =============================================================================
 

@@ -25,7 +25,7 @@
 --                                precios»).
 --   · atender_pedido_web()       Pedido → carrito del mostrador.
 --
--- ESTADO: PENDIENTE (requiere 0004–0006; usa registrar_cambio() de 0011 si existe)
+-- ESTADO: YA APLICADA (confirmado 2026-10-02)
 -- Idempotente y transaccional: se puede ejecutar más de una vez.
 -- =============================================================================
 

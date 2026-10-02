@@ -1,6 +1,6 @@
 import type { DefRecurso, Opcion } from "./tipos";
 
-/** Ventas: clientes, CAI y documentos emitidos (cotizaciones y facturas). */
+/** Ventas: clientes, puntos de emisión, CAI y documentos emitidos (cotizaciones, facturas y notas). */
 
 const SI_NO: readonly Opcion[] = [
   { valor: "true", etiqueta: "Sí" },
@@ -10,6 +10,15 @@ const SI_NO: readonly Opcion[] = [
 export const TIPOS_DOCUMENTO: readonly Opcion[] = [
   { valor: "cotizacion", etiqueta: "Cotización" },
   { valor: "factura", etiqueta: "Factura" },
+  { valor: "nota_credito", etiqueta: "Nota de crédito" },
+  { valor: "nota_debito", etiqueta: "Nota de débito" },
+];
+
+/** Tipos de documento del SAR que se registran con CAI (parte TT del número). */
+export const TIPOS_CAI: readonly Opcion[] = [
+  { valor: "01", etiqueta: "01 · Factura" },
+  { valor: "06", etiqueta: "06 · Nota de crédito" },
+  { valor: "07", etiqueta: "07 · Nota de débito" },
 ];
 
 export const ESTADOS_DOCUMENTO: readonly Opcion[] = [
@@ -42,6 +51,7 @@ export const clientes: DefRecurso = {
     { clave: "direccion", etiqueta: "Dirección", tipo: "texto", ancho: 240, oculta: true },
     { clave: "facturas", etiqueta: "Facturas", tipo: "entero", ancho: 100 },
     { clave: "ultima_compra", etiqueta: "Último documento", tipo: "fecha", ancho: 160 },
+    { clave: "exonerado", etiqueta: "Exonerado", tipo: "booleano", ancho: 110, opciones: SI_NO, oculta: true },
     { clave: "activo", etiqueta: "Activo", tipo: "booleano", ancho: 90, opciones: SI_NO, oculta: true },
   ],
   campos: [
@@ -69,6 +79,22 @@ export const clientes: DefRecurso = {
     { nombre: "direccion", etiqueta: "Dirección", tipo: "texto", maxLargo: 200 },
     { nombre: "notas", etiqueta: "Notas", tipo: "textoLargo", maxLargo: 500, ancho: "completo" },
     { nombre: "activo", etiqueta: "Activo", tipo: "booleano", porDefecto: true },
+    {
+      nombre: "exonerado",
+      etiqueta: "Cliente exonerado del ISV",
+      tipo: "booleano",
+      seccion: "Exoneración",
+      ancho: "completo",
+      ayuda: "Embajadas, ONG, zonas libres… Al elegirlo en el mostrador, la factura sale exonerada.",
+    },
+    {
+      nombre: "exo_constancia",
+      etiqueta: "Constancia de registro de exonerado",
+      tipo: "texto",
+      mayusculas: true,
+      maxLargo: 60,
+    },
+    { nombre: "exo_registro_sag", etiqueta: "Registro de la SAG", tipo: "texto", mayusculas: true, maxLargo: 60, ayuda: "Solo si aplica." },
   ],
   mensajes: {
     duplicado: "Ya hay un cliente con ese RTN.",
@@ -87,11 +113,20 @@ export const cai: DefRecurso = {
   escritura: "empresa",
   titulo: "cai",
   orden: [{ columna: "fecha_limite", dir: "desc" }],
-  columnasInternas: ["tipo_documento"],
+  columnasInternas: ["id_punto_emision"],
   columnas: [
+    {
+      clave: "tipo_documento",
+      etiqueta: "Tipo",
+      tipo: "texto",
+      ancho: 170,
+      opciones: TIPOS_CAI,
+      filtro: { tipo: "opciones", opciones: TIPOS_CAI },
+    },
     { clave: "cai", etiqueta: "CAI", tipo: "texto", ancho: 330, buscable: true, formato: "codigo" },
     { clave: "establecimiento", etiqueta: "Estab.", tipo: "texto", ancho: 90, formato: "codigo" },
     { clave: "punto_emision", etiqueta: "Punto", tipo: "texto", ancho: 90, formato: "codigo" },
+    { clave: "punto", etiqueta: "Caja", tipo: "texto", ancho: 160, buscable: true, oculta: true },
     { clave: "rango_inicial", etiqueta: "Desde", tipo: "entero", ancho: 100 },
     { clave: "rango_final", etiqueta: "Hasta", tipo: "entero", ancho: 100 },
     { clave: "siguiente", etiqueta: "Siguiente", tipo: "entero", ancho: 110 },
@@ -117,24 +152,24 @@ export const cai: DefRecurso = {
       ayuda: "Como aparece en la resolución del SAR.",
     },
     {
-      nombre: "establecimiento",
-      etiqueta: "Establecimiento",
-      tipo: "texto",
+      nombre: "tipo_documento",
+      etiqueta: "Tipo de documento",
+      tipo: "opciones",
       requerido: true,
-      patron: "^\\d{1,3}$",
-      mensajePatron: "Hasta 3 dígitos.",
-      porDefecto: "000",
-      maxLargo: 3,
+      presentacion: "segmentos",
+      opciones: TIPOS_CAI,
+      porDefecto: "01",
+      ancho: "completo",
+      ayuda: "Cada tipo tiene su propio CAI y su propio rango en la resolución del SAR.",
     },
     {
-      nombre: "punto_emision",
+      nombre: "id_punto_emision",
       etiqueta: "Punto de emisión",
-      tipo: "texto",
+      tipo: "relacion",
       requerido: true,
-      patron: "^\\d{1,3}$",
-      mensajePatron: "Hasta 3 dígitos.",
-      porDefecto: "001",
-      maxLargo: 3,
+      relacion: { recurso: "puntos_emision", valor: "id", etiqueta: "etiqueta", fijo: { columna: "activo", valor: true } },
+      ancho: "completo",
+      ayuda: "Establecimiento y caja del rango. ¿No está? Agregalo en Ventas › Puntos de emisión.",
     },
     { nombre: "rango_inicial", etiqueta: "Rango desde", tipo: "entero", requerido: true, min: 1, max: 99999999, placeholder: "1" },
     { nombre: "rango_final", etiqueta: "Rango hasta", tipo: "entero", requerido: true, min: 1, max: 99999999, placeholder: "500" },
@@ -153,7 +188,7 @@ export const cai: DefRecurso = {
   ],
   mensajes: {
     duplicado: "Ese CAI ya está registrado.",
-    enUso: "No se puede eliminar: ya hay facturas con este CAI. Desactivalo.",
+    enUso: "No se puede eliminar: ya hay documentos con este CAI. Desactivalo.",
   },
 };
 
@@ -180,6 +215,7 @@ export const documentos: DefRecurso = {
       filtro: { tipo: "opciones", opciones: TIPOS_DOCUMENTO },
     },
     { clave: "numero", etiqueta: "Número", tipo: "texto", ancho: 200, buscable: true, formato: "codigo" },
+    { clave: "factura_numero", etiqueta: "Modifica a", tipo: "texto", ancho: 200, buscable: true, formato: "codigo", oculta: true },
     { clave: "cliente_nombre", etiqueta: "Cliente", tipo: "texto", ancho: 240, buscable: true },
     { clave: "cliente_rtn", etiqueta: "RTN", tipo: "texto", ancho: 150, buscable: true, formato: "codigo" },
     { clave: "vehiculo", etiqueta: "Vehículo", tipo: "texto", ancho: 220, buscable: true },
@@ -196,8 +232,84 @@ export const documentos: DefRecurso = {
     },
     { clave: "vence", etiqueta: "Vence", tipo: "fecha", ancho: 120, oculta: true },
     { clave: "vendedor", etiqueta: "Vendedor", tipo: "texto", ancho: 160, buscable: true },
+    { clave: "punto", etiqueta: "Punto", tipo: "texto", ancho: 110, formato: "codigo", oculta: true },
+    { clave: "exonerada", etiqueta: "Exonerada", tipo: "booleano", ancho: 110, opciones: SI_NO, oculta: true },
+    { clave: "importe_exonerado", etiqueta: "Exonerado", tipo: "decimal", ancho: 130, formato: "moneda", oculta: true },
   ],
   campos: [],
+};
+
+/** Establecimientos (sucursales) y puntos de emisión (cajas). Cada CAI es de uno. */
+export const puntosEmision: DefRecurso = {
+  id: "puntos_emision",
+  nombre: "punto de emisión",
+  nombrePlural: "Puntos de emisión",
+  vista: "v_puntos_emision",
+  tabla: "puntos_emision",
+  clave: "id",
+  ambito: "empresa",
+  escritura: "empresa",
+  titulo: "etiqueta",
+  orden: [{ columna: "codigo", dir: "asc" }],
+  columnasInternas: ["etiqueta"],
+  columnas: [
+    { clave: "codigo", etiqueta: "Código", tipo: "texto", ancho: 110, buscable: true, formato: "codigo" },
+    { clave: "nombre", etiqueta: "Caja", tipo: "texto", ancho: 180, buscable: true },
+    { clave: "sucursal", etiqueta: "Sucursal", tipo: "texto", ancho: 180, buscable: true },
+    { clave: "direccion", etiqueta: "Dirección", tipo: "texto", ancho: 240, oculta: true },
+    { clave: "predeterminado", etiqueta: "Predeterminado", tipo: "booleano", ancho: 140, opciones: SI_NO },
+    { clave: "usuarios", etiqueta: "Personas", tipo: "entero", ancho: 100 },
+    { clave: "cai_vigentes", etiqueta: "CAI vigentes", tipo: "entero", ancho: 120 },
+    { clave: "activo", etiqueta: "Activo", tipo: "booleano", ancho: 90, opciones: SI_NO },
+  ],
+  campos: [
+    {
+      nombre: "establecimiento",
+      etiqueta: "Establecimiento",
+      tipo: "texto",
+      requerido: true,
+      patron: "^\\d{1,3}$",
+      mensajePatron: "Hasta 3 dígitos.",
+      porDefecto: "000",
+      maxLargo: 3,
+      seccion: "Sucursal",
+      ayuda: "El código de la sucursal en la resolución del SAR (000, 001…).",
+    },
+    { nombre: "sucursal", etiqueta: "Nombre de la sucursal", tipo: "texto", requerido: true, maxLargo: 80, porDefecto: "Principal" },
+    {
+      nombre: "direccion",
+      etiqueta: "Dirección de la sucursal",
+      tipo: "texto",
+      maxLargo: 200,
+      ancho: "completo",
+      ayuda: "Sale en la factura si es distinta a la del taller.",
+    },
+    { nombre: "telefono", etiqueta: "Teléfono de la sucursal", tipo: "texto", maxLargo: 30, placeholder: "2222-0000" },
+    {
+      nombre: "punto_emision",
+      etiqueta: "Punto de emisión",
+      tipo: "texto",
+      requerido: true,
+      patron: "^\\d{1,3}$",
+      mensajePatron: "Hasta 3 dígitos.",
+      porDefecto: "001",
+      maxLargo: 3,
+      seccion: "Caja",
+      ayuda: "El código de la caja o computadora que emite (001, 002…).",
+    },
+    { nombre: "nombre", etiqueta: "Nombre de la caja", tipo: "texto", requerido: true, maxLargo: 80, porDefecto: "Caja principal" },
+    {
+      nombre: "predeterminado",
+      etiqueta: "Predeterminado",
+      tipo: "booleano",
+      ayuda: "Lo usa quien no tiene un punto asignado en Usuarios.",
+    },
+    { nombre: "activo", etiqueta: "Activo", tipo: "booleano", porDefecto: true },
+  ],
+  mensajes: {
+    duplicado: "Ya hay un punto con ese establecimiento y punto de emisión.",
+    enUso: "No se puede eliminar: tiene CAI o documentos. Desactivalo.",
+  },
 };
 
 export const ESTADOS_PEDIDO_WEB: readonly Opcion[] = [

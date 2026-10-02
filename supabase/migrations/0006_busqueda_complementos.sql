@@ -1,7 +1,7 @@
 -- =============================================================================
 -- 0006 · Búsqueda: complementos más precisos
 -- -----------------------------------------------------------------------------
--- ESTADO: PENDIENTE
+-- ESTADO: YA APLICADA (confirmado 2026-10-02)
 -- Idempotente y atómica. Requiere 0004.
 --
 -- buscar_productos() tomaba las categorías de los 12 primeros resultados para

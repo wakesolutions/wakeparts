@@ -13,12 +13,14 @@ import { VentanaFlotante } from "@/components/ventanas/ventana-flotante";
 import { PedidosWeb } from "@/components/sitio-web/pedidos-web";
 import { DocumentoVista } from "@/components/ventas/documento-vista";
 import { abrirCarritoEnMostrador } from "@/components/ventas/mostrador";
-import type { Documento } from "@/lib/ventas";
+import { NotaEditor, saldoFactura } from "@/components/ventas/nota-editor";
+import { fechaYHora, moneda } from "@/lib/formato";
+import { etiquetaMotivo, NOMBRE_DOCUMENTO, type Documento, type TipoNota } from "@/lib/ventas";
 import { useSesion } from "../sesion-contexto";
 import { ModuloTablas } from "./tablas";
 import styles from "./modulos.module.css";
 
-/** Ventas: documentos emitidos, pedidos del sitio web, clientes, reporte de ventas y CAI. */
+/** Ventas: documentos emitidos, pedidos del sitio web, clientes, reporte de ventas, puntos de emisión y CAI. */
 export function ModuloVentas() {
   return (
     <ModuloTablas
@@ -30,7 +32,8 @@ export function ModuloVentas() {
           items: [
             {
               recurso: "documentos",
-              descripcion: "Cotizaciones y facturas emitidas. Abrí una para imprimirla, repetirla o anularla.",
+              descripcion:
+                "Cotizaciones, facturas y notas de crédito o débito. Abrí una factura para imprimirla, repetirla, hacer una devolución o anularla.",
               contenido: () => <Documentos />,
             },
             {
@@ -41,7 +44,8 @@ export function ModuloVentas() {
             },
             {
               recurso: "clientes",
-              descripcion: "Clientes del taller. Con RTN salen en la factura; sin RTN, como consumidor final.",
+              descripcion:
+                "Clientes del taller. Con RTN salen en la factura; sin RTN, como consumidor final. Los exonerados facturan sin ISV.",
             },
           ],
         },
@@ -61,8 +65,14 @@ export function ModuloVentas() {
           nota: "Datos del SAR: sin un CAI vigente no se puede facturar.",
           items: [
             {
+              recurso: "puntos_emision",
+              descripcion:
+                "Sucursales y cajas que emiten. Cada persona factura con la suya (Usuarios) o con la predeterminada.",
+            },
+            {
               recurso: "cai",
-              descripcion: "Rangos autorizados por el SAR. Al acabarse o vencer uno, registrá el siguiente.",
+              descripcion:
+                "Rangos autorizados por el SAR para facturas (01), notas de crédito (06) y de débito (07), uno por punto de emisión. Al acabarse o vencer uno, registrá el siguiente.",
             },
           ],
         },
@@ -70,6 +80,9 @@ export function ModuloVentas() {
     />
   );
 }
+
+/** «?imprimir» abre el diálogo de impresión; la demo ya trae su propio «?id=». */
+const conImprimir = (url: string) => `${url}${url.includes("?") ? "&" : "?"}imprimir`;
 
 function Documentos() {
   const [abierto, setAbierto] = useState<{ id: string; numero: string } | null>(null);
@@ -96,6 +109,7 @@ function Documentos() {
             key={abierto.id}
             id={abierto.id}
             onCambio={() => setVersion((v) => v + 1)}
+            onAbrir={(id, numero) => setAbierto({ id, numero })}
           />
         </VentanaFlotante>
       )}
@@ -103,15 +117,26 @@ function Documentos() {
   );
 }
 
-function DetalleDocumento({ id, onCambio }: { id: string; onCambio: () => void }) {
+function DetalleDocumento({
+  id,
+  onCambio,
+  onAbrir,
+}: {
+  id: string;
+  onCambio: () => void;
+  /** Abre otro documento en esta misma ventana (la factura de una nota, o una nota recién emitida). */
+  onAbrir: (id: string, numero: string) => void;
+}) {
   const api = useApi("ventas");
   const { rol } = useSesion();
   const { identidad } = useIdentidad();
   const { abrir } = useVentanas();
+  const madre = useVentanaActual() ?? undefined;
   const [doc, setDoc] = useState<Documento | null | undefined>(undefined);
   const [anulando, setAnulando] = useState(false);
   const [motivo, setMotivo] = useState("");
   const [aviso, setAviso] = useState<string | null>(null);
+  const [nota, setNota] = useState<TipoNota | null>(null);
 
   useEffect(() => {
     let vivo = true;
@@ -142,19 +167,56 @@ function DetalleDocumento({ id, onCambio }: { id: string; onCambio: () => void }
   if (doc === undefined) return <div className={styles.cargando} style={{ margin: "1.2rem" }} aria-label="Cargando" />;
   if (doc === null) return <p className={styles.aviso} style={{ margin: "1.2rem" }}>No se encontró el documento.</p>;
 
-  const puedeAnular = (rol === "dueno" || rol === "admin") && doc.estado === "emitido";
+  const administra = rol === "dueno" || rol === "admin";
+  const esFactura = doc.tipo === "factura";
+  const esNota = doc.tipo === "nota_credito" || doc.tipo === "nota_debito";
+  const vigentes = (doc.notasRelacionadas ?? []).filter((n) => n.estado === "emitido");
+  const puedeAnular = administra && doc.estado === "emitido";
+  const puedeNotas = administra && esFactura && doc.estado === "emitido";
+  const saldo = esFactura ? saldoFactura(doc) : 0;
+
+  const textoAnular =
+    doc.tipo === "factura"
+      ? "Sí, anular y devolver existencias"
+      : doc.tipo === "nota_credito" && doc.reintegra_inventario
+        ? "Sí, anular y volver a sacar las piezas"
+        : "Sí, anular";
 
   return (
     <div className={styles.documento}>
       <div className={styles.documentoBarra}>
-        <a className={`${ui.boton} ${ui.primario}`} href={`${api.urlImpresion(id)}?imprimir`} target="_blank" rel="noopener">
+        <a className={`${ui.boton} ${ui.primario}`} href={conImprimir(api.urlImpresion(id))} target="_blank" rel="noopener">
           <IconoImprimir tamano={14} /> Imprimir
         </a>
-        <button type="button" className={ui.boton} onClick={aCarrito}>
-          <IconoCarrito tamano={14} /> {doc.tipo === "cotizacion" ? "Pasar a carrito para facturar" : "Repetir en un carrito"}
-        </button>
+        {!esNota && (
+          <button type="button" className={ui.boton} onClick={aCarrito}>
+            <IconoCarrito tamano={14} /> {doc.tipo === "cotizacion" ? "Pasar a carrito para facturar" : "Repetir en un carrito"}
+          </button>
+        )}
+        {puedeNotas && (
+          <>
+            <button type="button" className={ui.boton} onClick={() => setNota("nota_credito")} disabled={saldo <= 0}>
+              Nota de crédito
+            </button>
+            <button type="button" className={ui.boton} onClick={() => setNota("nota_debito")}>
+              Nota de débito
+            </button>
+          </>
+        )}
+        {esNota && doc.id_factura && (
+          <button type="button" className={ui.boton} onClick={() => onAbrir(doc.id_factura!, doc.factura_numero ?? "Factura")}>
+            Ver factura {doc.factura_numero}
+          </button>
+        )}
         {puedeAnular && !anulando && (
-          <button type="button" className={`${ui.boton} ${ui.fantasma} ${ui.peligro}`} onClick={() => setAnulando(true)}>
+          <button
+            type="button"
+            className={`${ui.boton} ${ui.fantasma} ${ui.peligro}`}
+            onClick={() => {
+              setAviso(null);
+              setAnulando(true);
+            }}
+          >
             Anular
           </button>
         )}
@@ -179,12 +241,67 @@ function DetalleDocumento({ id, onCambio }: { id: string; onCambio: () => void }
             Cancelar
           </button>
           <button type="submit" className={`${ui.boton} ${ui.peligro}`} disabled={!motivo.trim()}>
-            Sí, anular {doc.tipo === "factura" ? "y devolver existencias" : ""}
+            {textoAnular}
           </button>
         </form>
       )}
       {aviso && <p className={styles.aviso}>{aviso}</p>}
+
+      {esFactura && (doc.notasRelacionadas?.length ?? 0) > 0 && (
+        <section className={styles.notasFactura} aria-label="Notas de esta factura">
+          <header>
+            <span className={styles.notasEtiqueta}>Notas de esta factura</span>
+            <span className={styles.notasSaldo}>
+              Saldo <strong>{moneda(saldo)}</strong>
+              {vigentes.length > 0 && <small> de {moneda(doc.total)}</small>}
+            </span>
+          </header>
+          <ul>
+            {doc.notasRelacionadas!.map((n) => (
+              <li key={n.id} data-anulada={n.estado === "anulado" || undefined}>
+                <button type="button" onClick={() => onAbrir(n.id, n.numero)}>
+                  <span className={styles.notaTipo} data-tipo={n.tipo}>
+                    {n.tipo === "nota_credito" ? "NC" : "ND"}
+                  </span>
+                  <span className={styles.notaNumero}>{n.numero}</span>
+                  <span className={styles.notaMotivo}>
+                    {etiquetaMotivo(n.motivo_tipo)} · {fechaYHora(n.fecha)}
+                    {n.estado === "anulado" && " · anulada"}
+                  </span>
+                  <span className={styles.notaTotal}>
+                    {n.tipo === "nota_credito" ? "−" : "+"} {moneda(n.total)}
+                  </span>
+                </button>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       <DocumentoVista doc={doc} identidad={identidad} />
+
+      {nota && (
+        <VentanaFlotante
+          id="nota"
+          titulo={`${NOMBRE_DOCUMENTO[nota]} · ${doc.numero}`}
+          padre={madre}
+          tamano={{ w: 760, h: 720 }}
+          foco={`${nota}-${doc.id}`}
+          onCerrar={() => setNota(null)}
+        >
+          <NotaEditor
+            key={nota}
+            factura={doc}
+            tipo={nota}
+            onCancelar={() => setNota(null)}
+            onEmitida={(nuevo, numero) => {
+              setNota(null);
+              onCambio();
+              onAbrir(nuevo, numero);
+            }}
+          />
+        </VentanaFlotante>
+      )}
     </div>
   );
 }

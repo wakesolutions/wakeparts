@@ -20,11 +20,17 @@ import type { DatosReporte } from "@/lib/reportes/tipos";
 import type { FilaCompat, NivelVehiculo } from "@/lib/vehiculos";
 import {
   calcularTotales,
+  CODIGO_TIPO_DOCUMENTO,
+  pendienteDevolver,
+  totalesNota,
   type Carrito,
   type Cliente,
   type Documento,
-  type LineaCarrito,
+  type LineaAcreditable,
   type ResultadoBusqueda,
+  type LineaCarrito,
+  type PuntoEmision,
+  type TipoCualquierDocumento,
 } from "@/lib/ventas";
 
 /**
@@ -144,14 +150,125 @@ const espera = <T>(v: T, ms = 120) => new Promise<T>((r) => setTimeout(() => r(v
 
 let carritos: Carrito[] = [];
 const lineas = new Map<string, LineaCarrito[]>();
-const clientes: Cliente[] = [
+type ClienteDemo = Cliente & { exonerado?: boolean; exo_constancia?: string | null };
+const clientes: ClienteDemo[] = [
   { id: 1, nombre: "TRANSPORTES LÓPEZ S. DE R.L.", rtn: "08019010123456", telefono: "2233-4455" },
   { id: 2, nombre: "JUAN PÉREZ", rtn: null, telefono: "9988-7766" },
+  {
+    id: 3,
+    nombre: "COOPERATIVA AGRÍCOLA LOS PINOS",
+    rtn: "08019015987654",
+    telefono: "2780-1122",
+    exonerado: true,
+    exo_constancia: "CRE-2026-0451",
+  },
 ];
-const documentos: Documento[] = [];
+/** Documentos y sus líneas con id propio (las notas apuntan a líneas de la factura). */
+type DocumentoDemo = Omit<Documento, "lineas"> & { lineas: (Documento["lineas"][number] & { id_linea_origen?: number })[] };
+const documentos: DocumentoDemo[] = [];
 let correlativoCot = 1;
-let correlativoFac = 1;
+const correlativos: Record<Exclude<TipoCualquierDocumento, "cotizacion">, number> = { factura: 1, nota_credito: 1, nota_debito: 1 };
 let siguienteLinea = 1;
+let siguienteLineaDoc = 1;
+
+/** Punto de emisión de la demo (uno solo: Caja principal, 000-001). */
+const PUNTO_DEMO: PuntoEmision = { id: 1, codigo: "000-001", nombre: "Caja principal", sucursal: "Principal" };
+const CAI_DEMO = {
+  factura: "35BD6A-0195F4-B34BAA-8B7D13-37F5E8-2D",
+  nota_credito: "8C21F0-77AB34-19DE60-4A5B2C-93E1F7-0A",
+  nota_debito: "D4E8A1-2B6C90-F35E17-60AA4D-C1B83E-5F",
+};
+const EMISOR_DEMO: Documento["emisor"] = {
+  nombre: "Yonker Demo",
+  razon_social: "Repuestos Demo S. de R.L.",
+  rtn: "08011990123456",
+  telefono: "2222-0000",
+  correo: "ventas@demo.hn",
+  direccion: "Tegucigalpa, Francisco Morazán",
+  sucursal: "Principal",
+  punto: "Caja principal",
+};
+
+/** Siguiente número con CAI de la demo: 000-001-TT-NNNNNNNN. */
+function numeroCai(tipo: Exclude<TipoCualquierDocumento, "cotizacion">) {
+  const tt = CODIGO_TIPO_DOCUMENTO[tipo];
+  const n = correlativos[tipo]++;
+  return {
+    numero: `000-001-${tt}-${String(n).padStart(8, "0")}`,
+    cai: CAI_DEMO[tipo],
+    cai_rango: `000-001-${tt}-00000001 al 000-001-${tt}-00000500`,
+    cai_fecha_limite: "2027-03-31",
+  };
+}
+
+/** Lo común de un documento nuevo de la demo. */
+const baseDocumento = (): Pick<
+  Documento,
+  | "exoneracion"
+  | "id_factura"
+  | "factura_numero"
+  | "factura_fecha"
+  | "factura_cai"
+  | "motivo_tipo"
+  | "motivo"
+  | "reintegra_inventario"
+  | "importe_exonerado"
+> => ({
+  exoneracion: null,
+  id_factura: null,
+  factura_numero: null,
+  factura_fecha: null,
+  factura_cai: null,
+  motivo_tipo: null,
+  motivo: null,
+  reintegra_inventario: false,
+  importe_exonerado: 0,
+});
+
+function acreditables(idFactura: string): LineaAcreditable[] {
+  const f = documentos.find((d) => d.id === idFactura);
+  if (!f) return [];
+  const notas = documentos.filter((d) => d.id_factura === idFactura && d.tipo === "nota_credito" && d.estado === "emitido");
+  return f.lineas.map((l) => {
+    const devueltas = notas.flatMap((n) => n.lineas.filter((x) => x.id_linea_origen === l.id));
+    return {
+      id: l.id,
+      codigo: l.codigo,
+      descripcion: l.descripcion,
+      cantidad: l.cantidad,
+      precio: l.precio,
+      descuento_pct: l.descuento_pct,
+      exento: l.exento,
+      total: l.total,
+      controla_inventario: PRODUCTOS.some((p) => p.codigo === l.codigo && p.controla_inventario),
+      devuelto: centavos(devueltas.reduce((s, x) => s + x.cantidad, 0)),
+      acreditado: centavos(devueltas.reduce((s, x) => s + x.total, 0)),
+    };
+  });
+}
+
+function saldoDemo(f: Documento) {
+  return centavos(
+    documentos
+      .filter((d) => d.id_factura === f.id && d.estado === "emitido")
+      .reduce((s, n) => s + (n.tipo === "nota_debito" ? n.total : -n.total), f.total),
+  );
+}
+
+const conNotas = (d: DocumentoDemo): Documento => ({
+  ...d,
+  notasRelacionadas: documentos
+    .filter((n) => n.id_factura === d.id)
+    .map((n) => ({
+      id: n.id,
+      tipo: n.tipo as "nota_credito" | "nota_debito",
+      numero: n.numero,
+      fecha: n.fecha,
+      total: n.total,
+      estado: n.estado,
+      motivo_tipo: n.motivo_tipo,
+    })),
+});
 
 function nuevoCarrito(): Carrito {
   const ahora = new Date().toISOString();
@@ -174,6 +291,10 @@ function nuevoCarrito(): Carrito {
     creado_por_nombre: "Demo Sandbox",
     creado_en: ahora,
     actualizado_en: ahora,
+    exonerado: false,
+    exo_orden_compra: null,
+    exo_constancia: null,
+    exo_registro_sag: null,
   };
 }
 
@@ -257,7 +378,15 @@ const ventas: Apis["ventas"] = {
     Object.assign(c, cambios);
     if (cambios.id_cliente) {
       const cli = clientes.find((x) => x.id === cambios.id_cliente);
-      if (cli) Object.assign(c, { cliente_nombre: cli.nombre, cliente_rtn: cli.rtn, cliente_telefono: cli.telefono });
+      if (cli)
+        Object.assign(c, {
+          cliente_nombre: cli.nombre,
+          cliente_rtn: cli.rtn,
+          cliente_telefono: cli.telefono,
+          exonerado: Boolean(cli.exonerado),
+          exo_constancia: cli.exo_constancia ?? null,
+          exo_orden_compra: null,
+        });
     }
     if (typeof cambios.cliente_nombre === "string") c.cliente_nombre = cambios.cliente_nombre.toUpperCase();
     if ("id_marca" in cambios) {
@@ -329,25 +458,33 @@ const ventas: Apis["ventas"] = {
     const c = carritos.find((x) => x.id === idCarrito);
     const ls = lineas.get(idCarrito) ?? [];
     if (!c || !ls.length) return { ok: false as const, error: "El carrito está vacío." };
-    const t = calcularTotales(ls, c.descuento_pct);
-    const numero = tipo === "factura" ? `000-001-01-${String(correlativoFac++).padStart(8, "0")}` : `COT-${String(correlativoCot++).padStart(6, "0")}`;
-    const doc: Documento = {
+    if (tipo === "factura" && c.exonerado) {
+      if (!c.cliente_rtn) return { ok: false as const, error: "Una factura exonerada lleva el RTN del cliente." };
+      if (!c.exo_orden_compra && !c.exo_constancia) {
+        return { ok: false as const, error: "Escribí la orden de compra exenta o la constancia de registro de exonerado." };
+      }
+    }
+    const t = calcularTotales(ls, c.descuento_pct, c.exonerado);
+    const cai =
+      tipo === "factura"
+        ? numeroCai("factura")
+        : { numero: `COT-${String(correlativoCot++).padStart(6, "0")}`, cai: null, cai_rango: null, cai_fecha_limite: null };
+    const numero = cai.numero;
+    const doc: DocumentoDemo = {
+      ...baseDocumento(),
       id: crypto.randomUUID(),
       tipo,
       numero,
       fecha: new Date().toISOString(),
       vence: tipo === "cotizacion" ? new Date(Date.now() + 15 * 864e5).toISOString().slice(0, 10) : null,
-      cai: tipo === "factura" ? "35BD6A-0195F4-B34BAA-8B7D13-37F5E8-2D" : null,
-      cai_rango: tipo === "factura" ? "000-001-01-00000001 al 000-001-01-00000500" : null,
-      cai_fecha_limite: tipo === "factura" ? "2027-03-31" : null,
-      emisor: {
-        nombre: "Yonker Demo",
-        razon_social: "Repuestos Demo S. de R.L.",
-        rtn: "08011990123456",
-        telefono: "2222-0000",
-        correo: "ventas@demo.hn",
-        direccion: "Tegucigalpa, Francisco Morazán",
-      },
+      cai: cai.cai,
+      cai_rango: cai.cai_rango,
+      cai_fecha_limite: cai.cai_fecha_limite,
+      emisor: EMISOR_DEMO,
+      exoneracion: c.exonerado
+        ? { orden_compra: c.exo_orden_compra, constancia: c.exo_constancia, registro_sag: c.exo_registro_sag }
+        : null,
+      importe_exonerado: t.exonerado,
       cliente_nombre: c.cliente_nombre ?? "CONSUMIDOR FINAL",
       cliente_rtn: c.cliente_rtn,
       cliente_telefono: c.cliente_telefono,
@@ -363,7 +500,7 @@ const ventas: Apis["ventas"] = {
       motivo_anulacion: null,
       vendedor: "Demo Sandbox",
       lineas: ls.map((l, i) => ({
-        id: i + 1,
+        id: siguienteLineaDoc++,
         codigo: l.codigo,
         descripcion: l.descripcion,
         cantidad: l.cantidad,
@@ -379,10 +516,16 @@ const ventas: Apis["ventas"] = {
     guardarDocumentoDemo(doc);
     return espera({ ok: true as const, id: doc.id, numero }, 400);
   },
-  documento: async (id) => espera(documentos.find((d) => d.id === id) ?? null),
+  documento: async (id) => {
+    const d = documentos.find((x) => x.id === id);
+    return espera(d ? conNotas(d) : null);
+  },
   carritoDesdeDocumento: async (id) => {
     const d = documentos.find((x) => x.id === id);
     if (!d) return { ok: false as const, error: "No existe." };
+    if (d.tipo !== "cotizacion" && d.tipo !== "factura") {
+      return { ok: false as const, error: "Solo una cotización o una factura se pueden pasar a un carrito." };
+    }
     const c = { ...nuevoCarrito(), nombre: d.numero, cliente_nombre: d.cliente_nombre, cliente_rtn: d.cliente_rtn };
     carritos.push(c);
     lineas.set(
@@ -391,11 +534,106 @@ const ventas: Apis["ventas"] = {
     );
     return espera({ ok: true as const, id: c.id });
   },
-  anular: async (id) => {
+  anular: async (id, motivo) => {
     const d = documentos.find((x) => x.id === id);
-    if (d) d.estado = "anulado";
+    if (!d) return { ok: false as const, error: "El documento no existe." };
+    if (d.tipo === "factura" && documentos.some((n) => n.id_factura === id && n.estado === "emitido")) {
+      return { ok: false as const, error: "Esta factura tiene notas de crédito o débito vigentes: anulalas primero." };
+    }
+    d.estado = "anulado";
+    d.motivo_anulacion = motivo;
+    guardarDocumentoDemo(conNotas(d));
     return espera({ ok: true as const });
   },
+  lineasAcreditables: async (id) => espera(acreditables(id)),
+  emitirNota: async (idFactura, nota) => {
+    const f = documentos.find((d) => d.id === idFactura);
+    if (!f || f.tipo !== "factura" || f.estado !== "emitido") return { ok: false as const, error: "La factura no se puede modificar." };
+    if (!nota.motivo.trim()) return { ok: false as const, error: "Escribí el motivo de la nota." };
+    const lineasF = acreditables(idFactura);
+    const devolucion = nota.motivo_tipo === "devolucion";
+    type Entrada = { linea: LineaAcreditable; cantidad: number } | { monto: number; exento: boolean; descripcion: string };
+    const entradas: Entrada[] = nota.lineas.map((l) =>
+      "id_linea" in l
+        ? { linea: lineasF.find((x) => x.id === l.id_linea)!, cantidad: l.cantidad }
+        : { monto: l.monto, exento: l.exento, descripcion: l.descripcion },
+    );
+    for (const e of entradas) {
+      if ("linea" in e && (!e.linea || e.cantidad > pendienteDevolver(e.linea))) {
+        return { ok: false as const, error: `«${e.linea?.descripcion ?? "Línea"}»: no quedan tantas por devolver.` };
+      }
+    }
+    const t = totalesNota(entradas, f.exoneracion != null);
+    if (nota.tipo === "nota_credito" && t.total > saldoDemo(f) + 0.02) {
+      return { ok: false as const, error: "La nota supera lo que queda de la factura." };
+    }
+    const cai = numeroCai(nota.tipo);
+    const doc: DocumentoDemo = {
+      ...baseDocumento(),
+      id: crypto.randomUUID(),
+      tipo: nota.tipo,
+      numero: cai.numero,
+      fecha: new Date().toISOString(),
+      vence: null,
+      cai: cai.cai,
+      cai_rango: cai.cai_rango,
+      cai_fecha_limite: cai.cai_fecha_limite,
+      emisor: EMISOR_DEMO,
+      exoneracion: f.exoneracion,
+      id_factura: f.id,
+      factura_numero: f.numero,
+      factura_fecha: f.fecha,
+      factura_cai: f.cai,
+      motivo_tipo: nota.motivo_tipo,
+      motivo: nota.motivo.trim(),
+      reintegra_inventario: devolucion && nota.reintegrar,
+      cliente_nombre: f.cliente_nombre,
+      cliente_rtn: f.cliente_rtn,
+      cliente_telefono: f.cliente_telefono,
+      vehiculo: f.vehiculo,
+      subtotal: t.exento + t.gravado + t.exonerado,
+      descuento: 0,
+      importe_exento: t.exento,
+      importe_gravado: t.gravado,
+      importe_exonerado: t.exonerado,
+      isv: t.isv,
+      total: t.total,
+      notas: null,
+      estado: "emitido",
+      motivo_anulacion: null,
+      vendedor: "Demo Sandbox",
+      lineas: entradas.map((e, i) =>
+        "linea" in e
+          ? {
+              id: siguienteLineaDoc++,
+              codigo: e.linea.codigo,
+              descripcion: e.linea.descripcion,
+              cantidad: e.cantidad,
+              precio: e.linea.precio,
+              descuento_pct: e.linea.descuento_pct,
+              descuento: centavos(e.cantidad * e.linea.precio - t.netos[i]),
+              exento: e.linea.exento,
+              total: t.netos[i],
+              id_linea_origen: e.linea.id,
+            }
+          : {
+              id: siguienteLineaDoc++,
+              codigo: null,
+              descripcion: e.descripcion,
+              cantidad: 1,
+              precio: e.monto,
+              descuento_pct: 0,
+              descuento: 0,
+              exento: e.exento,
+              total: t.netos[i],
+            },
+      ),
+    };
+    documentos.push(doc);
+    guardarDocumentoDemo(doc);
+    return espera({ ok: true as const, id: doc.id, numero: doc.numero }, 400);
+  },
+  puntoEmision: async () => espera(PUNTO_DEMO),
   urlImpresion: (id) => `/demo/documento?id=${id}`,
 };
 
@@ -822,6 +1060,23 @@ const BASES: Record<string, () => Fila[]> = {
       orden_arbol: String(i).padStart(4, "0"),
       id_empresa: null,
     })),
+  puntos_emision: () => [
+    {
+      id: PUNTO_DEMO.id,
+      codigo: PUNTO_DEMO.codigo,
+      establecimiento: "000",
+      punto_emision: "001",
+      nombre: PUNTO_DEMO.nombre,
+      sucursal: PUNTO_DEMO.sucursal,
+      etiqueta: `${PUNTO_DEMO.codigo} · ${PUNTO_DEMO.nombre}`,
+      direccion: "Tegucigalpa, Francisco Morazán",
+      telefono: null,
+      predeterminado: true,
+      usuarios: 0,
+      cai_vigentes: 3,
+      activo: true,
+    },
+  ],
   clientes: () =>
     clientes.map((c) => {
       const docs = documentos.filter((d) => d.cliente_nombre === c.nombre);
@@ -835,26 +1090,30 @@ const BASES: Record<string, () => Fila[]> = {
         facturas: docs.filter((d) => d.tipo === "factura").length,
         ultima_compra: docs.at(-1)?.fecha ?? null,
         activo: true,
+        exonerado: Boolean(c.exonerado),
+        exo_constancia: c.exo_constancia ?? null,
+        exo_registro_sag: null,
       };
     }),
-  cai: () => [
-    {
-      id: 1,
-      cai: "35A2B1-8C9D4E-F0A1B2-C3D4E5-F6A7B8-9C",
-      tipo_documento: "01",
+  cai: () =>
+    (["factura", "nota_credito", "nota_debito"] as const).map((tipo, i) => ({
+      id: i + 1,
+      cai: CAI_DEMO[tipo],
+      tipo_documento: CODIGO_TIPO_DOCUMENTO[tipo],
       establecimiento: "000",
       punto_emision: "001",
+      punto: PUNTO_DEMO.nombre,
+      id_punto_emision: PUNTO_DEMO.id,
       rango_inicial: 1,
-      rango_final: 5000,
-      siguiente: correlativoFac,
-      disponibles: 5001 - correlativoFac,
-      usado_pct: Math.round(((correlativoFac - 1) / 5000) * 10000) / 100,
-      fecha_limite: `${new Date().getFullYear()}-12-31`,
-      dias_restantes: Math.ceil((new Date(new Date().getFullYear(), 11, 31).getTime() - HOY) / 86_400_000),
+      rango_final: 500,
+      siguiente: correlativos[tipo],
+      disponibles: 501 - correlativos[tipo],
+      usado_pct: Math.round(((correlativos[tipo] - 1) / 500) * 10000) / 100,
+      fecha_limite: "2027-03-31",
+      dias_restantes: Math.ceil((new Date(2027, 2, 31).getTime() - HOY) / 86_400_000),
       vigente: true,
       activo: true,
-    },
-  ],
+    })),
   documentos: () =>
     documentos.map((d) => ({
       id: d.id,
@@ -870,6 +1129,10 @@ const BASES: Record<string, () => Fila[]> = {
       estado: d.estado,
       vence: d.vence,
       vendedor: d.vendedor,
+      factura_numero: d.factura_numero,
+      punto: d.cai ? PUNTO_DEMO.codigo : null,
+      exonerada: d.exoneracion != null,
+      importe_exonerado: d.importe_exonerado,
     })),
   pedidos_web: () =>
     pedidosDemo.map((p) => ({

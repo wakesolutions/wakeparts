@@ -14,6 +14,7 @@ import {
   type Carrito,
   type Cliente,
   type LineaCarrito,
+  type PuntoEmision,
   type TipoDocumento,
 } from "@/lib/ventas";
 import { Odometro } from "./odometro";
@@ -47,14 +48,32 @@ export function Ticket({
   onEmitir,
   onDescartar,
 }: Props) {
-  const totales = calcularTotales(lineas, carrito.descuento_pct);
+  const api = useApi("ventas");
+  const totales = calcularTotales(lineas, carrito.descuento_pct, carrito.exonerado);
   const [confirmar, setConfirmar] = useState<TipoDocumento | null>(null);
   const [libre, setLibre] = useState(false);
-  const utilidad = totales.gravado + totales.exento - totales.costo;
+  const [punto, setPunto] = useState<PuntoEmision | null | undefined>(undefined);
+  const utilidad = totales.gravado + totales.exonerado + totales.exento - totales.costo;
+
+  // Al confirmar una factura se dice con qué caja sale (su CAI y su numeración).
+  useEffect(() => {
+    if (confirmar !== "factura" || punto !== undefined) return;
+    let vivo = true;
+    api
+      .puntoEmision()
+      .then((p) => vivo && setPunto(p))
+      .catch(() => vivo && setPunto(null));
+    return () => {
+      vivo = false;
+    };
+  }, [api, confirmar, punto]);
 
   return (
     <aside className={styles.ticket} aria-label="Carrito" data-recorrido="ticket">
-      <Cliente carrito={carrito} onCambiar={onCambiarCarrito} />
+      <div className={styles.encabezado}>
+        <Cliente carrito={carrito} onCambiar={onCambiarCarrito} />
+        <Exoneracion carrito={carrito} onCambiar={onCambiarCarrito} />
+      </div>
 
       <div className={styles.lineas}>
         {lineas.length === 0 ? (
@@ -110,14 +129,23 @@ export function Ticket({
               <dd>{moneda(totales.exento)}</dd>
             </div>
           )}
-          <div>
-            <dt>Gravado 15 %</dt>
-            <dd>{moneda(totales.gravado)}</dd>
-          </div>
-          <div>
-            <dt>ISV 15 %</dt>
-            <dd>{moneda(totales.isv)}</dd>
-          </div>
+          {carrito.exonerado ? (
+            <div data-tono="exonerado">
+              <dt>Exonerado · sin ISV</dt>
+              <dd>{moneda(totales.exonerado)}</dd>
+            </div>
+          ) : (
+            <>
+              <div>
+                <dt>Gravado 15 %</dt>
+                <dd>{moneda(totales.gravado)}</dd>
+              </div>
+              <div>
+                <dt>ISV 15 %</dt>
+                <dd>{moneda(totales.isv)}</dd>
+              </div>
+            </>
+          )}
           {veMargen && lineas.length > 0 && (
             <div data-tono={utilidad < 0 ? "negativo" : "utilidad"}>
               <dt>Utilidad</dt>
@@ -141,7 +169,14 @@ export function Ticket({
               <strong>{carrito.cliente_nombre ?? "Consumidor final"}</strong>
               {carrito.cliente_rtn ? ` (RTN ${formatoRtn(carrito.cliente_rtn)})` : ""}?
             </p>
-            {confirmar === "factura" && <p className={styles.confirmarNota}>La factura usa el siguiente número del CAI y descuenta existencias.</p>}
+            {confirmar === "factura" && (
+              <p className={styles.confirmarNota}>
+                {punto
+                  ? `Sale de ${punto.nombre} (${punto.codigo}) con el siguiente número de su CAI`
+                  : "La factura usa el siguiente número del CAI"}
+                {carrito.exonerado ? ", exonerada del ISV" : ""} y descuenta existencias.
+              </p>
+            )}
             <div className={styles.botones}>
               <button type="button" className={`${ui.boton} ${ui.fantasma}`} onClick={() => setConfirmar(null)}>
                 Volver
@@ -378,6 +413,66 @@ function Descuento({ carrito, subtotal, onCambiar }: { carrito: Carrito; subtota
         </button>
       </div>
     </form>
+  );
+}
+
+// ----------------------------------------------------------- exoneración ----
+
+/**
+ * Cliente exonerado (embajadas, ONG, zonas libres…): lo gravado sale como
+ * importe exonerado, sin ISV. La factura pide RTN y la orden de compra exenta
+ * o la constancia de registro de exonerado.
+ */
+function Exoneracion({ carrito, onCambiar }: { carrito: Carrito; onCambiar: (c: CambiosCarrito) => void }) {
+  const faltaRtn = carrito.exonerado && !carrito.cliente_rtn;
+  const faltaDocumento = carrito.exonerado && !carrito.exo_orden_compra && !carrito.exo_constancia;
+
+  if (!carrito.exonerado) {
+    return (
+      <button type="button" className={styles.exoActivar} onClick={() => onCambiar({ exonerado: true })}>
+        <span className={styles.exoLed} aria-hidden="true" /> Exonerado del ISV
+      </button>
+    );
+  }
+
+  const campo = (clave: "exo_orden_compra" | "exo_constancia" | "exo_registro_sag", etiqueta: string, ejemplo: string) => (
+    <label className={styles.exoCampo}>
+      <span>{etiqueta}</span>
+      <input
+        className={`${ui.campo} ${ui.campoMono}`}
+        key={`${carrito.id}-${clave}-${carrito[clave] ?? ""}`}
+        defaultValue={carrito[clave] ?? ""}
+        placeholder={ejemplo}
+        maxLength={60}
+        onBlur={(e) => {
+          const v = e.target.value.trim().toUpperCase() || null;
+          if (v !== carrito[clave]) onCambiar({ [clave]: v });
+        }}
+        onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
+      />
+    </label>
+  );
+
+  return (
+    <fieldset className={styles.exo}>
+      <legend className={styles.exoTitulo}>
+        <span className={styles.exoLed} data-encendido="" aria-hidden="true" /> Exonerado del ISV
+        <button type="button" className={styles.exoQuitar} onClick={() => onCambiar({ exonerado: false })}>
+          Quitar
+        </button>
+      </legend>
+      <div className={styles.exoCampos}>
+        {campo("exo_orden_compra", "Orden de compra exenta", "OCE-0001")}
+        {campo("exo_constancia", "Constancia de exonerado", "CRE-0001")}
+        {campo("exo_registro_sag", "Registro SAG", "Si aplica")}
+      </div>
+      {(faltaRtn || faltaDocumento) && (
+        <p className={styles.exoAviso}>
+          {faltaRtn ? "Para facturar exonerado, el cliente lleva RTN. " : ""}
+          {faltaDocumento ? "Escribí la orden de compra exenta o la constancia." : ""}
+        </p>
+      )}
+    </fieldset>
   );
 }
 

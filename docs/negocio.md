@@ -58,9 +58,13 @@ Muchos negocios hacen ambas cosas; el modelo de datos debe soportar las dos form
 - **Pedidos**: el visitante arma una lista y la manda con nombre y teléfono (decidido con el usuario: «carrito → cotización», **sin pagos en línea**). Llega a **Ventas › Pedidos web**; el vendedor la atiende y se vuelve un carrito del mostrador con el precio de hoy, de ahí cotización o factura como siempre. Además, WhatsApp para preguntar.
 - Usa la identidad de la empresa (paleta, color de marca, logo, fondo).
 
-### 3.5 Facturación con CAI (Implementado lo básico · a verificar la normativa)
+### 3.5 Facturación con CAI (Implementado · algunos puntos a verificar)
 
-> Hecho en 0005 con estas **decisiones a confirmar con el usuario o su contador**: precios capturados **sin ISV** (el ISV 15 % se suma en la factura; se ve el precio con ISV en todo el mostrador); tipo de documento `01` para facturas; cotizaciones sin valor fiscal con numeración interna `COT-000001` y vigencia de 15 días; leyendas impresas «La factura es beneficio de todos. Exíjala.» y «Original: cliente · Copia: emisor»; «Importe exonerado» siempre 0 (sin flujo de exoneración todavía); no hay aviso anticipado de rango/fecha por agotarse (solo se ve en Ventas › CAI). Pendiente: notas de crédito/débito, exoneraciones, varios puntos de emisión por usuario.
+> Hecho en 0005 con estas **decisiones a confirmar con el usuario o su contador**: precios capturados **sin ISV** (el ISV 15 % se suma en la factura; se ve el precio con ISV en todo el mostrador); cotizaciones sin valor fiscal con numeración interna `COT-000001` y vigencia de 15 días; leyendas impresas «La factura es beneficio de todos. Exíjala.» y «Original: cliente · Copia: emisor»; no hay aviso anticipado de rango/fecha por agotarse (solo se ve en Ventas › CAI).
+>
+> **Confirmado por el usuario (2026-10-02)**: el SAR **no** exige registrar ni autorizar el sistema que emite; basta el CAI de cada empresa.
+>
+> Hecho en **0016** (pedido del usuario): notas de crédito y débito, devoluciones, exoneraciones y varios puntos de emisión. Detalle en §3.7.
 
 
 > Resumen de lo que se entiende del Régimen de Facturación del SAR. **Confirmar con el usuario o su contador antes de implementar**; la normativa cambia.
@@ -71,7 +75,7 @@ Muchos negocios hacen ambas cosas; el modelo de datos debe soportar las dos form
 - Pueden coexistir varios CAI (uno por tipo de documento o punto de emisión); cuando uno se agota o vence, se registra otro.
 
 **Numeración del documento**: `EEE-PPP-TT-NNNNNNNN`
-- `EEE` establecimiento, `PPP` punto de emisión, `TT` tipo de documento (`01` = factura; otros tipos, como notas de crédito/débito: **a verificar** su código), `NNNNNNNN` correlativo de 8 dígitos.
+- `EEE` establecimiento, `PPP` punto de emisión, `TT` tipo de documento (`01` factura, `06` nota de crédito, `07` nota de débito, según el Reglamento del Régimen de Facturación, Acuerdo 481-2017), `NNNNNNNN` correlativo de 8 dígitos.
 - El correlativo es **estrictamente secuencial y sin huecos** dentro del rango del CAI. Se asigna en la base, dentro de una transacción con bloqueo, nunca en el cliente.
 - No se puede emitir si el siguiente número excede el rango o si la fecha actual pasó la fecha límite. Avisar al usuario con anticipación (p. ej. 80 % del rango usado o 30 días antes de vencer).
 - Un documento emitido **no se borra**: se anula conservando su número.
@@ -98,6 +102,29 @@ Muchos negocios hacen ambas cosas; el modelo de datos debe soportar las dos form
 - Se emite **cotización** o **factura** a nombre de un cliente (con RTN) o de consumidor final. La factura descuenta existencias; anularla las devuelve.
 - Una cotización se pasa a carrito para facturarla después (Ventas › Documentos).
 - El mismo `buscar_productos()` sirve para el catálogo web: el público solo ve productos visibles con existencia y sin costo.
+
+### 3.7 Notas, devoluciones, exoneraciones y puntos de emisión (Implementado · 0016)
+
+**Puntos de emisión**
+- Cada empresa registra sus **establecimientos** (sucursal, código de 3 dígitos, dirección propia) y **puntos de emisión** (cajas, 3 dígitos). Uno es el **predeterminado**.
+- Cada CAI pertenece a un punto y a un tipo de documento. Pueden coexistir varios CAI por punto (uno por tipo).
+- Cada persona tiene un punto asignado (Usuarios); sin asignar usa el predeterminado. Toda factura o nota toma el siguiente número del CAI vigente **de su punto y su tipo**.
+- La dirección de la sucursal se imprime si es distinta a la del taller, y el nombre de la caja en el pie.
+
+**Notas de crédito (06) y débito (07)**
+- Siempre sobre una **factura emitida** (no sobre cotizaciones ni otras notas). Solo dueño/admin.
+- Copian el cliente de la factura e imprimen: factura que modifican, su fecha, su CAI (si es otro) y el **motivo** (tipo + detalle obligatorio).
+- Crédito: **devolución** (unidades de las líneas de la factura; opcionalmente vuelven al inventario, kardex «devolución»), **rebaja**, **corrección** u otro (montos sin ISV). Débito: gastos/flete, intereses, corrección u otro.
+- Límites: no se devuelven más unidades de las vendidas (menos lo ya devuelto) y una nota de crédito no supera el **saldo** de la factura (total + débitos − créditos vigentes). Al devolver todo una línea, se acredita exactamente lo que le queda (sin diferencias de centavos); hay una tolerancia de 2 centavos en el ISV por redondeo.
+- El ISV de la nota sigue a la factura: 15 % sobre lo gravado; si la factura fue exonerada, lo gravado va como exonerado.
+- Se anulan como cualquier documento (dueño/admin, con motivo). Anular una devolución reintegrada vuelve a sacar las piezas. **Una factura con notas vigentes no se anula**: primero se anulan sus notas.
+
+**Exoneración**
+- El cliente puede marcarse **exonerado** con su constancia de registro de exonerado y registro SAG; al elegirlo en el mostrador el carrito queda exonerado. También se puede activar a mano en el ticket (cualquier rol).
+- Factura exonerada: lo gravado pasa a **importe exonerado** y no lleva ISV. Exige **RTN del cliente** y la **orden de compra exenta o la constancia** (**a verificar** con el contador cuál es obligatorio en cada caso). Se imprimen los tres datos (orden de compra exenta, constancia, registro SAG).
+- La orden de compra exenta es de cada compra: no se guarda en el cliente ni se copia al repetir una factura.
+
+**Pendiente**: el reporte de ventas todavía cuenta solo facturas (no resta notas de crédito); se ajustará con el módulo de Caja.
 
 ## 4. Reglas transversales
 

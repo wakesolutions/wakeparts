@@ -26,6 +26,7 @@ export const miembros: DefRecurso = {
   acciones: { crear: false, eliminar: false },
   titulo: "nombre",
   orden: [{ columna: "nombre", dir: "asc" }],
+  columnasInternas: ["id_punto_emision"],
   columnas: [
     { clave: "nombre", etiqueta: "Nombre", tipo: "texto", ancho: 220, buscable: true },
     { clave: "correo", etiqueta: "Correo", tipo: "texto", ancho: 260, buscable: true, formato: "codigo" },
@@ -39,6 +40,7 @@ export const miembros: DefRecurso = {
       filtro: { tipo: "opciones", opciones: ROLES },
     },
     { clave: "activo", etiqueta: "Estado", tipo: "booleano", ancho: 120, opciones: ESTADOS },
+    { clave: "punto", etiqueta: "Punto de emisión", tipo: "texto", ancho: 220, vacio: "Predeterminado" },
     { clave: "creado_en", etiqueta: "Miembro desde", tipo: "fecha", ancho: 150 },
   ],
   campos: [
@@ -58,6 +60,14 @@ export const miembros: DefRecurso = {
       tipo: "booleano",
       ancho: "completo",
       ayuda: "Si lo desactivás, deja de ver la empresa pero se conserva su historial.",
+    },
+    {
+      nombre: "id_punto_emision",
+      etiqueta: "Punto de emisión",
+      tipo: "relacion",
+      relacion: { recurso: "puntos_emision", valor: "id", etiqueta: "etiqueta", fijo: { columna: "activo", valor: true } },
+      ancho: "completo",
+      ayuda: "Sucursal y caja con que factura. Vacío = el predeterminado.",
     },
   ],
 };

@@ -1,0 +1,565 @@
+/* Nota de crédito / débito: una ficha de tablero sobre la factura de origen.
+   Momento firma: el medidor de saldo (aguja de combustible horizontal) que
+   muestra cuánto queda de la factura antes y después de la nota. */
+
+.editor {
+  display: grid;
+  /* En una ventana baja, las líneas guardan su lugar y todo el editor se desplaza. */
+  grid-template-rows: auto auto minmax(180px, 1fr) auto;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--wp-bg-deep);
+  container-type: inline-size;
+}
+
+.etiqueta {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+/* ---------------------------------------------------------------- cabecera */
+
+.cabecera {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.9rem;
+  padding: 1rem 1.2rem 0.9rem;
+  border-bottom: 1px solid var(--wp-line);
+  background: linear-gradient(180deg, var(--wp-panel), var(--wp-panel-2));
+  box-shadow: inset 0 1px 0 var(--wp-bevel-light);
+}
+
+@container (min-width: 620px) {
+  .cabecera {
+    grid-template-columns: minmax(0, 1fr) minmax(220px, 0.8fr);
+    align-items: end;
+  }
+}
+
+.origen {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+  animation: entra 320ms var(--ease-expo) both;
+}
+
+.numero {
+  font-family: var(--font-mono);
+  font-size: clamp(1.1rem, 4cqi, 1.5rem);
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ink);
+}
+
+.meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--wp-ink-2);
+}
+
+.sello {
+  padding: 0.05rem 0.45rem;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ok);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-ok) 55%, transparent);
+}
+
+/* Medidor de saldo */
+.medidor {
+  display: grid;
+  gap: 0.35rem;
+  animation: entra 320ms var(--ease-expo) 80ms both;
+}
+
+.pista {
+  position: relative;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 1px 3px rgb(0 0 0 / 0.45),
+    inset 0 0 0 1px var(--wp-line);
+}
+
+.relleno,
+.cambio {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  transform-origin: left center;
+  transition: transform 420ms var(--ease-expo);
+}
+
+/* Lo que queda después de la nota: verde de tablero. */
+.relleno {
+  background: var(--wp-ok);
+  box-shadow: inset 0 1px 0 var(--wp-bevel-light);
+  transform: scaleX(var(--despues));
+  z-index: 1;
+}
+
+/* Lo que la nota acredita: franja de acento entre el antes y el después. */
+.cambio {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--wp-accent) 0 4px,
+    color-mix(in oklab, var(--wp-accent) 55%, transparent) 4px 8px
+  );
+  transform: scaleX(var(--antes));
+}
+
+/* Débito: el saldo crece; la franja va por encima del verde. */
+.medidor[data-sube] .relleno {
+  transform: scaleX(var(--antes));
+  z-index: 1;
+}
+
+.medidor[data-sube] .cambio {
+  transform: scaleX(var(--despues));
+}
+
+.lectura {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ink-2);
+}
+
+.lectura strong {
+  color: var(--wp-ink);
+}
+
+.lectura strong[data-mal] {
+  color: var(--wp-accent-hi);
+}
+
+.flecha {
+  color: var(--wp-ink-3);
+}
+
+/* ------------------------------------------------------------------ motivo */
+
+.seccion {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.9rem 1.2rem 0.4rem;
+}
+
+.teclas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--wp-field);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.4);
+}
+
+@container (min-width: 520px) {
+  .teclas {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+.teclas button {
+  min-height: 34px;
+  padding: 0 0.6rem;
+  border: 0;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--wp-ink-3);
+  background: none;
+  cursor: pointer;
+  transition:
+    color 160ms var(--ease-quart),
+    transform 160ms var(--ease-quart);
+}
+
+.teclas button:hover {
+  color: var(--wp-ink);
+}
+
+.teclas button:active {
+  transform: translateY(1px);
+}
+
+.teclas button[aria-checked="true"] {
+  color: var(--wp-ink);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 -2px 0 var(--wp-accent),
+    0 0 0 1px rgb(0 0 0 / 0.3);
+}
+
+.teclas button:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 1px;
+}
+
+.ayuda {
+  margin: 0;
+  font-size: 0.78rem;
+  color: var(--wp-ink-2);
+}
+
+/* ------------------------------------------------------------------ cuerpo */
+
+.cuerpo {
+  display: grid;
+  align-content: start;
+  gap: 0.6rem;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.5rem 1.2rem 1rem;
+  overscroll-behavior: contain;
+}
+
+.cuerpoBarra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-height: 32px;
+}
+
+.cargando {
+  height: 140px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, var(--wp-hover), color-mix(in oklab, var(--wp-hover) 40%, transparent), var(--wp-hover));
+  background-size: 200% 100%;
+  animation: brillo 1400ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.lineas,
+.montos {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: 10px;
+  background: var(--wp-panel);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.linea {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "info info"
+    "cant total";
+  align-items: center;
+  gap: 0.45rem 0.8rem;
+  padding: 0.65rem 0.8rem;
+  animation: entra 280ms var(--ease-expo) both;
+}
+
+.linea + .linea {
+  border-top: 1px solid var(--wp-line);
+}
+
+@container (min-width: 560px) {
+  .linea {
+    grid-template-columns: minmax(0, 1fr) auto 7.5rem;
+    grid-template-areas: "info cant total";
+  }
+}
+
+/* LED a la izquierda: la línea entra en la nota. */
+.linea::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0.7rem;
+  bottom: 0.7rem;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--wp-accent);
+  box-shadow: 0 0 8px var(--wp-accent-glow);
+  opacity: 0;
+  transition: opacity 200ms var(--ease-quart);
+}
+
+.linea[data-activa]::before {
+  opacity: 1;
+}
+
+.linea[data-agotada] {
+  opacity: 0.55;
+}
+
+.lineaInfo {
+  grid-area: info;
+  min-width: 0;
+}
+
+.lineaNombre {
+  margin: 0;
+  overflow: hidden;
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--wp-ink);
+}
+
+.lineaMeta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.7rem;
+  margin: 0.15rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.04em;
+  color: var(--wp-ink-3);
+}
+
+.lineaMeta [data-tono="devuelto"] {
+  color: var(--wp-aviso);
+}
+
+.cantidad {
+  grid-area: cant;
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 1px 3px rgb(0 0 0 / 0.4),
+    inset 0 0 0 1px var(--wp-line);
+}
+
+.cantidad button {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 0;
+  background: none;
+  color: var(--wp-ink-2);
+  cursor: pointer;
+}
+
+.cantidad button:hover:not(:disabled) {
+  color: var(--wp-accent-hi);
+}
+
+.cantidad button:disabled {
+  color: var(--wp-ink-3);
+  opacity: 0.4;
+  cursor: default;
+}
+
+.cantidad input {
+  width: 42px;
+  height: 30px;
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--wp-ink);
+  background: none;
+  outline: none;
+}
+
+.cantidad input:focus {
+  color: var(--wp-accent-hi);
+}
+
+.agotada {
+  grid-area: cant;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.lineaTotal {
+  grid-area: total;
+  justify-self: end;
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ink);
+}
+
+.reintegrar {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  font-size: 0.84rem;
+  color: var(--wp-ink);
+  background: var(--wp-hover);
+  cursor: pointer;
+}
+
+.reintegrar span {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.reintegrar small {
+  font-size: 0.74rem;
+  color: var(--wp-ink-3);
+}
+
+/* Montos libres */
+.montos li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 7rem;
+  gap: 0.45rem;
+  align-items: center;
+  padding: 0.6rem 0.7rem;
+}
+
+.montos li + li {
+  border-top: 1px solid var(--wp-line);
+}
+
+@container (min-width: 560px) {
+  .montos li {
+    grid-template-columns: minmax(0, 1fr) 8rem auto auto;
+  }
+}
+
+.exento {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--wp-ink-2);
+  cursor: pointer;
+}
+
+.otraLinea {
+  grid-column: 1 / -1;
+  justify-self: start;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.2rem 0;
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+  background: none;
+  cursor: pointer;
+}
+
+.otraLinea:hover {
+  color: var(--wp-accent-hi);
+}
+
+.motivo {
+  display: grid;
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+}
+
+/* --------------------------------------------------------------------- pie */
+
+.pie {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.9rem 1.2rem 1.1rem;
+  border-top: 1px solid var(--wp-line);
+  background: linear-gradient(180deg, var(--wp-panel-2), var(--wp-panel));
+}
+
+.totales {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+}
+
+.totales div {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.76rem;
+  color: var(--wp-ink-2);
+}
+
+.totales dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ink);
+}
+
+.error {
+  margin: 0;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  background: var(--wp-sel);
+  box-shadow: inset 3px 0 0 var(--wp-accent-hi);
+}
+
+.confirmar {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 10px;
+  background: var(--wp-hover);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  animation: entra 240ms var(--ease-expo) both;
+}
+
+.confirmar p {
+  margin: 0;
+  font-size: 0.84rem;
+}
+
+.nota {
+  font-size: 0.76rem !important;
+  color: var(--wp-ink-2);
+}
+
+.botones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+@keyframes entra {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+}
+
+@keyframes brillo {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}

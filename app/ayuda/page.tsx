@@ -46,7 +46,9 @@ const PERMISOS: [string, boolean, boolean, boolean][] = [
   ["Crear marcas y categorías propias", true, true, false],
   ["Ver utilidad y margen en el reporte", true, true, false],
   ["Anular facturas", true, true, false],
-  ["Registrar CAI", true, true, false],
+  ["Notas de crédito, devoluciones y notas de débito", true, true, false],
+  ["Facturar exonerado del ISV", true, true, true],
+  ["Registrar CAI y puntos de emisión", true, true, false],
   ["Editar el taller, su apariencia y el formato de factura", true, true, false],
   ["Publicar y editar el sitio web", true, true, false],
   ["Atender pedidos del sitio web", true, true, true],
@@ -500,13 +502,13 @@ export default function Manual() {
             id="ventas"
             numero="06"
             titulo="Ventas y CAI"
-            bajada="Documentos emitidos, clientes, el reporte de ventas y la numeración autorizada por el SAR."
+            bajada="Documentos emitidos, devoluciones, clientes exonerados, el reporte de ventas y la numeración autorizada por el SAR."
           >
             <div className={styles.dosColumnas}>
               <div>
                 <h3 className={styles.subtitulo}>Documentos</h3>
                 <ul className={styles.lista}>
-                  <li>Todas las cotizaciones y facturas, con su total, estado y vendedor.</li>
+                  <li>Todas las cotizaciones, facturas y notas de crédito o débito, con su total, estado y vendedor.</li>
                   <li>Abrí uno para imprimirlo o guardarlo como PDF.</li>
                   <li>
                     <strong>Pasar a carrito</strong>: una cotización (o una factura) se copia a un carrito nuevo para
@@ -514,10 +516,35 @@ export default function Manual() {
                   </li>
                   <li>
                     <strong>Anular</strong> (dueño o administrador) conserva el número, pide el motivo y devuelve las
-                    existencias. Un documento emitido nunca se borra.
+                    existencias. Un documento emitido nunca se borra. Una factura con notas vigentes no se anula:
+                    primero se anulan sus notas.
                   </li>
                   <li>Las cotizaciones se numeran aparte (COT-000001) y valen 15 días.</li>
                 </ul>
+                <h3 className={styles.subtitulo}>Devoluciones y notas</h3>
+                <p>
+                  Abrí la factura y tocá <strong>Nota de crédito</strong> (dueño o administrador):
+                </p>
+                <ul className={styles.lista}>
+                  <li>
+                    <strong>Devolución</strong>: elegí cuántas unidades de cada pieza regresan (o «Devolver todo») y si
+                    vuelven al inventario. Si vienen dañadas, desmarcalo: la nota sale igual.
+                  </li>
+                  <li>
+                    <strong>Rebaja</strong> o <strong>corrección</strong>: un monto sin ISV con su descripción.
+                  </li>
+                  <li>
+                    El medidor de arriba muestra cuánto queda de la factura. Nunca podés acreditar más de lo facturado
+                    ni devolver más de lo vendido.
+                  </li>
+                  <li>
+                    <strong>Nota de débito</strong>: para cobrar después flete, intereses o una diferencia de precio.
+                  </li>
+                </ul>
+                <p>
+                  Cada nota lleva su propio número del SAR (tipo 06 crédito, 07 débito), la factura que modifica y el
+                  motivo. Se ven listadas dentro de la factura.
+                </p>
                 <h3 className={styles.subtitulo}>Pedidos web</h3>
                 <p>
                   Lo que los clientes mandan desde tu sitio web llega aquí como <em>Nuevo</em> (y suena la campanita, con un número en Ventas del dock), con su nombre,
@@ -529,6 +556,12 @@ export default function Manual() {
                   Con RTN (14 dígitos) salen con nombre y RTN en la factura; sin RTN, como consumidor final. Cualquier
                   miembro puede crearlos, también desde el mostrador.
                 </p>
+                <p>
+                  <strong>Exonerados</strong> (embajadas, ONG, zonas libres…): marcalos como exonerados con su constancia.
+                  En el mostrador, al elegirlos se enciende <em>Exonerado del ISV</em>: escribí la orden de compra exenta
+                  y la factura sale sin ISV, con el importe exonerado y los datos de la exoneración impresos. También
+                  podés activarlo a mano en el ticket. Lleva RTN del cliente.
+                </p>
                 <h3 className={styles.subtitulo}>Reporte de ventas</h3>
                 <p>
                   En <em>Ventas › Análisis</em>: ventas con ISV, facturas, ticket promedio, utilidad y margen,
@@ -538,10 +571,17 @@ export default function Manual() {
                 </p>
               </div>
               <div>
+                <h3 className={styles.subtitulo}>Puntos de emisión</h3>
+                <p>
+                  Cada sucursal (establecimiento) y cada caja (punto de emisión) que factura se registra en{" "}
+                  <em>Ventas › Puntos de emisión</em>, con su dirección si es otra sucursal. Uno es el predeterminado.
+                  En <em>Usuarios</em> le asignás a cada persona su caja; quien no tiene una usa la predeterminada.
+                </p>
                 <h3 className={styles.subtitulo}>CAI</h3>
                 <p>
-                  Registrá el CAI que te dio el SAR con su rango y fecha límite. La factura toma el siguiente número
-                  sin saltos:
+                  Registrá cada CAI que te dio el SAR con su tipo (01 factura, 06 nota de crédito, 07 nota de débito),
+                  su punto de emisión, el rango y la fecha límite. Cada documento toma el siguiente número del CAI de la
+                  caja de quien lo emite, sin saltos:
                 </p>
                 <div className={styles.numeracion} aria-label="Número de factura 000-001-01-00000001">
                   <span>
@@ -565,14 +605,14 @@ export default function Manual() {
                   </span>
                 </div>
                 <p>
-                  Si el rango se acaba o la fecha pasa, no deja facturar: registrá el siguiente CAI. Con facturas
-                  emitidas, un CAI solo se puede desactivar.
+                  Si el rango se acaba o la fecha pasa, no deja emitir: registrá el siguiente CAI. Con documentos
+                  emitidos, un CAI solo se puede desactivar.
                 </p>
               </div>
             </div>
             <Nota tono="aviso" titulo="Reglas fiscales a confirmar con tu contador">
-              Precios capturados sin ISV (15 % sumado en la factura), tipo de documento 01 para facturas, leyendas
-              impresas y vigencia de cotizaciones. Todavía no hay notas de crédito ni exoneraciones.
+              Precios capturados sin ISV (15 % sumado en la factura), leyendas impresas, vigencia de cotizaciones y
+              qué datos de exoneración exige tu caso (orden de compra exenta, constancia o registro SAG).
             </Nota>
           </Capitulo>
 
@@ -631,7 +671,8 @@ export default function Manual() {
             <p>
               En <em>Usuarios</em> (solo dueño y administrador) invitás un correo con un rol. Al entrar con ese correo,
               la persona queda dentro. A quien se va se le <strong>desactiva</strong>: no se borra, para que siga
-              constando quién hizo cada factura.
+              constando quién hizo cada factura. Ahí mismo elegís su <strong>punto de emisión</strong> (sucursal y caja
+              con que factura).
             </p>
             <div className={styles.tablaScroll}>
               <table className={styles.tabla}>

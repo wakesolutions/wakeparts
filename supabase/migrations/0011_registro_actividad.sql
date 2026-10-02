@@ -17,7 +17,7 @@
 -- Lectura: admin de plataforma ve todo; dueño/admin ven lo de su empresa.
 -- Nadie la edita ni la borra desde la app (solo limpiar_registros()).
 --
--- ESTADO: PENDIENTE
+-- ESTADO: YA APLICADA (confirmado 2026-10-02)
 -- Idempotente y transaccional: se puede ejecutar más de una vez.
 -- =============================================================================
 

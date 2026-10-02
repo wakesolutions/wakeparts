@@ -10,19 +10,24 @@ import type {
   Cliente,
   ConsultaMostrador,
   Documento,
+  LineaAcreditable,
   LineaCarrito,
+  NotaRelacionada,
   NuevaLinea,
+  NuevaNota,
+  PuntoEmision,
   Resultado,
   ResultadoBusqueda,
   TipoDocumento,
 } from "@/lib/ventas";
+import { MOTIVOS_NOTA } from "@/lib/ventas";
 
 // Mostrador: búsqueda, carritos y emisión. La autorización real es RLS y las
 // funciones de la base (emitir_documento, anular_documento); aquí se valida
 // forma y se traducen errores.
 
 const COLUMNAS_CARRITO =
-  "id, nombre, id_cliente, cliente_nombre, cliente_rtn, cliente_telefono, id_marca, id_modelo, id_modelo_anio, id_especificacion, vehiculo, descuento_pct, notas, estado, lineas, creado_por_nombre, creado_en, actualizado_en";
+  "id, nombre, id_cliente, cliente_nombre, cliente_rtn, cliente_telefono, id_marca, id_modelo, id_modelo_anio, id_especificacion, vehiculo, descuento_pct, notas, estado, lineas, creado_por_nombre, creado_en, actualizado_en, exonerado, exo_orden_compra, exo_constancia, exo_registro_sag";
 const COLUMNAS_LINEA =
   "id, id_carrito, id_producto, codigo, descripcion, cantidad, precio, descuento_pct, exento, orden, costo, existencia, controla_inventario, unidad, oem, imagen";
 
@@ -114,6 +119,10 @@ const CAMPOS_CARRITO = new Set<keyof CambiosCarrito>([
   "id_especificacion",
   "descuento_pct",
   "notas",
+  "exonerado",
+  "exo_orden_compra",
+  "exo_constancia",
+  "exo_registro_sag",
 ]);
 
 export async function actualizarCarrito(id: string, cambios: CambiosCarrito): Promise<Resultado<{ carrito: Carrito }>> {
@@ -126,6 +135,10 @@ export async function actualizarCarrito(id: string, cambios: CambiosCarrito): Pr
       const n = Number(v);
       if (!Number.isFinite(n) || n < 0 || n > 100) return { ok: false, error: "El descuento va de 0 a 100 %." };
       datos[k] = Math.round(n * 1000) / 1000;
+    } else if (k === "exonerado") {
+      datos[k] = Boolean(v);
+    } else if (k.startsWith("exo_")) {
+      datos[k] = v ? String(v).trim().slice(0, 60) || null : null;
     } else if (k === "cliente_rtn" && v) {
       const rtn = String(v).replace(/\D/g, "");
       if (rtn.length !== 14) return { ok: false, error: "El RTN son 14 dígitos." };
@@ -295,11 +308,11 @@ export async function emitirDocumento(idCarrito: string, tipo: TipoDocumento): P
 export async function leerDocumento(id: string): Promise<Documento | null> {
   if (!esUuid(id)) return null;
   const supabase = await createClient();
-  const [{ data: doc }, { data: lineas }, { data: vendedor }] = await Promise.all([
+  const [{ data: doc }, { data: lineas }, { data: vendedor }, { data: notas }] = await Promise.all([
     supabase
       .from("documentos")
       .select(
-        "id, tipo, numero, fecha, vence, cai, cai_rango, cai_fecha_limite, emisor, cliente_nombre, cliente_rtn, cliente_telefono, vehiculo, subtotal, descuento, importe_exento, importe_gravado, isv, total, notas, estado, motivo_anulacion",
+        "id, tipo, numero, fecha, vence, cai, cai_rango, cai_fecha_limite, emisor, cliente_nombre, cliente_rtn, cliente_telefono, vehiculo, subtotal, descuento, importe_exento, importe_gravado, importe_exonerado, isv, total, notas, estado, motivo_anulacion, exoneracion, id_factura, factura_numero, factura_fecha, factura_cai, motivo_tipo, motivo, reintegra_inventario",
       )
       .eq("id", id)
       .maybeSingle(),
@@ -309,11 +322,25 @@ export async function leerDocumento(id: string): Promise<Documento | null> {
       .eq("id_documento", id)
       .order("orden"),
     supabase.from("v_documentos").select("vendedor").eq("id", id).maybeSingle(),
+    supabase
+      .from("documentos")
+      .select("id, tipo, numero, fecha, total, estado, motivo_tipo")
+      .eq("id_factura", id)
+      .order("fecha"),
   ]);
   if (!doc) return null;
   return {
-    ...numeros(doc as unknown as Documento, ["subtotal", "descuento", "importe_exento", "importe_gravado", "isv", "total"]),
+    ...numeros(doc as unknown as Documento, [
+      "subtotal",
+      "descuento",
+      "importe_exento",
+      "importe_gravado",
+      "importe_exonerado",
+      "isv",
+      "total",
+    ]),
     vendedor: vendedor?.vendedor ?? null,
+    notasRelacionadas: (notas ?? []).map((n) => numeros(n as unknown as NotaRelacionada, ["total"])),
     lineas: (lineas ?? []).map((l) => numeros(l, ["cantidad", "precio", "descuento_pct", "descuento", "total"])) as Documento["lineas"],
   };
 }
@@ -331,4 +358,68 @@ export async function anularDocumento(id: string, motivo: string): Promise<Resul
   const supabase = await createClient();
   const { error } = await supabase.rpc("anular_documento", { p_documento: id, p_motivo: String(motivo ?? "").slice(0, 300) });
   return error ? { ok: false, error: mensaje(error, "No se pudo anular.") } : { ok: true };
+}
+
+// ------------------------------------------------- notas de crédito/débito --
+
+/** Líneas de una factura con lo ya devuelto (para armar una devolución). */
+export async function lineasAcreditables(idFactura: string): Promise<LineaAcreditable[]> {
+  if (!esUuid(idFactura)) return [];
+  const supabase = await createClient();
+  const { data } = await supabase
+    .from("v_lineas_acreditables")
+    .select("id, codigo, descripcion, cantidad, precio, descuento_pct, exento, total, controla_inventario, devuelto, acreditado")
+    .eq("id_documento", idFactura)
+    .order("orden");
+  return ((data ?? []) as unknown as LineaAcreditable[]).map((l) =>
+    numeros(l, ["cantidad", "precio", "descuento_pct", "total", "devuelto", "acreditado"]),
+  );
+}
+
+export async function emitirNota(idFactura: string, nota: NuevaNota): Promise<Resultado<{ id: string; numero: string }>> {
+  if (!esUuid(idFactura) || (nota?.tipo !== "nota_credito" && nota?.tipo !== "nota_debito")) {
+    return { ok: false, error: "Datos no válidos." };
+  }
+  if (!MOTIVOS_NOTA[nota.tipo].some((m) => m.valor === nota.motivo_tipo)) return { ok: false, error: "Elegí el motivo." };
+  const motivo = String(nota.motivo ?? "").trim().slice(0, 300);
+  if (!motivo) return { ok: false, error: "Escribí el motivo de la nota." };
+  if (!Array.isArray(nota.lineas) || !nota.lineas.length || nota.lineas.length > 100) {
+    return { ok: false, error: "La nota no tiene líneas." };
+  }
+  const lineas = [];
+  for (const l of nota.lineas) {
+    if ("id_linea" in l) {
+      const cantidad = Math.round(Number(l.cantidad) * 100) / 100;
+      if (!esId(l.id_linea) || !(cantidad > 0)) return { ok: false, error: "Revisá las cantidades." };
+      lineas.push({ id_linea: l.id_linea, cantidad });
+    } else {
+      const descripcion = String(l.descripcion ?? "").trim().slice(0, 240);
+      const monto = Math.round(Number(l.monto) * 100) / 100;
+      if (!descripcion || !(monto > 0)) return { ok: false, error: "Revisá la descripción y el monto." };
+      lineas.push({ descripcion, monto, exento: Boolean(l.exento) });
+    }
+  }
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("emitir_nota", {
+    p_factura: idFactura,
+    p_tipo: nota.tipo,
+    p_motivo_tipo: nota.motivo_tipo,
+    p_motivo: motivo,
+    p_lineas: lineas,
+    p_reintegrar: Boolean(nota.reintegrar),
+  });
+  if (error || !data) return { ok: false, error: error ? mensaje(error, "No se pudo emitir la nota.") : "No se pudo emitir la nota." };
+  const { data: doc } = await supabase.from("documentos").select("numero").eq("id", data).single();
+  return { ok: true, id: data as string, numero: doc?.numero ?? "" };
+}
+
+/** Punto de emisión con el que factura el usuario (el suyo o el predeterminado). */
+export async function puntoEmisionActual(): Promise<PuntoEmision | null> {
+  const sesion = await obtenerSesion();
+  if (!sesion?.empresa) return null;
+  const supabase = await createClient();
+  const { data } = await supabase.rpc("punto_emision_actual", { p_empresa: sesion.empresa.id }).maybeSingle();
+  const p = data as { id: number | null; establecimiento: string; punto_emision: string; nombre: string; sucursal: string } | null;
+  if (!p?.id) return null;
+  return { id: p.id, codigo: `${p.establecimiento}-${p.punto_emision}`, nombre: p.nombre, sucursal: p.sucursal };
 }

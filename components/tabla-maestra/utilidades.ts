@@ -5,7 +5,10 @@ import { fechaHoraExacta, moneda, pct } from "@/lib/formato";
 import type { DefColumna, DefRecurso, Operador, PreferenciasTabla } from "@/lib/recursos/tipos";
 
 const numero = new Intl.NumberFormat("es-HN");
-const fecha = new Intl.DateTimeFormat("es-HN", { day: "numeric", month: "short", year: "numeric" });
+// Timestamps en hora de Honduras; una fecha pura (AAAA-MM-DD) se muestra tal cual,
+// sin corrimiento de zona (si no, «2027-03-31» salía como 30 mar).
+const fecha = new Intl.DateTimeFormat("es-HN", { day: "numeric", month: "short", year: "numeric", timeZone: "America/Tegucigalpa" });
+const fechaPura = new Intl.DateTimeFormat("es-HN", { day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
 const litros = new Intl.NumberFormat("es-HN", { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 
 export function formatearCelda(col: DefColumna, valor: unknown): string | null {
@@ -38,7 +41,8 @@ export function formatearCelda(col: DefColumna, valor: unknown): string | null {
   if (col.tipo === "booleano") return valor ? "Sí" : "No";
   if (col.tipo === "fecha") {
     const d = new Date(String(valor));
-    return Number.isNaN(d.getTime()) ? String(valor) : fecha.format(d);
+    if (Number.isNaN(d.getTime())) return String(valor);
+    return /^\d{4}-\d{2}-\d{2}$/.test(String(valor)) ? fechaPura.format(d) : fecha.format(d);
   }
   if (col.tipo === "entero" || col.tipo === "decimal") return numero.format(Number(valor));
   return String(valor);

@@ -14,7 +14,7 @@
 --   · seguimiento_contactos       Notas del admin: cuándo le escribió y qué.
 --                                 Solo admin de plataforma.
 --
--- ESTADO: PENDIENTE (requiere 0013)
+-- ESTADO: YA APLICADA (confirmado 2026-10-02)
 -- Idempotente y transaccional: se puede ejecutar más de una vez.
 -- =============================================================================
 

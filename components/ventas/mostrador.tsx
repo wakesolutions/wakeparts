@@ -246,7 +246,7 @@ export function Mostrador({ veMargen }: { veMargen: boolean }) {
     if (!carrito) return;
     setOcupado(true);
     setError(null);
-    const total = calcularTotales(lineasActivas, carrito.descuento_pct).total;
+    const total = calcularTotales(lineasActivas, carrito.descuento_pct, carrito.exonerado).total;
     const r = await api.emitir(carrito.id, tipo).catch(() => ({ ok: false as const, error: "Sin conexión con el servidor." }));
     setOcupado(false);
     if (!r.ok) return setError(r.error);
@@ -372,7 +372,7 @@ export function Mostrador({ veMargen }: { veMargen: boolean }) {
 
   // --------------------------------------------------------------- render ---
   const nombreVehiculo = textoVehiculo(vehiculo) || "este vehículo";
-  const totalActual = carrito ? calcularTotales(lineasActivas, carrito.descuento_pct).total : 0;
+  const totalActual = carrito ? calcularTotales(lineasActivas, carrito.descuento_pct, carrito.exonerado).total : 0;
 
   return (
     <div className={styles.mostrador} data-mostrador={activoId ?? ""} data-vista={vista}>

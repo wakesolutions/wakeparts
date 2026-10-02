@@ -17,7 +17,7 @@
 -- Archivos: <id_empresa>/logo/<uuid>.webp y <id_empresa>/fondo/<uuid>.webp.
 -- Los editan dueño y administradores (RLS por columna + Storage por carpeta).
 --
--- ESTADO: PENDIENTE
+-- ESTADO: YA APLICADA (confirmado 2026-10-02)
 -- Idempotente y transaccional: se puede ejecutar más de una vez.
 -- =============================================================================
 

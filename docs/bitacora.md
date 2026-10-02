@@ -2,6 +2,18 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-02 · Notas de crédito/débito, exoneraciones y puntos de emisión (migración 0016)
+
+- **Pedido del usuario** (punto 1 de «qué falta para vender»): notas de crédito y débito, exoneraciones, devoluciones y varios puntos de emisión por usuario o sucursal. Confirmó que el SAR no exige registrar el sistema emisor.
+- **Códigos SAR 06 y 07** para notas de crédito y débito (Acuerdo 481-2017). Igual se guardan en cada CAI, así un cambio de normativa es un dato y no código.
+- **Punto de emisión = tabla propia** y el CAI apunta a él (antes eran dos textos en el CAI). Así una sucursal tiene dirección, una caja tiene nombre y a cada persona se le asigna la suya. Los puntos se crearon solos desde los CAI existentes: nada cambia para quien ya factura.
+- **Devolución = nota de crédito con líneas de la factura**, no un documento aparte: es lo que pide el régimen y deja trazado qué pieza volvió. Reintegrar al inventario es opcional (piezas dañadas) y anular la nota lo revierte.
+- **Al devolver todo una línea se acredita lo que le queda, no un recálculo**: evita que la suma de notas difiera por centavos del total de la factura. El ISV tiene tolerancia de 2 centavos por el redondeo global.
+- **Una factura con notas vigentes no se anula**: si no, el saldo y el inventario quedarían contados dos veces.
+- **Exoneración en el carrito**, copiada del cliente: el vendedor solo agrega la orden de compra exenta, que es de cada compra. Cualquier rol puede facturar exonerado (es de mostrador); queda auditado. A confirmar con el contador qué dato es obligatorio (se exige RTN + orden de compra exenta **o** constancia).
+- **Diseño**: el editor de notas es una ficha de tablero con un **medidor de saldo** (pista tipo aguja de combustible: verde lo que queda, franja de acento lo que la nota acredita o carga), teclas metálicas para el motivo y LED por línea devuelta. El total va en el mismo odómetro del mostrador.
+- De paso: las columnas de fecha pura (fecha límite del CAI) se mostraban un día antes por la zona horaria, y el «Imprimir» de la demo armaba mal la dirección. Corregidos.
+
 ## 2026-10-01 · Demo sin cuenta, landing y seguimiento de talleres (migración 0015)
 
 - **Demo pública `/demo`** (pedido del usuario: que la gente pruebe el sistema sí o sí). El usuario pidió «un patrón oscuro»; se decidió **no** usar engaños (contadores falsos, reseñas inventadas, avergonzar al que no se registra, trabas para salir): mercado chico de boca en boca, se vende confianza fiscal, riesgo con la ley de protección al consumidor y con la revisión de Google OAuth. En su lugar: **cero fricción** (el sistema completo sin cuenta), CTA siempre visible y una invitación en el mejor momento (justo después de la primera venta). Todo dice que es una demo y que nada se guarda.

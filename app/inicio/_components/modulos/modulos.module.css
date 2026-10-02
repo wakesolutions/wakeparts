@@ -429,3 +429,128 @@
   grid-template-columns: minmax(0, 1fr) auto auto;
   gap: 0.5rem;
 }
+
+/* Notas de crédito/débito de una factura: libro corto sobre la hoja. */
+.notasFactura {
+  border-radius: 10px;
+  background: var(--wp-panel);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  animation: subir 300ms var(--ease-expo) both;
+}
+
+.notasFactura header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.4rem;
+  padding: 0.6rem 0.85rem;
+  border-bottom: 1px solid var(--wp-line);
+}
+
+.notasEtiqueta {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.notasSaldo {
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ink-2);
+}
+
+.notasSaldo strong {
+  color: var(--wp-ink);
+}
+
+.notasSaldo small {
+  color: var(--wp-ink-3);
+}
+
+.notasFactura ul {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.notasFactura li + li {
+  border-top: 1px solid var(--wp-line);
+}
+
+.notasFactura li button {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "tipo numero total"
+    "tipo motivo total";
+  align-items: center;
+  gap: 0.05rem 0.7rem;
+  width: 100%;
+  padding: 0.55rem 0.85rem;
+  border: 0;
+  font: inherit;
+  text-align: left;
+  color: var(--wp-ink);
+  background: none;
+  cursor: pointer;
+  transition: background-color 160ms var(--ease-quart);
+}
+
+.notasFactura li button:hover {
+  background: var(--wp-hover);
+}
+
+.notasFactura li[data-anulada] {
+  opacity: 0.5;
+}
+
+.notasFactura li[data-anulada] .notaTotal {
+  text-decoration: line-through;
+}
+
+.notaTipo {
+  grid-area: tipo;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 7px;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--wp-ok);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-ok) 50%, transparent);
+}
+
+.notaTipo[data-tipo="nota_debito"] {
+  color: var(--wp-aviso);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-aviso) 50%, transparent);
+}
+
+.notaNumero {
+  grid-area: numero;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.notaMotivo {
+  grid-area: motivo;
+  overflow: hidden;
+  font-size: 0.74rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--wp-ink-3);
+}
+
+.notaTotal {
+  grid-area: total;
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}

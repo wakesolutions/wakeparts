@@ -1,12 +1,12 @@
 import type { CSSProperties } from "react";
 import { cant, enLetras, fechaDia, fechaYHora, moneda, monto, pct } from "@/lib/formato";
 import { FORMATO_POR_DEFECTO, type Identidad } from "@/lib/identidad";
-import { formatoRtn, type Documento } from "@/lib/ventas";
+import { etiquetaMotivo, formatoRtn, NOMBRE_DOCUMENTO, type Documento } from "@/lib/ventas";
 import styles from "./documento-vista.module.css";
 
 /**
- * Hoja de un documento emitido (cotización o factura). Sirve para la vista en
- * pantalla y para imprimir. Las leyendas fiscales están marcadas «a verificar»
+ * Hoja de un documento emitido (cotización, factura o nota de crédito/débito).
+ * Sirve para la vista en pantalla y para imprimir. Las leyendas fiscales están marcadas «a verificar»
  * en docs/negocio.md §3.5.
  *
  * `identidad`: logo, color y formato de la empresa (Taller › Factura). El
@@ -21,7 +21,12 @@ export function DocumentoVista({
   identidad?: Pick<Identidad, "logo" | "acento" | "formato">;
 }) {
   const factura = doc.tipo === "factura";
+  const nota = doc.tipo === "nota_credito" || doc.tipo === "nota_debito";
+  const fiscal = factura || nota;
+  const exo = doc.exoneracion;
   const e = doc.emisor ?? {};
+  // La sucursal solo se imprime aparte si no es la dirección del taller.
+  const sucursalPropia = Boolean(e.direccion_sucursal && e.direccion_sucursal !== e.direccion);
   const f = identidad?.formato ?? FORMATO_POR_DEFECTO;
   const logo = f.logo !== "oculto" ? identidad?.logo : null;
   const marca = f.color === "tinta" ? "var(--wp-papel-tinta)" : (identidad?.acento ?? "var(--wp-accent)");
@@ -57,15 +62,25 @@ export function DocumentoVista({
             {e.correo && <span>{e.correo}</span>}
           </p>
           {e.direccion && <p className={styles.datos}>{e.direccion}</p>}
+          {sucursalPropia && (
+            <p className={styles.datos}>
+              <span>
+                Sucursal {e.sucursal}: {e.direccion_sucursal}
+              </span>
+              {e.telefono_sucursal && <span>Tel. {e.telefono_sucursal}</span>}
+            </p>
+          )}
         </div>
         <div className={styles.titulo}>
-          <p className={styles.tipo}>{factura ? "Factura" : "Cotización"}</p>
+          <p className={styles.tipo} data-largo={nota || undefined}>
+            {NOMBRE_DOCUMENTO[doc.tipo]}
+          </p>
           <p className={styles.numero}>{doc.numero}</p>
           <p className={styles.fecha}>{fechaYHora(doc.fecha)}</p>
         </div>
       </header>
 
-      {factura && doc.cai && (
+      {fiscal && doc.cai && (
         <section className={styles.cai} aria-label="Datos del CAI">
           <div>
             <span>CAI</span>
@@ -78,6 +93,32 @@ export function DocumentoVista({
           <div>
             <span>Fecha límite de emisión</span>
             <strong>{doc.cai_fecha_limite ? fechaDia(doc.cai_fecha_limite) : "—"}</strong>
+          </div>
+        </section>
+      )}
+
+      {nota && (
+        <section className={styles.referencia} aria-label="Documento que modifica">
+          <div>
+            <span>Factura que modifica</span>
+            <strong>{doc.factura_numero}</strong>
+          </div>
+          <div>
+            <span>Fecha de la factura</span>
+            <strong>{doc.factura_fecha ? fechaDia(doc.factura_fecha) : "—"}</strong>
+          </div>
+          {doc.factura_cai && doc.factura_cai !== doc.cai && (
+            <div>
+              <span>CAI de la factura</span>
+              <strong>{doc.factura_cai}</strong>
+            </div>
+          )}
+          <div className={styles.referenciaMotivo}>
+            <span>Motivo</span>
+            <strong>
+              {etiquetaMotivo(doc.motivo_tipo)}
+              {doc.motivo ? `: ${doc.motivo}` : ""}
+            </strong>
           </div>
         </section>
       )}
@@ -99,13 +140,30 @@ export function DocumentoVista({
             <p className={styles.vehiculo}>{doc.vehiculo}</p>
           </div>
         )}
-        {!factura && doc.vence && (
+        {doc.tipo === "cotizacion" && doc.vence && (
           <div>
             <span className={styles.etiqueta}>Válida hasta</span>
             <p className={styles.vehiculo}>{fechaDia(doc.vence)}</p>
           </div>
         )}
       </section>
+
+      {exo && (
+        <section className={styles.exoneracion} aria-label="Datos de la exoneración">
+          <div>
+            <span>N.º correlativo de orden de compra exenta</span>
+            <strong>{exo.orden_compra || "—"}</strong>
+          </div>
+          <div>
+            <span>N.º correlativo de constancia de registro de exonerado</span>
+            <strong>{exo.constancia || "—"}</strong>
+          </div>
+          <div>
+            <span>N.º identificativo del registro de la SAG</span>
+            <strong>{exo.registro_sag || "—"}</strong>
+          </div>
+        </section>
+      )}
 
       <table className={styles.lineas}>
         <thead>
@@ -167,7 +225,7 @@ export function DocumentoVista({
           </div>
           <div>
             <dt>Importe exonerado</dt>
-            <dd>{monto(0)}</dd>
+            <dd>{monto(doc.importe_exonerado ?? 0)}</dd>
           </div>
           <div>
             <dt>Importe gravado 15 %</dt>
@@ -186,10 +244,11 @@ export function DocumentoVista({
 
       <footer className={styles.leyendas}>
         {f.mensaje && <p className={styles.mensaje}>{f.mensaje}</p>}
-        {factura ? (
+        {fiscal ? (
           <>
-            <p>La factura es beneficio de todos. Exíjala.</p>
+            {factura && <p>La factura es beneficio de todos. Exíjala.</p>}
             <p>Original: cliente · Copia: emisor</p>
+            {e.punto && <p>Punto de emisión: {e.punto}</p>}
           </>
         ) : (
           <p>Cotización sin valor fiscal. Precios sujetos a existencia.</p>

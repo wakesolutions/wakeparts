@@ -11,6 +11,15 @@
         ],
         "createdAt": "2026-10-01T17:44:36.826Z",
         "reason": "Claude triage: .baseMuestra::before is a 12px miniature menu bar inside the light/dark theme swatch (top strip in the palette bar color), not a side accent border on a card"
+      },
+      {
+        "rule": "side-tab",
+        "value": "*",
+        "files": [
+          "components/ventas/nota-editor.module.css"
+        ],
+        "createdAt": "2026-10-02T16:47:43.757Z",
+        "reason": "Claude: LED bar on returned lines is the documented table pattern (docs/diseno.md 'fila seleccionada con barra LED'); .error mirrors existing ticket.module.css .error"
       }
     ]
   }

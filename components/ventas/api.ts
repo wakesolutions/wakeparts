@@ -10,9 +10,12 @@ import {
   crearCliente,
   descartarCarrito,
   emitirDocumento,
+  emitirNota,
   leerDocumento,
+  lineasAcreditables,
   listarCarritos,
   listarLineas,
+  puntoEmisionActual,
   quitarLinea,
 } from "@/app/acciones/ventas";
 
@@ -33,6 +36,9 @@ export const apiVentas = {
   documento: leerDocumento,
   carritoDesdeDocumento,
   anular: anularDocumento,
+  lineasAcreditables,
+  emitirNota,
+  puntoEmision: puntoEmisionActual,
   /** Página imprimible del documento. */
   urlImpresion: (id: string) => `/documentos/${id}`,
 };

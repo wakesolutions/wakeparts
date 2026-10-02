@@ -284,7 +284,30 @@ Las tres son **security invoker** (RLS de quien llama).
 | `anular_documento(documento, motivo)` | Dueño/admin. Si era factura, devuelve existencias (kardex «anulacion»). El número no se reutiliza. |
 | `carrito_desde_documento(documento)` | Carrito nuevo con cliente, vehículo y líneas del documento (cotización → factura). |
 
-Totales: `bruto = cantidad·precio`; `neto = bruto·(1 − desc. línea)·(1 − desc. general)` redondeado a centavos por línea; ISV = 15 % del gravado redondeado; total = exento + gravado + ISV.
+Totales: `bruto = cantidad·precio`; `neto = bruto·(1 − desc. línea)·(1 − desc. general)` redondeado a centavos por línea; ISV = 15 % del gravado redondeado; total = exento + exonerado + gravado + ISV.
+
+## Notas, exoneraciones y puntos de emisión (0016)
+
+| Tabla / columna | Qué es |
+|---|---|
+| `puntos_emision` | Por empresa: `establecimiento` (3 díg.), `sucursal`, `direccion`, `telefono`, `punto_emision` (3 díg.), `nombre` (caja), `predeterminado` (uno por empresa, índice parcial; el primero lo es solo; marcar otro desmarca el anterior; no se desactiva), `activo`. Único `(id_empresa, establecimiento, punto_emision)`. Con CAI registrados sus códigos no cambian. Leen miembros; escriben dueño/admin. Auditoría `zz_registrar_cambio`. Vista `v_puntos_emision` (`codigo`, `etiqueta`, `usuarios`, `cai_vigentes`). |
+| `cai.id_punto_emision` | Punto del CAI. El trigger `a_preparar` copia sus códigos; si llegan solo los códigos, busca o crea el punto. 0016 creó los puntos desde los CAI existentes. Con documentos, no cambia. `v_cai` + `id_punto_emision`, `punto`. |
+| `empresas_usuarios.id_punto_emision` | Punto de cada persona (null = predeterminado). Lo asignan dueño/admin o la propia persona (política `empresas_usuarios_propio_punto`; el trigger `a_reglas` sigue impidiendo cambiarse el rol). `v_miembros` + `id_punto_emision`, `punto`. |
+| `clientes.exonerado`, `exo_constancia`, `exo_registro_sag` | Datos de exoneración; se copian al carrito al elegir el cliente. |
+| `carritos.exonerado`, `exo_orden_compra`, `exo_constancia`, `exo_registro_sag` | Exoneración del borrador (en `v_carritos`). |
+| `documentos` | `tipo` + `nota_credito` · `nota_debito`; `importe_exonerado`; `exoneracion` jsonb `{orden_compra, constancia, registro_sag}`; `id_punto_emision`, `establecimiento`, `punto_emision`; notas: `id_factura`, `factura_numero`, `factura_fecha`, `factura_cai`, `motivo_tipo` (`devolucion` · `descuento` · `correccion` · `intereses` · `gastos` · `otro`), `motivo`, `reintegra_inventario`. `emisor` suma `sucursal`, `direccion_sucursal`, `telefono_sucursal`, `punto`. `v_documentos` + `importe_exonerado`, `id_factura`, `factura_numero`, `motivo_tipo`, `punto`, `exonerada`. |
+| `documentos_lineas.id_linea_origen` | En una devolución, la línea de la factura acreditada. `v_lineas_acreditables`: líneas de una factura + `devuelto` y `acreditado` en notas de crédito vigentes. |
+
+| Función | Qué hace |
+|---|---|
+| `punto_emision_actual(empresa)` | Punto de quien llama: el suyo activo o el predeterminado. |
+| `codigo_tipo_documento(tipo)` | `factura` 01 · `nota_credito` 06 · `nota_debito` 07. |
+| `tomar_numero_cai(punto, tipo)` | (interna) CAI vigente del punto y tipo con bloqueo; avanza `siguiente`. |
+| `emitir_documento(…)` | Como en 0005, con el punto de quien emite y la exoneración (factura exonerada: RTN y orden de compra exenta o constancia). |
+| `emitir_nota(factura, tipo, motivo_tipo, motivo, lineas, reintegrar)` | Dueño/admin. Devolución `[{id_linea, cantidad}]` (tope: vendido − devuelto; si vuelve todo se acredita el resto exacto) o montos `[{descripcion, monto, exento}]`. Crédito ≤ `saldo_factura()` (tolerancia 2 centavos de ISV). Reintegro con kardex «devolucion». |
+| `saldo_factura(factura)` | Total + débitos − créditos vigentes. |
+| `anular_documento(…)` | No anula facturas con notas vigentes; anular una devolución reintegrada saca las piezas (kardex «anulacion»). |
+| `carrito_desde_documento(…)` | Solo cotizaciones y facturas; copia la exoneración (sin la orden de compra). |
 
 ## Sitio web y pedidos (0013)
 
