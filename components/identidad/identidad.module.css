@@ -670,6 +670,19 @@
   transform-origin: top left;
 }
 
+/* Vista previa del ticket: la tira a tamaño real, centrada sobre la mesa. */
+.mesaTicket {
+  display: grid;
+  justify-items: center;
+  padding: 24px 12px;
+}
+
+.vistaGrupos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
 .escala > * {
   width: 820px;
   max-width: none;

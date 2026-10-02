@@ -129,7 +129,16 @@ export type FormatoDocumento = {
   mostrarVehiculo: boolean;
   mostrarVendedor: boolean;
   mostrarCodigo: boolean;
+  /** Papel con que se imprime por defecto: hoja carta o tira de impresora térmica. */
+  papel: Papel;
+  /** Ancho del rollo térmico en milímetros. */
+  ticketAncho: "80" | "58";
+  ticketLetra: "normal" | "grande";
+  /** El logo en la tira (en blanco y negro). */
+  ticketLogo: boolean;
 };
+
+export type Papel = "carta" | "ticket";
 
 export const FORMATO_POR_DEFECTO: FormatoDocumento = {
   estilo: "moderno",
@@ -142,6 +151,10 @@ export const FORMATO_POR_DEFECTO: FormatoDocumento = {
   mostrarVehiculo: true,
   mostrarVendedor: true,
   mostrarCodigo: true,
+  papel: "carta",
+  ticketAncho: "80",
+  ticketLetra: "normal",
+  ticketLogo: true,
 };
 
 export const LARGO_LEMA = 80;
@@ -174,7 +187,16 @@ export function normalizarFormato(crudo: unknown): FormatoDocumento {
     mostrarVehiculo: bool(o.mostrarVehiculo, d.mostrarVehiculo),
     mostrarVendedor: bool(o.mostrarVendedor, d.mostrarVendedor),
     mostrarCodigo: bool(o.mostrarCodigo, d.mostrarCodigo),
+    papel: uno(o.papel, ["carta", "ticket"] as const, d.papel),
+    ticketAncho: uno(o.ticketAncho, ["80", "58"] as const, d.ticketAncho),
+    ticketLetra: uno(o.ticketLetra, ["normal", "grande"] as const, d.ticketLetra),
+    ticketLogo: bool(o.ticketLogo, d.ticketLogo),
   };
+}
+
+/** Papel pedido en la URL (?papel=ticket) o, si no viene, el predeterminado de la empresa. */
+export function papelDe(pedido: unknown, formato: FormatoDocumento): Papel {
+  return pedido === "ticket" || pedido === "carta" ? pedido : formato.papel;
 }
 
 // ------------------------------------------------------------------ conjunto --

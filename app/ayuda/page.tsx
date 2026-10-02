@@ -699,6 +699,12 @@ export default function Manual() {
                   solo negro, logo, tipo de tabla, un lema y un mensaje al pie. Los datos que pide el SAR se imprimen
                   siempre. Todo esto lo editan el dueño y los administradores.
                 </p>
+                <p>
+                  <strong>Ticket térmico</strong>: en la misma pestaña elegís si «Imprimir» sale en hoja carta o en
+                  ticket, el ancho del rollo (80 o 58 mm), la letra y si lleva logo. Vale para facturas, notas, recibos
+                  y cortes de caja. Al imprimir siempre podés cambiar entre Carta y Ticket arriba de la hoja. En el
+                  diálogo de impresión elegí tu impresora térmica y márgenes «Ninguno».
+                </p>
               </div>
               <div>
                 <h3 className={styles.subtitulo}>Sitio web</h3>

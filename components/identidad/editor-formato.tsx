@@ -5,6 +5,7 @@ import { useApi } from "@/components/datos/apis";
 import { Formulario } from "@/components/formulario/formulario";
 import ui from "@/components/ui/controles.module.css";
 import { IconoCandado } from "@/components/ui/iconos";
+import { TiraDocumento } from "@/components/impresion/tira";
 import { DocumentoVista } from "@/components/ventas/documento-vista";
 import {
   FORMATO_POR_DEFECTO,
@@ -12,6 +13,7 @@ import {
   LARGO_MENSAJE,
   normalizarFormato,
   type FormatoDocumento,
+  type Papel,
 } from "@/lib/identidad";
 import type { DefCampo } from "@/lib/recursos/tipos";
 import type { Documento, TipoDocumento } from "@/lib/ventas";
@@ -122,6 +124,48 @@ function campos(hayLogo: boolean): readonly DefCampo[] {
     },
     { nombre: "mostrarCodigo", etiqueta: "Código de cada producto", tipo: "booleano", ancho: "completo" },
     { nombre: "mostrarVendedor", etiqueta: "Quién atendió", tipo: "booleano", ancho: "completo" },
+    {
+      nombre: "papel",
+      etiqueta: "Al tocar «Imprimir»",
+      tipo: "opciones",
+      presentacion: "segmentos",
+      opciones: [
+        { valor: "carta", etiqueta: "Hoja carta" },
+        { valor: "ticket", etiqueta: "Ticket térmico" },
+      ],
+      ayuda: "Facturas, notas, recibos y cortes de caja. Al imprimir siempre podés cambiar a la otra.",
+      ancho: "completo",
+      seccion: "Impresión",
+    },
+    {
+      nombre: "ticketAncho",
+      etiqueta: "Ancho del rollo",
+      tipo: "opciones",
+      presentacion: "segmentos",
+      opciones: [
+        { valor: "80", etiqueta: "80 mm" },
+        { valor: "58", etiqueta: "58 mm" },
+      ],
+      ancho: "completo",
+    },
+    {
+      nombre: "ticketLetra",
+      etiqueta: "Letra del ticket",
+      tipo: "opciones",
+      presentacion: "segmentos",
+      opciones: [
+        { valor: "normal", etiqueta: "Normal" },
+        { valor: "grande", etiqueta: "Grande" },
+      ],
+      ancho: "completo",
+    },
+    {
+      nombre: "ticketLogo",
+      etiqueta: "Logo en el ticket",
+      tipo: "booleano",
+      ayuda: "Sale en blanco y negro. Quitalo si tu impresora lo imprime borroso.",
+      ancho: "completo",
+    },
   ];
 }
 
@@ -136,6 +180,7 @@ export function EditorFormato({ emisor, vendedor }: { emisor: Documento["emisor"
   const [formato, setFormato] = useState<FormatoDocumento>(guardada.formato);
   const [version, setVersion] = useState(0);
   const [tipo, setTipo] = useState<TipoDocumento>("factura");
+  const [vista, setVista] = useState<Papel>(guardada.formato.papel);
   const [aviso, setAviso] = useState<string | null>(null);
 
   const doc = useMemo(() => documentoEjemplo(tipo, emisor, vendedor), [tipo, emisor, vendedor]);
@@ -158,7 +203,12 @@ export function EditorFormato({ emisor, vendedor }: { emisor: Documento["emisor"
           valoresIniciales={formato}
           textoGuardar={sinCambios ? "Guardado" : "Guardar formato"}
           onCambio={(v) => {
-            setFormato(normalizarFormato(v));
+            const nuevo = normalizarFormato(v);
+            // Al elegir el papel o tocar opciones del ticket, la vista previa muestra ese papel.
+            if (nuevo.papel !== formato.papel) setVista(nuevo.papel);
+            else if (nuevo.ticketAncho !== formato.ticketAncho || nuevo.ticketLetra !== formato.ticketLetra || nuevo.ticketLogo !== formato.ticketLogo)
+              setVista("ticket");
+            setFormato(nuevo);
             setAviso(null);
           }}
           onGuardar={async (v) => {
@@ -197,18 +247,34 @@ export function EditorFormato({ emisor, vendedor }: { emisor: Documento["emisor"
       <div className={styles.vistaPrevia}>
         <div className={styles.vistaBarra}>
           <span className={styles.vistaEtiqueta}>Vista previa · datos de ejemplo</span>
-          <div className={styles.segmentosVista} role="group" aria-label="Documento de ejemplo">
-            <button type="button" aria-pressed={tipo === "factura"} onClick={() => setTipo("factura")}>
-              Factura
-            </button>
-            <button type="button" aria-pressed={tipo === "cotizacion"} onClick={() => setTipo("cotizacion")}>
-              Cotización
-            </button>
+          <div className={styles.vistaGrupos}>
+            <div className={styles.segmentosVista} role="group" aria-label="Papel de la vista previa">
+              <button type="button" aria-pressed={vista === "carta"} onClick={() => setVista("carta")}>
+                Carta
+              </button>
+              <button type="button" aria-pressed={vista === "ticket"} onClick={() => setVista("ticket")}>
+                Ticket
+              </button>
+            </div>
+            <div className={styles.segmentosVista} role="group" aria-label="Documento de ejemplo">
+              <button type="button" aria-pressed={tipo === "factura"} onClick={() => setTipo("factura")}>
+                Factura
+              </button>
+              <button type="button" aria-pressed={tipo === "cotizacion"} onClick={() => setTipo("cotizacion")}>
+                Cotización
+              </button>
+            </div>
           </div>
         </div>
-        <HojaEscalada>
-          <DocumentoVista doc={doc} identidad={{ logo: identidad.logo, acento: identidad.acento, formato }} />
-        </HojaEscalada>
+        {vista === "ticket" ? (
+          <div className={`${styles.mesa} ${styles.mesaTicket}`}>
+            <TiraDocumento doc={doc} identidad={{ logo: identidad.logo, formato }} />
+          </div>
+        ) : (
+          <HojaEscalada>
+            <DocumentoVista doc={doc} identidad={{ logo: identidad.logo, acento: identidad.acento, formato }} />
+          </HojaEscalada>
+        )}
       </div>
     </div>
   );

@@ -1,0 +1,197 @@
+/* Tira de impresora térmica. Siempre tinta negra sobre papel (las térmicas
+   no tienen color); la tira mide lo que el rollo, con 4 mm de margen por lado. En pantalla se ve como
+   un rollo sobre la mesa; al imprimir ocupa la página del ancho del rollo. */
+
+.tira {
+  --ancho: 80mm;
+  --tinta: var(--wp-papel-tinta);
+  width: var(--ancho);
+  margin: 0 auto;
+  padding: 5mm 4mm 7mm;
+  font-family: inherit;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--tinta);
+  background: var(--wp-papel);
+  box-shadow:
+    0 0 0 1px var(--wp-papel-linea),
+    0 18px 36px -20px rgb(0 0 0 / 0.55);
+  print-color-adjust: exact;
+  -webkit-print-color-adjust: exact;
+  overflow-wrap: anywhere;
+}
+
+.tira[data-letra="grande"] {
+  font-size: 12.5px;
+}
+
+.tira p {
+  margin: 0;
+}
+
+.anulado {
+  margin-bottom: 2mm !important;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 1.2em;
+  text-align: center;
+  letter-spacing: 0.1em;
+}
+
+.cabecera {
+  display: grid;
+  justify-items: center;
+  gap: 0.5mm;
+  text-align: center;
+}
+
+.logo {
+  max-width: 70%;
+  max-height: 22mm;
+  margin-bottom: 1.5mm;
+  object-fit: contain;
+  filter: grayscale(1) contrast(1.4);
+}
+
+.nombre {
+  font-size: 1.75em;
+  font-weight: 800;
+  font-variation-settings: "wdth" 62;
+  line-height: 0.95;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+}
+
+.lema {
+  font-style: italic;
+}
+
+.corte {
+  margin: 2.2mm 0;
+  border: 0;
+  border-top: 1px dashed var(--tinta);
+}
+
+.titulo {
+  display: grid;
+  justify-items: center;
+  gap: 0.3mm;
+  text-align: center;
+}
+
+.tipo {
+  font-size: 1.45em;
+  font-weight: 800;
+  font-variation-settings: "wdth" 64;
+  text-transform: uppercase;
+}
+
+.numero {
+  font-family: var(--font-mono);
+  font-size: 1.1em;
+  font-weight: 700;
+}
+
+.bloque {
+  display: grid;
+  gap: 0.3mm;
+  margin-top: 1.5mm;
+}
+
+.lineas {
+  display: grid;
+  gap: 1.4mm;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.descripcion {
+  font-weight: 600;
+}
+
+.codigo {
+  font-family: var(--font-mono);
+  font-weight: 400;
+}
+
+/* Dos columnas: texto a la izquierda, cifra en mono a la derecha. */
+.par {
+  display: flex;
+  justify-content: space-between;
+  gap: 2mm;
+}
+
+.par span:last-child {
+  flex: none;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.par[data-fuerte] {
+  margin-top: 0.8mm;
+  font-size: 1.2em;
+  font-weight: 800;
+}
+
+.totales {
+  display: grid;
+  gap: 0.4mm;
+}
+
+.letras {
+  margin-top: 1.5mm !important;
+  font-size: 0.92em;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.grande {
+  margin: 2mm 0 1mm !important;
+  font-family: var(--font-mono);
+  font-size: 1.9em;
+  font-weight: 700;
+  text-align: center;
+}
+
+.texto {
+  margin-top: 1.2mm !important;
+}
+
+.pie {
+  display: grid;
+  gap: 0.6mm;
+  font-size: 0.92em;
+  text-align: center;
+}
+
+.mensaje {
+  margin-bottom: 1mm !important;
+  font-weight: 600;
+}
+
+.firma {
+  display: grid;
+  justify-items: center;
+  gap: 0.5mm;
+  margin: 9mm 4mm 2mm;
+}
+
+.firma span {
+  width: 100%;
+  border-top: 1px solid var(--tinta);
+}
+
+.firma p {
+  font-size: 0.9em;
+}
+
+@media print {
+  .tira {
+    width: var(--ancho);
+    margin: 0;
+    box-shadow: none;
+    background: none;
+  }
+}

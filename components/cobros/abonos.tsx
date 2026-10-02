@@ -11,8 +11,7 @@ import { VentanaFlotante } from "@/components/ventanas/ventana-flotante";
 import type { Recibo } from "@/lib/cobros";
 import { ReciboVista } from "./recibo-vista";
 import styles from "./cobros.module.css";
-
-const conImprimir = (url: string) => `${url}${url.includes("?") ? "&" : "?"}imprimir`;
+import { urlImprimir } from "@/lib/impresion";
 
 /** Ventas › Abonos: los recibos emitidos. Abrir uno lo muestra para imprimir o anular (dueño/admin). */
 export function Abonos({ administra }: { administra: boolean }) {
@@ -76,7 +75,7 @@ function DetalleRecibo({ id, administra, onCambio }: { id: string; administra: b
   return (
     <div className={styles.recibo}>
       <div className={styles.reciboBarra}>
-        <a className={`${ui.boton} ${ui.primario}`} href={conImprimir(api.urlRecibo(id))} target="_blank" rel="noopener">
+        <a className={`${ui.boton} ${ui.primario}`} href={urlImprimir(api.urlRecibo(id))} target="_blank" rel="noopener">
           <IconoImprimir tamano={14} /> Imprimir
         </a>
         {administra && recibo.estado === "emitido" && !anulando && (

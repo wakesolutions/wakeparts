@@ -18,6 +18,7 @@ El sistema se viste con la marca de cada taller (Taller › Apariencia y Factura
 - **Color de marca**: reemplaza al rojo en todo. Se deriva de un solo hex con `tokensAcento()` y se inyecta como `:root[data-paleta]{…}`. Por eso los componentes **solo** usan `--wp-accent*`: nunca un rojo fijo.
 - **Fondo del escritorio** con velo del color de la paleta (más fuerte a la izquierda, donde va el saludo). Sin fondo propio queda el de Wake Parts.
 - **Logo**: en la barra (reemplaza la marca Wake Parts), en el saludo de Inicio, en la placa de Taller y en los documentos.
+- **Ticket térmico** (`components/impresion/tira.tsx`): tira de 80 o 58 mm siempre en tinta negra, una columna, cifras en mono a la derecha, cortes con línea punteada; `@page` del ancho del rollo y sin márgenes. Respeta lema, mensaje, «qué mostrar», logo (en escala de grises) y letra normal/grande del formato. Facturas y notas imprimen los mismos datos fiscales que en carta.
 - **Documentos**: `DocumentoVista` recibe `identidad`; `--doc-marca` es el color de la empresa o tinta negra. Variantes por `data-estilo` (moderno, clásico serif, compacto), `data-tabla`, `data-logo` y `data-logo-tamano`.
 
 ## Sitio público de cada taller (0013)

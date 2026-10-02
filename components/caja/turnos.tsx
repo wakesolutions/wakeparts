@@ -11,8 +11,7 @@ import { VentanaFlotante } from "@/components/ventanas/ventana-flotante";
 import type { Turno } from "@/lib/caja";
 import { CorteVista } from "./corte-vista";
 import styles from "./caja.module.css";
-
-const conImprimir = (url: string) => `${url}${url.includes("?") ? "&" : "?"}imprimir`;
+import { urlImprimir } from "@/lib/impresion";
 
 /** Caja › Turnos: todos los turnos (abiertos y cerrados). Abrir uno muestra su corte. */
 export function Turnos() {
@@ -59,7 +58,7 @@ export function CorteTurno({ id }: { id: string }) {
   return (
     <div className={styles.corteVentana}>
       <div className={styles.botones} style={{ justifyContent: "flex-start" }}>
-        <a className={`${ui.boton} ${ui.primario}`} href={conImprimir(api.urlCorte(id))} target="_blank" rel="noopener">
+        <a className={`${ui.boton} ${ui.primario}`} href={urlImprimir(api.urlCorte(id))} target="_blank" rel="noopener">
           <IconoImprimir tamano={14} /> Imprimir corte
         </a>
       </div>

@@ -14,6 +14,7 @@ import {
 import { centavos, fechaDia, fechaYHora, moneda } from "@/lib/formato";
 import { formatoRtn } from "@/lib/ventas";
 import styles from "./cobros.module.css";
+import { urlImprimir } from "@/lib/impresion";
 
 const ESTADO: Record<string, string> = {
   vencida: "Vencida",
@@ -21,9 +22,6 @@ const ESTADO: Record<string, string> = {
   al_dia: "Al día",
   pagada: "A favor",
 };
-
-/** «?imprimir» abre el diálogo de impresión; la demo ya trae su propio «?». */
-const conImprimir = (url: string) => `${url}${url.includes("?") ? "&" : "?"}imprimir`;
 
 /**
  * Estado de cuenta de un cliente: su crédito (medidor usado / límite), las
@@ -210,7 +208,7 @@ export function EstadoCuenta({ idCliente, onCambio }: { idCliente: number; onCam
                       {r.estado === "anulado" && " · anulado"}
                     </span>
                     <strong>{moneda(r.monto)}</strong>
-                    <a href={conImprimir(api.urlRecibo(r.id))} target="_blank" rel="noopener" aria-label={`Imprimir ${r.numero}`}>
+                    <a href={urlImprimir(api.urlRecibo(r.id))} target="_blank" rel="noopener" aria-label={`Imprimir ${r.numero}`}>
                       <IconoImprimir tamano={13} />
                     </a>
                   </li>
@@ -227,7 +225,7 @@ export function EstadoCuenta({ idCliente, onCambio }: { idCliente: number; onCam
               <p>
                 Recibo <strong>{emitido.numero}</strong> por {moneda(emitido.monto)}.
               </p>
-              <a className={`${ui.boton} ${ui.primario}`} href={conImprimir(api.urlRecibo(emitido.id))} target="_blank" rel="noopener">
+              <a className={`${ui.boton} ${ui.primario}`} href={urlImprimir(api.urlRecibo(emitido.id))} target="_blank" rel="noopener">
                 <IconoImprimir tamano={14} /> Imprimir recibo
               </a>
             </div>

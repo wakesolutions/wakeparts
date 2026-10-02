@@ -21,6 +21,7 @@ import { etiquetaMotivo, NOMBRE_DOCUMENTO, type Documento, type TipoNota } from 
 import { useSesion } from "../sesion-contexto";
 import { ModuloTablas } from "./tablas";
 import styles from "./modulos.module.css";
+import { urlImprimir } from "@/lib/impresion";
 
 /** Ventas: documentos emitidos, pedidos del sitio web, clientes, reporte de ventas, puntos de emisión y CAI. */
 export function ModuloVentas() {
@@ -100,9 +101,6 @@ export function ModuloVentas() {
     />
   );
 }
-
-/** «?imprimir» abre el diálogo de impresión; la demo ya trae su propio «?id=». */
-const conImprimir = (url: string) => `${url}${url.includes("?") ? "&" : "?"}imprimir`;
 
 function Documentos() {
   const [abierto, setAbierto] = useState<{ id: string; numero: string } | null>(null);
@@ -205,7 +203,7 @@ function DetalleDocumento({
   return (
     <div className={styles.documento}>
       <div className={styles.documentoBarra}>
-        <a className={`${ui.boton} ${ui.primario}`} href={conImprimir(api.urlImpresion(id))} target="_blank" rel="noopener">
+        <a className={`${ui.boton} ${ui.primario}`} href={urlImprimir(api.urlImpresion(id))} target="_blank" rel="noopener">
           <IconoImprimir tamano={14} /> Imprimir
         </a>
         {!esNota && (

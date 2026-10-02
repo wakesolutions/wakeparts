@@ -2,6 +2,21 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-02 · Plan de lanzamiento (evaluación con las respuestas del usuario)
+
+- Hecho en este ciclo: notas de crédito/débito, devoluciones, exoneraciones, puntos de emisión (0016), crédito y cuentas por cobrar (0017), caja con arqueo (0018), ticket térmico. Cubre lo que un yonker pide la primera semana.
+- Confirmado por el usuario: el SAR no exige registrar el sistema; respaldos con plan pago de Supabase; soporte 24/7 sí; un abogado revisa términos y privacidad; pruebas automáticas, después.
+- Antes de vender abierto: reunión con contador (redondeo del ISV, precios sin ISV, leyendas, requisitos de exoneración, umbrales de CAI por vencer); cierre legal (términos, privacidad, contrato de servicio); **exportación completa de datos** (la promete el contrato y no existe); respaldo de **Storage** (fotos y logos no van en el respaldo de la base); precio publicado en la landing; que la propia empresa de Wake Parts facture la suscripción con su CAI.
+- Propuesta de precio (a validar con 3–5 talleres): Mostrador desde L 690/mes · Taller L 1,190/mes · Multisucursal L 1,890/mes; anual = 10 meses; implementación opcional L 2,500. Sin licencia perpetua; si se ofrece pago único, L 14,900 + L 250/mes de servicio.
+
+## 2026-10-02 · Ticket de 80 mm
+
+- **Pedido del usuario**: impresión en ticket de 80 mm, «igual, personalizable siempre».
+- **Mismo formato, otra salida**: el ticket se configura en Taller › Factura junto al diseño de la hoja (papel predeterminado, ancho 80/58 mm, letra, logo) y reutiliza lema, mensaje y «qué mostrar». Va en `formato_documento` (jsonb): **sin migración**.
+- **Cambio de papel en la página de impresión** (Carta · Ticket): un mostrador puede tener térmica y a veces pedir carta (cliente empresa), sin tocar la configuración.
+- **Impresión del navegador, no ESC/POS**: funciona con cualquier térmica instalada como impresora del sistema, sin drivers ni apps extra. Lo único que hay que elegir en el diálogo es la impresora y márgenes «Ninguno». Si un taller quiere imprimir sin diálogo (kiosco/QZ Tray), es otra etapa.
+- Todo sale en tinta negra (las térmicas no tienen color) y el logo en escala de grises.
+
 ## 2026-10-02 · Módulo de Caja (migración 0018)
 
 - **Pedido del usuario**: cierre de caja y arqueo del día, «un módulo de caja».

@@ -1,17 +1,21 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { leerDocumento } from "@/app/acciones/ventas";
+import { TiraDocumento } from "@/components/impresion/tira";
 import { DocumentoVista } from "@/components/ventas/documento-vista";
 import { NOMBRE_DOCUMENTO } from "@/lib/ventas";
-import { identidadDeFila } from "@/lib/identidad";
+import { identidadDeFila, papelDe } from "@/lib/identidad";
 import { createClient } from "@/lib/supabase/server";
 import { BarraImpresion } from "./barra-impresion";
 
 export const metadata: Metadata = { title: "Documento", robots: { index: false, follow: false } };
 
 /** Vista imprimible de una cotización, factura o nota (RLS: solo miembros de la empresa). */
-export default async function PaginaDocumento(props: { params: Promise<{ id: string }> }) {
-  const { id } = await props.params;
+export default async function PaginaDocumento(props: {
+  params: Promise<{ id: string }>;
+  searchParams: Promise<{ papel?: string }>;
+}) {
+  const [{ id }, { papel: pedido }] = await Promise.all([props.params, props.searchParams]);
   const doc = await leerDocumento(id);
   if (!doc) notFound();
 
@@ -19,11 +23,12 @@ export default async function PaginaDocumento(props: { params: Promise<{ id: str
   const supabase = await createClient();
   const { data } = await supabase.from("documentos").select("empresas(*)").eq("id", id).maybeSingle();
   const identidad = identidadDeFila((data as { empresas?: Record<string, unknown> | null } | null)?.empresas);
+  const papel = papelDe(pedido, identidad.formato);
 
   return (
     <main className="min-h-dvh px-3 py-6 sm:px-8 print:p-0">
-      <BarraImpresion titulo={`${NOMBRE_DOCUMENTO[doc.tipo]} ${doc.numero}`} />
-      <DocumentoVista doc={doc} identidad={identidad} />
+      <BarraImpresion titulo={`${NOMBRE_DOCUMENTO[doc.tipo]} ${doc.numero}`} papel={papel} />
+      {papel === "ticket" ? <TiraDocumento doc={doc} identidad={identidad} /> : <DocumentoVista doc={doc} identidad={identidad} />}
     </main>
   );
 }
