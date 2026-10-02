@@ -330,6 +330,28 @@ Totales: `bruto = cantidad·precio`; `neto = bruto·(1 − desc. línea)·(1 −
 | `anular_documento(…)` | Además: no anula una factura con abonos vigentes. |
 | `pendiente_factura(factura)` | Lo pendiente (0 si es de contado o está anulada). |
 
+## Caja (0018)
+
+| Tabla / columna | Qué es |
+|---|---|
+| `empresas.caja_obligatoria` | Sin turno abierto no se factura de contado ni se registran abonos. |
+| `carritos.forma_pago`, `referencia_pago` · `documentos.forma_pago`, `referencia_pago` | Cómo se pagó una factura de contado (las anteriores quedaron como efectivo). Las notas usan la de su factura. |
+| `cajas_turnos` | Turno de un punto: `numero` (correlativo `turno`), `fondo_inicial`, `estado` (`abierta` · `cerrada`; único abierto por punto), apertura/cierre (quién y cuándo), `efectivo_esperado`, `efectivo_contado`, `diferencia`, `arqueo` jsonb `{ "500": 2, "0.50": 4 }`, `resumen` jsonb congelado al cerrar, `notas`. Solo lectura por RLS. |
+| `cajas_movimientos` | Entradas/salidas de efectivo de un turno (`tipo`, `monto` > 0, `concepto`). |
+| `documentos.id_turno`, `pagos.id_turno` | Turno en el que se emitió. |
+
+| Función / vista | Qué hace |
+|---|---|
+| `turno_abierto(punto)` | (interna) Turno abierto del punto, con `for share` para que no se cierre a mitad de una venta. |
+| `abrir_caja(empresa, fondo)` | En el punto de quien llama (`punto_emision_actual`). Un turno abierto por punto. |
+| `movimiento_caja(turno, tipo, monto, concepto)` | Entrada o salida en un turno abierto. |
+| `resumen_turno(turno)` | `{fondo, formas:[{forma, ventas, abonos, devoluciones, cargos, neto}], entradas, salidas, esperado_efectivo, total_cobrado, facturas, abonos, notas, movimientos, credito, anuladas}`. |
+| `cerrar_caja(turno, contado, arqueo, notas)` | Quien abrió o dueño/admin. Diferencia ≠ 0 exige nota. Congela el resumen. |
+| `emitir_documento`, `emitir_nota`, `registrar_pago` | Guardan el turno abierto del punto; con caja obligatoria, contado y abonos la exigen. |
+| `reporte_ventas` | Resta notas de crédito, suma notas de débito; indicador `devoluciones`. |
+| `v_cajas_turnos` | Turnos con punto, quién abrió/cerró, esperado (vivo si está abierta), cobrado, ventas, `propio`, `descuadre`. |
+| `v_caja_movimientos` | Todo lo del turno en orden: ventas, ventas al crédito, devoluciones, cargos, abonos, entradas y salidas; `monto` con signo y `en_caja`. |
+
 ## Sitio web y pedidos (0013)
 
 ### `pedidos_web` / `pedidos_web_lineas`

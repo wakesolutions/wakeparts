@@ -4,6 +4,7 @@ import type { DefModulo } from "@/components/ventanas/contexto";
 import type { Sesion } from "@/lib/sesion";
 import {
   IconoActividad,
+  IconoCaja,
   IconoEquipo,
   IconoInicio,
   IconoInventario,
@@ -16,6 +17,7 @@ import {
   IconoVentas,
 } from "./iconos-modulos";
 import { ModuloActividad } from "./actividad";
+import { ModuloCaja } from "./caja";
 import { ModuloCotizar } from "./cotizar";
 import { ModuloInventario } from "./inventario";
 import { ModuloMiUsuario } from "./mi-usuario";
@@ -44,6 +46,13 @@ export const MODULOS: ModuloEscritorio[] = [
     icono: <IconoMostrador />,
     componente: ModuloCotizar,
     tamano: { w: 1320, h: 800 },
+  },
+  {
+    id: "caja",
+    nombre: "Caja",
+    icono: <IconoCaja />,
+    componente: ModuloCaja,
+    tamano: { w: 1180, h: 780 },
   },
   {
     id: "inventario",

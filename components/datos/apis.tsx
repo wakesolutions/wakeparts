@@ -7,6 +7,7 @@ import {
   type ApiCatalogoVehiculos,
   type ApiCompatibilidad,
 } from "@/components/compatibilidad/api";
+import { apiCaja, type ApiCaja } from "@/components/caja/api";
 import { apiCobros, type ApiCobros } from "@/components/cobros/api";
 import { apiIdentidad, type ApiIdentidad } from "@/components/identidad/api";
 import { apiImagenes, type ApiImagenes } from "@/components/imagenes/api";
@@ -37,6 +38,7 @@ export type Apis = {
   imagenes: ApiImagenes;
   ventas: ApiVentas;
   cobros: ApiCobros;
+  caja: ApiCaja;
   inventario: ApiInventario;
   reportes: ApiReportes;
   identidad: ApiIdentidad;
@@ -53,6 +55,7 @@ const REALES: Apis = {
   imagenes: apiImagenes,
   ventas: apiVentas,
   cobros: apiCobros,
+  caja: apiCaja,
   inventario: apiInventario,
   reportes: apiReportes,
   identidad: apiIdentidad,

@@ -4,8 +4,8 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useApi } from "@/components/datos/apis";
 import ui from "@/components/ui/controles.module.css";
 import { IconoCerrar, IconoDocumento, IconoMas, IconoMenos, IconoPapelera } from "@/components/ui/iconos";
-import type { CreditoCliente } from "@/lib/cobros";
-import { cant, moneda, pct } from "@/lib/formato";
+import { FORMAS_PAGO, type CreditoCliente } from "@/lib/cobros";
+import { cant, centavos, moneda, pct } from "@/lib/formato";
 import { urlImagen } from "@/lib/imagenes";
 import {
   calcularTotales,
@@ -57,6 +57,9 @@ export function Ticket({
   const [credito, setCredito] = useState<CreditoCliente | null>(null);
   const alCredito = carrito.condicion === "credito";
   const utilidad = totales.gravado + totales.exonerado + totales.exento - totales.costo;
+  const [pagaCon, setPagaCon] = useState("");
+  const formaPago = FORMAS_PAGO.find((f) => f.valor === carrito.forma_pago) ?? FORMAS_PAGO[0];
+  const cambio = centavos((Number(pagaCon.replace(/,/g, "")) || 0) - totales.total);
 
   // Al confirmar una factura se dice con qué caja sale (su CAI y su numeración).
   useEffect(() => {
@@ -181,6 +184,54 @@ export function Ticket({
                 {carrito.exonerado ? ", exonerada del ISV" : ""}
                 {alCredito ? `, al crédito a ${credito?.dias_credito ?? 30} días` : ""} y descuenta existencias.
               </p>
+            )}
+            {confirmar === "factura" && !alCredito && (
+              <div className={styles.pago}>
+                <div className={styles.formasPago} role="radiogroup" aria-label="Forma de pago">
+                  {FORMAS_PAGO.map((f) => (
+                    <button
+                      key={f.valor}
+                      type="button"
+                      role="radio"
+                      aria-checked={formaPago.valor === f.valor}
+                      onClick={() => f.valor !== carrito.forma_pago && onCambiarCarrito({ forma_pago: f.valor })}
+                    >
+                      {f.etiqueta}
+                    </button>
+                  ))}
+                </div>
+                {formaPago.valor === "efectivo" ? (
+                  <label className={styles.pagaCon}>
+                    <span>Paga con</span>
+                    <input
+                      className={`${ui.campo} ${ui.campoMono}`}
+                      inputMode="decimal"
+                      placeholder={totales.total.toFixed(2)}
+                      value={pagaCon}
+                      onChange={(e) => setPagaCon(e.target.value.replace(/[^\d.,]/g, ""))}
+                      aria-label="Paga con"
+                    />
+                    <strong data-mal={(pagaCon !== "" && cambio < 0) || undefined}>
+                      {pagaCon === "" ? "Cambio —" : cambio < 0 ? `Faltan ${moneda(-cambio)}` : `Cambio ${moneda(cambio)}`}
+                    </strong>
+                  </label>
+                ) : (
+                  formaPago.pideReferencia && (
+                    <input
+                      className={`${ui.campo} ${ui.campoMono}`}
+                      key={`${carrito.id}-${carrito.referencia_pago ?? ""}`}
+                      defaultValue={carrito.referencia_pago ?? ""}
+                      placeholder="N.º de autorización o referencia"
+                      maxLength={80}
+                      aria-label="Referencia del pago"
+                      onBlur={(e) => {
+                        const v = e.target.value.trim() || null;
+                        if (v !== carrito.referencia_pago) onCambiarCarrito({ referencia_pago: v });
+                      }}
+                    />
+                  )
+                )}
+              </div>
             )}
             <div className={styles.botones}>
               <button type="button" className={`${ui.boton} ${ui.fantasma}`} onClick={() => setConfirmar(null)}>

@@ -13,6 +13,7 @@ import type { ImagenProducto } from "@/components/imagenes/api";
 import type { EstadoSitio, PedidoWeb } from "@/components/sitio-web/api";
 import { armarBandeja } from "@/lib/notificaciones";
 import type { CreditoCliente, CuentaFactura, EstadoCuenta, Recibo } from "@/lib/cobros";
+import { resumirTurno, totalArqueo, type Arqueo, type MovimientoCaja, type Turno } from "@/lib/caja";
 import { normalizarSitio } from "@/lib/sitio-web";
 import { centavos } from "@/lib/formato";
 import type { ResultadoImportacion } from "@/lib/inventario";
@@ -179,7 +180,10 @@ const clientes: ClienteDemo[] = [
   },
 ];
 /** Documentos y sus líneas con id propio (las notas apuntan a líneas de la factura). */
-type DocumentoDemo = Omit<Documento, "lineas"> & { lineas: (Documento["lineas"][number] & { id_linea_origen?: number })[] };
+type DocumentoDemo = Omit<Documento, "lineas"> & {
+  lineas: (Documento["lineas"][number] & { id_linea_origen?: number })[];
+  id_turno?: string | null;
+};
 const documentos: DocumentoDemo[] = [];
 let correlativoCot = 1;
 const correlativos: Record<Exclude<TipoCualquierDocumento, "cotizacion">, number> = { factura: 1, nota_credito: 1, nota_debito: 1 };
@@ -276,7 +280,112 @@ function saldoDemo(f: Documento) {
 
 // --------------------------------------------------------- crédito (demo) --
 
-type PagoDemo = Omit<Recibo, "emisor" | "saldo_actual" | "aplicaciones"> & { aplicaciones: { id_documento: string; monto: number }[] };
+type PagoDemo = Omit<Recibo, "emisor" | "saldo_actual" | "aplicaciones"> & {
+  aplicaciones: { id_documento: string; monto: number }[];
+  id_turno?: string | null;
+};
+
+// ------------------------------------------------------------ caja (demo) --
+
+type TurnoDemo = {
+  id: string;
+  numero: number;
+  abierta_en: string;
+  fondo: number;
+  estado: "abierta" | "cerrada";
+  cerrada_en: string | null;
+  contado: number | null;
+  arqueo: Arqueo | null;
+  notas: string | null;
+  manuales: { id: number; tipo: "entrada" | "salida"; monto: number; concepto: string; fecha: string }[];
+};
+const turnosDemo: TurnoDemo[] = [];
+let cajaObligatoriaDemo = false;
+let siguienteManual = 1;
+const turnoAbiertoDemo = () => turnosDemo.find((t) => t.estado === "abierta") ?? null;
+
+function movimientosTurnoDemo(t: TurnoDemo): MovimientoCaja[] {
+  const docs: MovimientoCaja[] = documentos
+    .filter((d) => d.id_turno === t.id && d.tipo !== "cotizacion")
+    .map((d) => {
+      const f = d.id_factura ? documentos.find((x) => x.id === d.id_factura) : undefined;
+      const tipo =
+        d.tipo === "factura" ? (d.condicion === "credito" ? "venta_credito" : "venta") : d.tipo === "nota_credito" ? "devolucion" : "cargo";
+      return {
+        id: d.id,
+        fecha: d.fecha,
+        tipo,
+        referencia: d.numero,
+        detalle: d.cliente_nombre,
+        forma_pago: d.forma_pago ?? f?.forma_pago ?? null,
+        monto: d.tipo === "nota_credito" ? -d.total : d.total,
+        en_caja: d.tipo === "factura" ? d.condicion === "contado" : f?.condicion === "contado",
+        estado: d.estado,
+        usuario: d.vendedor,
+      };
+    });
+  const abonos: MovimientoCaja[] = pagosDemo
+    .filter((p) => p.id_turno === t.id)
+    .map((p) => ({
+      id: p.id,
+      fecha: p.fecha,
+      tipo: "abono",
+      referencia: p.numero,
+      detalle: p.cliente_nombre,
+      forma_pago: p.forma_pago,
+      monto: p.monto,
+      en_caja: true,
+      estado: p.estado,
+      usuario: p.cobro,
+    }));
+  const manuales: MovimientoCaja[] = t.manuales.map((m) => ({
+    id: String(m.id),
+    fecha: m.fecha,
+    tipo: m.tipo,
+    referencia: null,
+    detalle: m.concepto,
+    forma_pago: "efectivo",
+    monto: m.tipo === "salida" ? -m.monto : m.monto,
+    en_caja: true,
+    estado: "emitido",
+    usuario: "Demo Sandbox",
+  }));
+  return [...docs, ...abonos, ...manuales].sort((a, b) => b.fecha.localeCompare(a.fecha));
+}
+
+function turnoCompletoDemo(t: TurnoDemo): Turno {
+  const movimientos = movimientosTurnoDemo(t);
+  const resumen = resumirTurno(t.fondo, movimientos);
+  return {
+    id: t.id,
+    numero: t.numero,
+    empresa: EMISOR_DEMO.nombre ?? "Yonker Demo",
+    punto: `${PUNTO_DEMO.codigo} · ${PUNTO_DEMO.nombre}`,
+    estado: t.estado,
+    abierta_en: t.abierta_en,
+    abierta_por: "Demo Sandbox",
+    cerrada_en: t.cerrada_en,
+    cerrada_por: t.cerrada_en ? "Demo Sandbox" : null,
+    fondo_inicial: t.fondo,
+    efectivo_contado: t.contado,
+    diferencia: t.contado === null ? null : centavos(t.contado - resumen.esperado_efectivo),
+    arqueo: t.arqueo,
+    notas: t.notas,
+    propio: true,
+    resumen,
+    movimientos,
+  };
+}
+
+function guardarCorteDemo(id: string) {
+  const t = turnosDemo.find((x) => x.id === id);
+  if (!t) return;
+  try {
+    localStorage.setItem(`wp:demo:corte:${id}`, JSON.stringify(turnoCompletoDemo(t)));
+  } catch {
+    // sin almacenamiento
+  }
+}
 const pagosDemo: PagoDemo[] = [];
 let correlativoRecibo = 1;
 
@@ -468,6 +577,8 @@ function nuevoCarrito(): Carrito {
     exo_constancia: null,
     exo_registro_sag: null,
     condicion: "contado",
+    forma_pago: "efectivo",
+    referencia_pago: null,
   };
 }
 
@@ -643,6 +754,9 @@ const ventas: Apis["ventas"] = {
     if (credito && !cliCredito?.credito_habilitado) {
       return { ok: false as const, error: "Este cliente no tiene crédito. Habilitalo en Ventas › Clientes." };
     }
+    if (tipo === "factura" && !credito && cajaObligatoriaDemo && !turnoAbiertoDemo()) {
+      return { ok: false as const, error: "Abrí la caja (módulo Caja) antes de facturar de contado." };
+    }
     const t = calcularTotales(ls, c.descuento_pct, c.exonerado);
     const cai =
       tipo === "factura"
@@ -663,6 +777,9 @@ const ventas: Apis["ventas"] = {
             : null,
       condicion: credito ? "credito" : "contado",
       dias_credito: credito ? (cliCredito!.dias_credito ?? 30) : null,
+      forma_pago: tipo === "factura" && !credito ? c.forma_pago : null,
+      referencia_pago: tipo === "factura" && !credito ? c.referencia_pago : null,
+      id_turno: tipo === "factura" ? (turnoAbiertoDemo()?.id ?? null) : null,
       cai: cai.cai,
       cai_rango: cai.cai_rango,
       cai_fecha_limite: cai.cai_fecha_limite,
@@ -773,6 +890,7 @@ const ventas: Apis["ventas"] = {
       motivo_tipo: nota.motivo_tipo,
       motivo: nota.motivo.trim(),
       reintegra_inventario: devolucion && nota.reintegrar,
+      id_turno: turnoAbiertoDemo()?.id ?? null,
       cliente_nombre: f.cliente_nombre,
       cliente_rtn: f.cliente_rtn,
       cliente_telefono: f.cliente_telefono,
@@ -1298,6 +1416,27 @@ const BASES: Record<string, () => Fila[]> = {
           estado: c.vencido > 0 ? "vencida" : c.pendiente > 0 ? "al_dia" : c.pendiente < 0 ? "a_favor" : "sin_saldo",
         };
       }),
+  cajas_turnos: () =>
+    turnosDemo
+      .map(turnoCompletoDemo)
+      .map((t) => ({
+        id: t.id,
+        numero: t.numero,
+        punto: t.punto,
+        estado: t.estado,
+        abierta_en: t.abierta_en,
+        abierta_por: t.abierta_por,
+        cerrada_en: t.cerrada_en,
+        cerrada_por: t.cerrada_por,
+        facturas: t.resumen.facturas,
+        total_cobrado: t.resumen.total_cobrado,
+        fondo_inicial: t.fondo_inicial,
+        efectivo_esperado: t.resumen.esperado_efectivo,
+        efectivo_contado: t.efectivo_contado,
+        diferencia: t.diferencia,
+        notas: t.notas,
+        descuadre: (t.diferencia ?? 0) !== 0,
+      })),
   pagos: () =>
     pagosDemo.map((p) => ({
       id: p.id,
@@ -1547,6 +1686,9 @@ const cobros: Apis["cobros"] = {
   registrarAbono: async (a) => {
     const cli = clientes.find((c) => c.id === a.id_cliente);
     if (!cli) return { ok: false as const, error: "El cliente no existe." };
+    if (cajaObligatoriaDemo && !turnoAbiertoDemo()) {
+      return { ok: false as const, error: "Abrí la caja (módulo Caja) antes de registrar un abono." };
+    }
     const cuentas = cuentasDemo().filter((f) => f.id_cliente === cli.id && f.pendiente > 0);
     const total = centavos(cuentas.reduce((s, f) => s + f.pendiente, 0));
     if (a.monto > total) return { ok: false as const, error: `El abono supera lo pendiente del cliente (L ${total.toFixed(2)}).` };
@@ -1571,6 +1713,7 @@ const cobros: Apis["cobros"] = {
       motivo_anulacion: null,
       cobro: "Demo Sandbox",
       aplicaciones: a.aplicaciones,
+      id_turno: turnoAbiertoDemo()?.id ?? null,
     });
     guardarReciboDemo(id);
     return espera({ ok: true as const, id, numero }, 400);
@@ -1587,12 +1730,78 @@ const cobros: Apis["cobros"] = {
   urlRecibo: (id) => `/demo/documento?recibo=${id}`,
 };
 
+const caja: Apis["caja"] = {
+  estado: async () => {
+    const t = turnoAbiertoDemo();
+    return espera({
+      punto: { id: PUNTO_DEMO.id, codigo: PUNTO_DEMO.codigo, nombre: PUNTO_DEMO.nombre },
+      turno: t ? turnoCompletoDemo(t) : null,
+      obligatoria: cajaObligatoriaDemo,
+    });
+  },
+  turno: async (id) => {
+    const t = turnosDemo.find((x) => x.id === id);
+    return espera(t ? turnoCompletoDemo(t) : null);
+  },
+  abrir: async (fondo) => {
+    if (turnoAbiertoDemo()) return { ok: false as const, error: "Caja principal ya está abierta." };
+    if (!(fondo >= 0)) return { ok: false as const, error: "El fondo inicial no puede ser negativo." };
+    const t: TurnoDemo = {
+      id: crypto.randomUUID(),
+      numero: turnosDemo.length + 1,
+      abierta_en: new Date().toISOString(),
+      fondo: centavos(fondo),
+      estado: "abierta",
+      cerrada_en: null,
+      contado: null,
+      arqueo: null,
+      notas: null,
+      manuales: [],
+    };
+    turnosDemo.push(t);
+    return espera({ ok: true as const, id: t.id }, 300);
+  },
+  movimiento: async (id, tipo, monto, concepto) => {
+    const t = turnosDemo.find((x) => x.id === id && x.estado === "abierta");
+    if (!t) return { ok: false as const, error: "La caja ya se cerró." };
+    t.manuales.push({ id: siguienteManual++, tipo, monto: centavos(monto), concepto, fecha: new Date().toISOString() });
+    return espera({ ok: true as const });
+  },
+  cerrar: async (id, contado, arqueo, notas) => {
+    const t = turnosDemo.find((x) => x.id === id && x.estado === "abierta");
+    if (!t) return { ok: false as const, error: "La caja ya se cerró." };
+    const esperado = turnoCompletoDemo(t).resumen.esperado_efectivo;
+    const dif = centavos(contado - esperado);
+    if (dif !== 0 && !notas.trim()) {
+      return { ok: false as const, error: `La caja no cuadra por L ${Math.abs(dif).toFixed(2)}: escribí una nota que lo explique.` };
+    }
+    Object.assign(t, {
+      estado: "cerrada",
+      cerrada_en: new Date().toISOString(),
+      contado: centavos(contado),
+      arqueo: arqueo && totalArqueo(arqueo) > 0 ? arqueo : null,
+      notas: notas.trim() || null,
+    });
+    guardarCorteDemo(id);
+    return espera({ ok: true as const }, 400);
+  },
+  obligatoria: async (valor) => {
+    cajaObligatoriaDemo = valor;
+    return espera({ ok: true as const });
+  },
+  urlCorte: (id) => {
+    guardarCorteDemo(id);
+    return `/demo/documento?corte=${id}`;
+  },
+};
+
 export const APIS_DEMO: Partial<Apis> = {
   recursos,
   empresa,
   perfil,
   ventas,
   cobros,
+  caja,
   compatibilidad,
   imagenes,
   inventario,

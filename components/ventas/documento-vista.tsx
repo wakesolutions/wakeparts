@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { etiquetaForma } from "@/lib/cobros";
 import { cant, enLetras, fechaDia, fechaYHora, moneda, monto, pct } from "@/lib/formato";
 import { FORMATO_POR_DEFECTO, type Identidad } from "@/lib/identidad";
 import { etiquetaMotivo, formatoRtn, NOMBRE_DOCUMENTO, type Documento } from "@/lib/ventas";
@@ -144,7 +145,9 @@ export function DocumentoVista({
           <div>
             <span className={styles.etiqueta}>Condición</span>
             <p className={styles.vehiculo}>
-              {doc.condicion === "credito" ? `Crédito · vence ${doc.vence ? fechaDia(doc.vence) : "—"}` : "Contado"}
+              {doc.condicion === "credito"
+                ? `Crédito · vence ${doc.vence ? fechaDia(doc.vence) : "—"}`
+                : `Contado${doc.forma_pago ? ` · ${etiquetaForma(doc.forma_pago)}` : ""}${doc.referencia_pago ? ` (${doc.referencia_pago})` : ""}`}
             </p>
           </div>
         )}

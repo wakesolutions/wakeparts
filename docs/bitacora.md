@@ -2,6 +2,18 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-02 · Módulo de Caja (migración 0018)
+
+- **Pedido del usuario**: cierre de caja y arqueo del día, «un módulo de caja».
+- **Turno por punto de emisión**, no por persona ni por día: la caja física es la computadora que cobra (ya tiene su punto y su CAI). Varios cajeros pueden vender en el mismo turno; uno por punto abierto a la vez.
+- **Los documentos se pegan al turno al emitirse** (`id_turno`), en vez de calcular por rango de horas: anular después o un reloj desfasado no mueve nada de turno. El cierre bloquea con `for share` para que ninguna venta quede a medias.
+- **Forma de pago en la venta de contado**, una por factura (sin pagos mixtos por ahora: en mostrador casi siempre es una). «Paga con» calcula el cambio sin guardarlo.
+- **Las devoluciones salen con la forma de pago de su factura** (supuesto razonable; ajustable si el usuario lo pide).
+- **Caja obligatoria apagada por defecto**: los talleres que hoy no usan caja no se traban; el dueño la enciende cuando quiera control.
+- **Diferencia con nota obligatoria**: el faltante o sobrante queda explicado en el corte, que es lo que se revisa al día siguiente.
+- **Reporte de ventas neto**: resta notas de crédito y suma débitos (quedaba pendiente desde 0016) e informa «Devoluciones».
+- **Diseño**: momento firma en el cierre: billetes y monedas como fichas que se encienden al contarlas y un **amperímetro de centro cero** (falta a la izquierda, sobra a la derecha) cuya aguja se asienta sin rebote; LED verde «Cuadra». El turno abierto usa el odómetro LCD del mostrador para «el efectivo que debería haber» y la cuenta escrita como suma de papel de caja.
+
 ## 2026-10-02 · Ventas al crédito y cuentas por cobrar (migración 0017)
 
 - **Pedido del usuario**: permitir ventas al crédito y cuentas por cobrar («muchos talleres compran fiado»).

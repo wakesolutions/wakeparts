@@ -1,0 +1,787 @@
+/* Caja. Momento firma: el cierre — billetes como fichas táctiles que se
+   iluminan al contarlos y un amperímetro de centro cero cuya aguja dice si la
+   caja cuadra, sobra o falta. El turno abierto usa el odómetro LCD del mostrador
+   para el efectivo que debería haber. */
+
+.etiqueta {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.led {
+  display: inline-block;
+  flex: none;
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  vertical-align: 0.12em;
+  background: var(--wp-ink-3);
+}
+
+.led[data-estado="abierta"],
+.led[data-estado="cuadra"] {
+  background: var(--wp-ok);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--wp-ok) 70%, transparent);
+}
+
+.led[data-estado="sobra"] {
+  background: var(--wp-aviso);
+  box-shadow: 0 0 8px color-mix(in oklab, var(--wp-aviso) 70%, transparent);
+}
+
+.led[data-estado="falta"] {
+  background: var(--wp-accent);
+  box-shadow: 0 0 8px var(--wp-accent-glow);
+}
+
+.caja {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  min-height: 0;
+  container-type: inline-size;
+}
+
+.cargando {
+  height: 260px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, var(--wp-hover), color-mix(in oklab, var(--wp-hover) 40%, transparent), var(--wp-hover));
+  background-size: 200% 100%;
+  animation: brillo 1400ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.vacio {
+  margin: 0;
+  padding: 1rem;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  color: var(--wp-ink-2);
+  background: var(--wp-hover);
+}
+
+.error {
+  margin: 0;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  background: var(--wp-sel);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-accent) 50%, transparent);
+}
+
+.nota {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--wp-ink-3);
+}
+
+.botones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.enlace {
+  padding: 0;
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+  background: none;
+  cursor: pointer;
+}
+
+.enlace:hover {
+  color: var(--wp-accent-hi);
+}
+
+/* LCD de entrada (fondo inicial, total contado) */
+.lcdCampo {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.lcdEntrada {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 12px;
+  font-family: var(--font-mono);
+  color: color-mix(in oklab, var(--wp-lcd-ink) 60%, transparent);
+  background: var(--wp-lcd);
+  box-shadow:
+    inset 0 2px 6px rgb(0 0 0 / 0.55),
+    inset 0 0 0 1px var(--wp-line);
+}
+
+.lcdEntrada:focus-within {
+  box-shadow:
+    inset 0 2px 6px rgb(0 0 0 / 0.55),
+    0 0 0 2px var(--wp-accent);
+}
+
+.lcdEntrada input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: clamp(1.8rem, 7cqi, 2.6rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--wp-lcd-ink);
+  background: none;
+  outline: none;
+}
+
+.lcdEntrada input::placeholder {
+  color: color-mix(in oklab, var(--wp-lcd-ink) 25%, transparent);
+}
+
+/* ----------------------------------------------------------------- cerrada */
+
+.cerrada {
+  display: grid;
+  gap: 0.9rem;
+  max-width: 520px;
+  padding: clamp(1rem, 4cqi, 2.2rem) 0;
+  animation: entra 360ms var(--ease-expo) both;
+}
+
+.titulo {
+  margin: 0;
+  font-size: clamp(2rem, 8cqi, 3.6rem);
+  font-weight: 800;
+  font-variation-settings: "wdth" 60;
+  line-height: 0.88;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  color: var(--wp-ink);
+}
+
+.titulo .led {
+  width: 12px;
+  height: 12px;
+  vertical-align: 0.35em;
+}
+
+.bajada {
+  margin: 0;
+  max-width: 46ch;
+  font-size: 0.92rem;
+  line-height: 1.5;
+  color: var(--wp-ink-2);
+}
+
+.abrir {
+  justify-content: center;
+  min-height: 42px;
+  font-size: 0.92rem;
+}
+
+.exigir {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  margin-top: 0.6rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  color: var(--wp-ink);
+  background: var(--wp-hover);
+  cursor: pointer;
+}
+
+.exigir span {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.exigir small {
+  font-size: 0.74rem;
+  color: var(--wp-ink-3);
+}
+
+/* ----------------------------------------------------------------- abierta */
+
+.turnoBarra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.8rem;
+  animation: entra 320ms var(--ease-expo) both;
+}
+
+.turnoTitulo {
+  margin: 0.1rem 0 0;
+  font-size: clamp(1.4rem, 5cqi, 2.2rem);
+  font-weight: 800;
+  font-variation-settings: "wdth" 62;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-transform: uppercase;
+  color: var(--wp-ink);
+}
+
+.turnoMeta {
+  margin: 0.3rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--wp-ink-3);
+}
+
+.turnoAcciones {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.tablero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+
+@container (min-width: 820px) {
+  .tablero {
+    grid-template-columns: minmax(300px, 0.9fr) minmax(0, 1.3fr);
+    align-items: start;
+  }
+}
+
+.efectivo,
+.formas,
+.movimientos {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--wp-panel-2), var(--wp-panel));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 0 0 1px var(--wp-line);
+  animation: entra 360ms var(--ease-expo) both;
+}
+
+.formas {
+  animation-delay: 70ms;
+}
+
+.movimientos {
+  animation-delay: 140ms;
+}
+
+/* La cuenta del efectivo, como una suma en papel de caja */
+.cuenta {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+}
+
+.cuenta div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  font-size: 0.78rem;
+  color: var(--wp-ink-2);
+}
+
+.cuenta dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ink);
+}
+
+.cuenta [data-tono="resta"] dd {
+  color: var(--wp-accent-hi);
+}
+
+.cuenta [data-tono="aviso"] dd {
+  color: var(--wp-aviso);
+}
+
+.movBotones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.2rem;
+}
+
+.movForm {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.7rem;
+  border-radius: 10px;
+  background: var(--wp-hover);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  animation: entra 240ms var(--ease-expo) both;
+}
+
+.movCampos {
+  display: grid;
+  grid-template-columns: 7.5rem minmax(0, 1fr);
+  gap: 0.4rem;
+}
+
+.tablaFormas {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.tablaFormas th,
+.tablaFormas td {
+  padding: 0.45rem 0.4rem;
+  text-align: left;
+  border-bottom: 1px solid var(--wp-line);
+}
+
+.tablaFormas thead th {
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.tablaFormas tbody th {
+  font-weight: 600;
+  color: var(--wp-ink);
+}
+
+.tablaFormas [data-num] {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  color: var(--wp-ink-2);
+}
+
+.tablaFormas [data-tono="resta"] {
+  color: var(--wp-accent-hi);
+}
+
+.tablaFormas strong {
+  color: var(--wp-ink);
+}
+
+.tablaFormas tfoot th,
+.tablaFormas tfoot td {
+  border-bottom: 0;
+  font-size: 0.86rem;
+}
+
+.tablaFormas tfoot th {
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 400;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+/* Movimientos: un libro de caja con hora, tipo y monto con signo */
+.lista {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lista li {
+  display: grid;
+  grid-template-columns: 5.4rem minmax(0, 1fr) auto;
+  grid-template-areas:
+    "hora tipo monto"
+    "hora detalle forma";
+  align-items: baseline;
+  gap: 0.05rem 0.7rem;
+  padding: 0.5rem 0.2rem;
+  border-bottom: 1px solid var(--wp-line);
+}
+
+.lista li:last-child {
+  border-bottom: 0;
+}
+
+@container (min-width: 760px) {
+  .lista li {
+    grid-template-columns: 5.4rem 9rem minmax(0, 1fr) 7rem 8rem;
+    grid-template-areas: "hora tipo detalle forma monto";
+  }
+}
+
+.lista time {
+  grid-area: hora;
+  white-space: nowrap;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  color: var(--wp-ink-3);
+}
+
+.movTipo {
+  grid-area: tipo;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--wp-ink);
+}
+
+.movDetalle {
+  grid-area: detalle;
+  overflow: hidden;
+  font-size: 0.76rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--wp-ink-2);
+}
+
+.movDetalle b {
+  margin-right: 0.5rem;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  color: var(--wp-ink);
+}
+
+.movForma {
+  grid-area: forma;
+  justify-self: end;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.movMonto {
+  grid-area: monto;
+  justify-self: end;
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ok);
+}
+
+.movMonto[data-signo="-"] {
+  color: var(--wp-accent-hi);
+}
+
+.lista li[data-fuera] .movMonto {
+  color: var(--wp-ink-3);
+}
+
+.lista li[data-anulado] {
+  opacity: 0.45;
+}
+
+.lista li[data-anulado] .movMonto {
+  text-decoration: line-through;
+}
+
+/* ------------------------------------------------------------------ arqueo */
+
+.arqueo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 1rem;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 1rem 1.2rem 1.4rem;
+  overscroll-behavior: contain;
+  background: var(--wp-bg-deep);
+}
+
+@container (min-width: 820px) {
+  .arqueo {
+    grid-template-columns: minmax(0, 1.35fr) minmax(300px, 1fr);
+    align-items: start;
+  }
+
+  .cuadre {
+    position: sticky;
+    top: 0;
+  }
+}
+
+.conteo,
+.cuadre {
+  display: grid;
+  align-content: start;
+  gap: 0.7rem;
+}
+
+.conteoBarra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+}
+
+/* Billetes y monedas: fichas que se iluminan al tener cantidad */
+.billetes {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.45rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.billetes li {
+  position: relative;
+  display: grid;
+  gap: 0.4rem;
+  padding: 0.6rem 0.7rem 0.55rem;
+  border-radius: 10px;
+  background: linear-gradient(180deg, var(--wp-panel-2), var(--wp-panel));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 0 0 1px var(--wp-line);
+  transition:
+    box-shadow 200ms var(--ease-quart),
+    transform 200ms var(--ease-quart);
+  animation: entra 300ms var(--ease-expo) both;
+  animation-delay: calc(var(--i) * 25ms);
+}
+
+/* Monedas: misma ficha, con un aro metálico sutil para distinguirlas de los billetes. */
+.billetes li[data-tipo="moneda"] {
+  background: radial-gradient(120% 90% at 0% 0%, color-mix(in oklab, var(--wp-metal-hi) 30%, transparent), transparent 60%),
+    linear-gradient(180deg, var(--wp-panel-2), var(--wp-panel));
+}
+
+.billetes li[data-lleno] {
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 0 0 1px color-mix(in oklab, var(--wp-ok) 55%, transparent),
+    0 0 14px -6px var(--wp-ok);
+}
+
+.billeteValor {
+  display: flex;
+  align-items: baseline;
+  gap: 0.2rem;
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-variation-settings: "wdth" 62;
+  line-height: 0.9;
+  letter-spacing: -0.02em;
+  color: var(--wp-ink);
+}
+
+.billeteValor small {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  font-weight: 400;
+  color: var(--wp-ink-3);
+}
+
+.billetes li[data-tipo="moneda"] .billeteValor {
+  font-size: 1.15rem;
+}
+
+.billeteContador {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  height: 30px;
+  border-radius: 8px;
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 1px 3px rgb(0 0 0 / 0.4),
+    inset 0 0 0 1px var(--wp-line);
+}
+
+.billeteContador button {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 30px;
+  border: 0;
+  color: var(--wp-ink-2);
+  background: none;
+  cursor: pointer;
+}
+
+.billeteContador button:hover:not(:disabled) {
+  color: var(--wp-accent-hi);
+}
+
+.billeteContador button:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.billeteContador input {
+  width: 46px;
+  height: 30px;
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-align: center;
+  color: var(--wp-ink);
+  background: none;
+  outline: none;
+}
+
+.billeteContador input:focus {
+  color: var(--wp-accent-hi);
+}
+
+.billeteSubtotal {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ink-3);
+}
+
+.billetes li[data-lleno] .billeteSubtotal {
+  color: var(--wp-ok);
+}
+
+/* Amperímetro de centro cero */
+.medidor {
+  display: grid;
+  justify-items: center;
+  gap: 0.2rem;
+  padding: 0.8rem 0.8rem 0.6rem;
+  border-radius: 16px;
+  background: radial-gradient(120% 90% at 50% 100%, var(--wp-dial), color-mix(in oklab, var(--wp-dial) 80%, var(--wp-bg-deep)));
+  box-shadow:
+    inset 0 2px 8px rgb(0 0 0 / 0.5),
+    inset 0 0 0 1px var(--wp-line);
+}
+
+.medidor svg {
+  width: min(100%, 300px);
+  overflow: visible;
+}
+
+.arcoFalta,
+.arcoSobra {
+  fill: none;
+  stroke-width: 7;
+  stroke-linecap: round;
+}
+
+.arcoFalta {
+  stroke: color-mix(in oklab, var(--wp-accent) 55%, transparent);
+}
+
+.arcoSobra {
+  stroke: color-mix(in oklab, var(--wp-aviso) 55%, transparent);
+}
+
+.marca {
+  stroke: var(--wp-dial-ink);
+  stroke-width: 1.5;
+  opacity: 0.7;
+}
+
+.medidorTexto {
+  font-family: var(--font-mono);
+  font-size: 9px;
+  letter-spacing: 0.18em;
+  fill: var(--wp-dial-ink);
+  opacity: 0.75;
+}
+
+.aguja {
+  transform-origin: 120px 120px;
+  transform-box: view-box;
+  /* Sin rebote (regla del sistema): la aguja llega amortiguada. */
+  transition: transform 700ms var(--ease-expo);
+}
+
+.aguja line {
+  stroke: var(--wp-accent-hi);
+  stroke-width: 2.6;
+  stroke-linecap: round;
+}
+
+.medidor[data-lectura="cuadra"] .aguja line {
+  stroke: var(--wp-ok);
+}
+
+.eje {
+  fill: var(--wp-metal-hi);
+  stroke: var(--wp-metal-edge);
+  stroke-width: 1.5;
+}
+
+.veredicto {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: clamp(1.2rem, 4cqi, 1.6rem);
+  font-weight: 800;
+  font-variation-settings: "wdth" 64;
+  letter-spacing: -0.01em;
+  text-transform: uppercase;
+  color: var(--wp-dial-ink);
+}
+
+.notas {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.notas textarea {
+  resize: vertical;
+}
+
+.confirmar {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 10px;
+  background: var(--wp-hover);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  animation: entra 240ms var(--ease-expo) both;
+}
+
+.confirmar p {
+  margin: 0;
+  font-size: 0.84rem;
+}
+
+.corteVentana {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  height: 100%;
+  overflow-y: auto;
+  padding: 1rem 1.2rem 1.6rem;
+  overscroll-behavior: contain;
+  background: var(--wp-bg-deep);
+}
+
+.corteVentana a {
+  text-decoration: none;
+}
+
+@keyframes entra {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+}
+
+@keyframes brillo {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}

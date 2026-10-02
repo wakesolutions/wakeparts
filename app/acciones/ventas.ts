@@ -21,13 +21,14 @@ import type {
   TipoDocumento,
 } from "@/lib/ventas";
 import { MOTIVOS_NOTA } from "@/lib/ventas";
+import { FORMAS_PAGO } from "@/lib/cobros";
 
 // Mostrador: búsqueda, carritos y emisión. La autorización real es RLS y las
 // funciones de la base (emitir_documento, anular_documento); aquí se valida
 // forma y se traducen errores.
 
 const COLUMNAS_CARRITO =
-  "id, nombre, id_cliente, cliente_nombre, cliente_rtn, cliente_telefono, id_marca, id_modelo, id_modelo_anio, id_especificacion, vehiculo, descuento_pct, notas, estado, lineas, creado_por_nombre, creado_en, actualizado_en, exonerado, exo_orden_compra, exo_constancia, exo_registro_sag, condicion";
+  "id, nombre, id_cliente, cliente_nombre, cliente_rtn, cliente_telefono, id_marca, id_modelo, id_modelo_anio, id_especificacion, vehiculo, descuento_pct, notas, estado, lineas, creado_por_nombre, creado_en, actualizado_en, exonerado, exo_orden_compra, exo_constancia, exo_registro_sag, condicion, forma_pago, referencia_pago";
 const COLUMNAS_LINEA =
   "id, id_carrito, id_producto, codigo, descripcion, cantidad, precio, descuento_pct, exento, orden, costo, existencia, controla_inventario, unidad, oem, imagen";
 
@@ -124,6 +125,8 @@ const CAMPOS_CARRITO = new Set<keyof CambiosCarrito>([
   "exo_constancia",
   "exo_registro_sag",
   "condicion",
+  "forma_pago",
+  "referencia_pago",
 ]);
 
 export async function actualizarCarrito(id: string, cambios: CambiosCarrito): Promise<Resultado<{ carrito: Carrito }>> {
@@ -136,6 +139,11 @@ export async function actualizarCarrito(id: string, cambios: CambiosCarrito): Pr
       const n = Number(v);
       if (!Number.isFinite(n) || n < 0 || n > 100) return { ok: false, error: "El descuento va de 0 a 100 %." };
       datos[k] = Math.round(n * 1000) / 1000;
+    } else if (k === "forma_pago") {
+      if (!FORMAS_PAGO.some((f) => f.valor === v)) return { ok: false, error: "Forma de pago no válida." };
+      datos[k] = v;
+    } else if (k === "referencia_pago") {
+      datos[k] = v ? String(v).trim().slice(0, 80) || null : null;
     } else if (k === "condicion") {
       if (v !== "contado" && v !== "credito") return { ok: false, error: "Condición no válida." };
       datos[k] = v;
@@ -316,7 +324,7 @@ export async function leerDocumento(id: string): Promise<Documento | null> {
     supabase
       .from("documentos")
       .select(
-        "id, tipo, numero, fecha, vence, cai, cai_rango, cai_fecha_limite, emisor, cliente_nombre, cliente_rtn, cliente_telefono, vehiculo, subtotal, descuento, importe_exento, importe_gravado, importe_exonerado, isv, total, notas, estado, motivo_anulacion, exoneracion, id_factura, factura_numero, factura_fecha, factura_cai, motivo_tipo, motivo, reintegra_inventario, condicion, dias_credito",
+        "id, tipo, numero, fecha, vence, cai, cai_rango, cai_fecha_limite, emisor, cliente_nombre, cliente_rtn, cliente_telefono, vehiculo, subtotal, descuento, importe_exento, importe_gravado, importe_exonerado, isv, total, notas, estado, motivo_anulacion, exoneracion, id_factura, factura_numero, factura_fecha, factura_cai, motivo_tipo, motivo, reintegra_inventario, condicion, dias_credito, forma_pago, referencia_pago",
       )
       .eq("id", id)
       .maybeSingle(),

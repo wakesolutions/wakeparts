@@ -675,6 +675,68 @@
   animation: abrir 240ms var(--ease-expo) both;
 }
 
+/* Cobro de contado: forma de pago en teclas y «paga con» para el vuelto. */
+.pago {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.formasPago {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 2px;
+  padding: 2px;
+  border-radius: 8px;
+  background: var(--wp-field);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.4);
+}
+
+.formasPago button {
+  min-height: 28px;
+  border: 0;
+  border-radius: 6px;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--wp-ink-3);
+  background: none;
+  cursor: pointer;
+}
+
+.formasPago button[aria-checked="true"] {
+  color: var(--wp-ink);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px rgb(0 0 0 / 0.3);
+}
+
+.pagaCon {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.pagaCon span {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.pagaCon strong {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ok);
+}
+
+.pagaCon strong[data-mal] {
+  color: var(--wp-accent-hi);
+}
+
 .confirmarNota {
   font-size: 0.72rem;
   color: var(--wp-ink-2);

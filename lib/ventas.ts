@@ -1,5 +1,6 @@
 /** Tipos y cálculos de ventas compartidos por el mostrador, el servidor y la impresión. */
 
+import type { FormaPago } from "./cobros";
 import { centavos } from "./formato";
 
 export const TASA_ISV = 0.15;
@@ -72,6 +73,9 @@ export type Carrito = {
   exo_registro_sag: string | null;
   /** Contado o crédito (0017): al crédito, el cliente debe tener crédito habilitado. */
   condicion: CondicionVenta;
+  /** De contado: cómo paga (0018, entra al turno de caja por forma). */
+  forma_pago: FormaPago;
+  referencia_pago: string | null;
 };
 
 export type CondicionVenta = "contado" | "credito";
@@ -95,6 +99,8 @@ export type CambiosCarrito = Partial<
     | "exo_constancia"
     | "exo_registro_sag"
     | "condicion"
+    | "forma_pago"
+    | "referencia_pago"
   >
 >;
 
@@ -230,6 +236,8 @@ export type Documento = {
   /** Factura al crédito: vence = fecha de pago (0017). */
   condicion: CondicionVenta;
   dias_credito: number | null;
+  forma_pago?: FormaPago | null;
+  referencia_pago?: string | null;
   /** Factura: sus notas de crédito y débito (también las anuladas). */
   notasRelacionadas?: NotaRelacionada[];
   lineas: {

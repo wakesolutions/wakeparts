@@ -135,7 +135,17 @@ Muchos negocios hacen ambas cosas; el modelo de datos debe soportar las dos form
 - **Abonos**: cualquier miembro registra un abono desde el estado de cuenta (efectivo, transferencia, depósito, tarjeta, cheque u otro, con referencia). Se reparte a las facturas **más antiguas primero** o a las marcadas; lo que se ve es lo que se guarda. No se acepta más de lo pendiente. Genera un **recibo** `REC-000001` (sin valor fiscal) imprimible.
 - **Anular**: un recibo lo anula dueño/admin (la deuda vuelve). Una factura con abonos vigentes no se anula hasta anular sus recibos.
 - **Estados**: al día · por vencer (≤ 7 días) · vencida · pagada. Antigüedad de saldos: al día, 1–30, 31–60, 61–90, +90 días.
-- Las facturas de **contado** se consideran cobradas al emitirse; el dinero real se cuadra en el módulo de **Caja** (siguiente).
+- Las facturas de **contado** se consideran cobradas al emitirse; el dinero real se cuadra en el módulo de **Caja** (§3.9).
+
+### 3.9 Caja: turnos, arqueo y cierre (Implementado · 0018)
+
+- **Turno por punto de emisión**: cada caja (punto) abre un turno con su **fondo inicial**; solo uno abierto por punto. Cualquier miembro abre; **cierra quien abrió o dueño/admin**.
+- **Qué cae en el turno**: las facturas (contado y crédito), notas y abonos emitidos desde el punto de quien emite mientras el turno está abierto. Al facturar de contado se elige la **forma de pago** (efectivo, tarjeta, transferencia, depósito, cheque u otro, con referencia); en efectivo, «Paga con» calcula el cambio (no se guarda).
+- **Efectivo esperado** = fondo + ventas de contado en efectivo + abonos en efectivo + notas de débito − devoluciones (notas de crédito) de facturas de contado pagadas en efectivo + entradas − salidas. Las notas usan la forma de pago de su factura (supuesto: la devolución se paga igual que se cobró). Las ventas al crédito se informan pero no suman.
+- **Entradas y salidas** manuales de efectivo con concepto (gastos menores, depósito al banco, más cambio).
+- **Cierre con arqueo**: conteo por denominación del lempira (billetes de 500 a 1, monedas de 50 a 5 centavos) o total escrito. Diferencia = contado − esperado; **si no cuadra, la nota es obligatoria**. El resumen se congela y queda el **corte de caja** imprimible (sin valor fiscal).
+- **Caja obligatoria** (opción del dueño/admin): sin turno abierto no se factura de contado ni se registran abonos. Por defecto está apagada: quien no usa caja sigue igual.
+- **Reporte de ventas**: desde 0018 resta las notas de crédito y suma las de débito (ventas, utilidad, serie y rankings) y muestra «Devoluciones».
 
 ## 4. Reglas transversales
 

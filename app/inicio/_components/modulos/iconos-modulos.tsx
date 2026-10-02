@@ -162,3 +162,17 @@ export function IconoSeguimiento() {
     </svg>
   );
 }
+
+export function IconoCaja() {
+  // Caja registradora: gaveta con billete y visor
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <rect x="13" y="7" width="22" height="9" rx="2" fill="currentColor" opacity="0.55" />
+      <rect x="17" y="10" width="14" height="3.4" rx="1" fill="var(--wp-accent)" />
+      <path d="M9 18h30a2 2 0 0 1 2 2v9H7v-9a2 2 0 0 1 2-2z" fill="currentColor" />
+      <path d="M14 22.5h3M21 22.5h3M28 22.5h3" stroke="var(--wp-accent-lo)" strokeWidth="2" strokeLinecap="round" />
+      <path d="M6 31h36v8a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2z" fill="currentColor" />
+      <path d="M19 35.5h10" stroke="var(--wp-accent-lo)" strokeWidth="2.4" strokeLinecap="round" />
+    </svg>
+  );
+}

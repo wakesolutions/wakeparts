@@ -1,7 +1,7 @@
 -- =============================================================================
 -- 0017 · Ventas al crédito y cuentas por cobrar
 -- -----------------------------------------------------------------------------
--- ESTADO: PENDIENTE
+-- ESTADO: YA APLICADA (el usuario corre cada migración al recibirla)
 -- Idempotente y atómica. Requiere 0016.
 --
 -- Qué crea o cambia:

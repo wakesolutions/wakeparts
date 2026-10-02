@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import {
+  IconoCaja,
   IconoActividad,
   IconoEquipo,
   IconoInicio,
@@ -31,7 +32,7 @@ const CAPITULOS: EntradaIndice[] = [
   { id: "mostrador", numero: "03", titulo: "Cotizar y facturar" },
   { id: "inventario", numero: "04", titulo: "Inventario" },
   { id: "tablas", numero: "05", titulo: "Tablas y formularios" },
-  { id: "ventas", numero: "06", titulo: "Ventas y CAI" },
+  { id: "ventas", numero: "06", titulo: "Ventas, caja y CAI" },
   { id: "taller", numero: "07", titulo: "Taller, sitio web y Mi usuario" },
   { id: "equipo", numero: "08", titulo: "Usuarios y roles" },
   { id: "mantenimiento", numero: "09", titulo: "Mantenimiento" },
@@ -53,6 +54,9 @@ const PERMISOS: [string, boolean, boolean, boolean][] = [
   ["Vender al crédito pasando el límite o con vencidas", true, true, false],
   ["Registrar abonos", true, true, true],
   ["Anular recibos de abono", true, true, false],
+  ["Abrir caja, registrar entradas y salidas", true, true, true],
+  ["Cerrar la caja que abrió otra persona", true, true, false],
+  ["Exigir la caja abierta para facturar", true, true, false],
   ["Registrar CAI y puntos de emisión", true, true, false],
   ["Editar el taller, su apariencia y el formato de factura", true, true, false],
   ["Publicar y editar el sitio web", true, true, false],
@@ -169,6 +173,7 @@ export default function Manual() {
             <ul className={styles.dock} aria-label="Módulos del dock">
               <IconoDock icono={<IconoInicio />} nombre="Inicio" />
               <IconoDock icono={<IconoMostrador />} nombre="Cotizar" />
+              <IconoDock icono={<IconoCaja />} nombre="Caja" />
               <IconoDock icono={<IconoInventario />} nombre="Inventario" />
               <IconoDock icono={<IconoVentas />} nombre="Ventas" />
               <IconoDock icono={<IconoSitio />} nombre="Sitio web" />
@@ -506,7 +511,7 @@ export default function Manual() {
           <Capitulo
             id="ventas"
             numero="06"
-            titulo="Ventas y CAI"
+            titulo="Ventas, caja y CAI"
             bajada="Documentos emitidos, devoluciones, clientes exonerados, el reporte de ventas y la numeración autorizada por el SAR."
           >
             <div className={styles.dosColumnas}>
@@ -571,6 +576,31 @@ export default function Manual() {
                   <li>
                     Cada abono da un <strong>recibo</strong> (REC-000001) para imprimir. Los anula el dueño o un
                     administrador; una factura con abonos no se anula sin anular antes sus recibos.
+                  </li>
+                </ul>
+                <h3 className={styles.subtitulo}>Caja</h3>
+                <ul className={styles.lista}>
+                  <li>
+                    En el módulo <strong>Caja</strong>, al empezar el día escribí el fondo (el cambio) y tocá{" "}
+                    <strong>Abrir caja</strong>. Hay una caja por punto de emisión: cada computadora cobra en la suya.
+                  </li>
+                  <li>
+                    Al facturar de contado elegís la forma de pago (efectivo, tarjeta, transferencia…). En efectivo, «Paga
+                    con» te calcula el cambio.
+                  </li>
+                  <li>
+                    La caja muestra el <strong>efectivo que debería haber</strong>: fondo + ventas en efectivo + abonos −
+                    devoluciones + entradas − salidas. Las salidas (un gasto, un depósito al banco) se registran con su
+                    concepto. Las ventas al crédito se ven, pero no son dinero de la caja.
+                  </li>
+                  <li>
+                    Para cerrar, contá los billetes y monedas (o escribí el total): la aguja dice si{" "}
+                    <strong>cuadra, sobra o falta</strong>. Si no cuadra, escribí una nota. Queda el{" "}
+                    <strong>corte de caja</strong> para imprimir y firmar, y el historial en <em>Caja › Turnos</em>.
+                  </li>
+                  <li>
+                    El dueño puede exigir la caja abierta para facturar de contado y cobrar abonos. Cierra quien abrió, el
+                    dueño o un administrador.
                   </li>
                 </ul>
                 <h3 className={styles.subtitulo}>Pedidos web</h3>
