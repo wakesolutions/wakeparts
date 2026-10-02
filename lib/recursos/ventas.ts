@@ -1,3 +1,4 @@
+import { FORMAS_PAGO } from "../cobros";
 import type { DefRecurso, Opcion } from "./tipos";
 
 /** Ventas: clientes, puntos de emisión, CAI y documentos emitidos (cotizaciones, facturas y notas). */
@@ -20,6 +21,20 @@ export const TIPOS_CAI: readonly Opcion[] = [
   { valor: "06", etiqueta: "06 · Nota de crédito" },
   { valor: "07", etiqueta: "07 · Nota de débito" },
 ];
+
+export const CONDICIONES: readonly Opcion[] = [
+  { valor: "contado", etiqueta: "Contado" },
+  { valor: "credito", etiqueta: "Crédito" },
+];
+
+const ESTADOS_CUENTA: readonly Opcion[] = [
+  { valor: "vencida", etiqueta: "En mora" },
+  { valor: "al_dia", etiqueta: "Al día" },
+  { valor: "a_favor", etiqueta: "A favor" },
+  { valor: "sin_saldo", etiqueta: "Sin saldo" },
+];
+
+const FORMAS: readonly Opcion[] = FORMAS_PAGO.map((f) => ({ valor: f.valor, etiqueta: f.etiqueta }));
 
 export const ESTADOS_DOCUMENTO: readonly Opcion[] = [
   { valor: "emitido", etiqueta: "Emitido" },
@@ -52,6 +67,9 @@ export const clientes: DefRecurso = {
     { clave: "facturas", etiqueta: "Facturas", tipo: "entero", ancho: 100 },
     { clave: "ultima_compra", etiqueta: "Último documento", tipo: "fecha", ancho: 160 },
     { clave: "exonerado", etiqueta: "Exonerado", tipo: "booleano", ancho: 110, opciones: SI_NO, oculta: true },
+    { clave: "credito_habilitado", etiqueta: "Crédito", tipo: "booleano", ancho: 100, opciones: SI_NO },
+    { clave: "saldo", etiqueta: "Saldo", tipo: "decimal", ancho: 130, formato: "moneda", vacio: "—" },
+    { clave: "limite_credito", etiqueta: "Límite", tipo: "decimal", ancho: 130, formato: "moneda", oculta: true },
     { clave: "activo", etiqueta: "Activo", tipo: "booleano", ancho: 90, opciones: SI_NO, oculta: true },
   ],
   campos: [
@@ -95,6 +113,34 @@ export const clientes: DefRecurso = {
       maxLargo: 60,
     },
     { nombre: "exo_registro_sag", etiqueta: "Registro de la SAG", tipo: "texto", mayusculas: true, maxLargo: 60, ayuda: "Solo si aplica." },
+    {
+      nombre: "credito_habilitado",
+      etiqueta: "Puede comprar al crédito",
+      tipo: "booleano",
+      seccion: "Crédito",
+      ancho: "completo",
+      ayuda: "Lo dan el dueño o un administrador. En el mostrador aparece «Crédito» al elegir este cliente.",
+    },
+    {
+      nombre: "limite_credito",
+      etiqueta: "Límite de crédito",
+      tipo: "decimal",
+      prefijo: "L",
+      min: 0,
+      max: 99999999,
+      placeholder: "Sin límite",
+      ayuda: "Lo máximo que puede deber. Vacío = sin límite.",
+    },
+    {
+      nombre: "dias_credito",
+      etiqueta: "Plazo",
+      tipo: "entero",
+      sufijo: "días",
+      min: 0,
+      max: 365,
+      porDefecto: 30,
+      ayuda: "Cuántos días tiene para pagar cada factura.",
+    },
   ],
   mensajes: {
     duplicado: "Ya hay un cliente con ese RTN.",
@@ -235,6 +281,99 @@ export const documentos: DefRecurso = {
     { clave: "punto", etiqueta: "Punto", tipo: "texto", ancho: 110, formato: "codigo", oculta: true },
     { clave: "exonerada", etiqueta: "Exonerada", tipo: "booleano", ancho: 110, opciones: SI_NO, oculta: true },
     { clave: "importe_exonerado", etiqueta: "Exonerado", tipo: "decimal", ancho: 130, formato: "moneda", oculta: true },
+    {
+      clave: "condicion",
+      etiqueta: "Condición",
+      tipo: "texto",
+      ancho: 110,
+      opciones: CONDICIONES,
+      filtro: { tipo: "opciones", opciones: CONDICIONES },
+      oculta: true,
+    },
+    { clave: "pendiente", etiqueta: "Por cobrar", tipo: "decimal", ancho: 130, formato: "moneda", oculta: true },
+  ],
+  campos: [],
+};
+
+/** Clientes con crédito o con saldo (0017). Se abre el estado de cuenta; no se edita aquí. */
+export const cuentasClientes: DefRecurso = {
+  id: "cuentas_clientes",
+  nombre: "cuenta",
+  nombrePlural: "Cuentas por cobrar",
+  genero: "f",
+  vista: "v_cuentas_clientes",
+  tabla: "clientes",
+  clave: "id",
+  ambito: "empresa",
+  escritura: "ninguna",
+  acciones: { crear: false, editar: false, eliminar: false },
+  titulo: "nombre",
+  orden: [
+    { columna: "vencido", dir: "desc" },
+    { columna: "pendiente", dir: "desc" },
+  ],
+  columnasInternas: ["credito_habilitado", "en_mora"],
+  columnas: [
+    { clave: "nombre", etiqueta: "Cliente", tipo: "texto", ancho: 260, buscable: true },
+    { clave: "rtn", etiqueta: "RTN", tipo: "texto", ancho: 150, buscable: true, formato: "codigo", oculta: true },
+    { clave: "telefono", etiqueta: "Teléfono", tipo: "texto", ancho: 130, buscable: true },
+    { clave: "pendiente", etiqueta: "Pendiente", tipo: "decimal", ancho: 140, formato: "moneda" },
+    { clave: "vencido", etiqueta: "Vencido", tipo: "decimal", ancho: 130, formato: "moneda", vacio: "—", alerta: "en_mora" },
+    { clave: "dias_mora", etiqueta: "Días de mora", tipo: "entero", ancho: 120, vacio: "—" },
+    { clave: "facturas", etiqueta: "Facturas", tipo: "entero", ancho: 100 },
+    { clave: "proximo_vence", etiqueta: "Próximo vencimiento", tipo: "fecha", ancho: 170 },
+    { clave: "limite_credito", etiqueta: "Límite", tipo: "decimal", ancho: 130, formato: "moneda", vacio: "Sin límite" },
+    { clave: "disponible", etiqueta: "Disponible", tipo: "decimal", ancho: 130, formato: "moneda", oculta: true },
+    { clave: "ultimo_abono", etiqueta: "Último abono", tipo: "fecha", ancho: 140 },
+    {
+      clave: "estado",
+      etiqueta: "Estado",
+      tipo: "texto",
+      ancho: 120,
+      opciones: ESTADOS_CUENTA,
+      filtro: { tipo: "opciones", opciones: ESTADOS_CUENTA },
+    },
+  ],
+  campos: [],
+};
+
+/** Recibos de abono (0017). Se crean desde el estado de cuenta; aquí se consultan y anulan. */
+export const pagos: DefRecurso = {
+  id: "pagos",
+  nombre: "abono",
+  nombrePlural: "Abonos",
+  vista: "v_pagos",
+  tabla: "pagos",
+  clave: "id",
+  ambito: "empresa",
+  escritura: "ninguna",
+  acciones: { crear: false, editar: false, eliminar: false },
+  titulo: "numero",
+  orden: [{ columna: "fecha", dir: "desc" }],
+  columnas: [
+    { clave: "fecha", etiqueta: "Fecha", tipo: "fecha", ancho: 130 },
+    { clave: "numero", etiqueta: "Recibo", tipo: "texto", ancho: 130, buscable: true, formato: "codigo" },
+    { clave: "cliente_nombre", etiqueta: "Cliente", tipo: "texto", ancho: 240, buscable: true },
+    { clave: "monto", etiqueta: "Monto", tipo: "decimal", ancho: 130, formato: "moneda" },
+    {
+      clave: "forma_pago",
+      etiqueta: "Forma",
+      tipo: "texto",
+      ancho: 130,
+      opciones: FORMAS,
+      filtro: { tipo: "opciones", opciones: FORMAS },
+    },
+    { clave: "referencia", etiqueta: "Referencia", tipo: "texto", ancho: 150, buscable: true },
+    { clave: "facturas", etiqueta: "Facturas", tipo: "texto", ancho: 260, buscable: true, formato: "codigo" },
+    {
+      clave: "estado",
+      etiqueta: "Estado",
+      tipo: "texto",
+      ancho: 110,
+      opciones: ESTADOS_DOCUMENTO,
+      filtro: { tipo: "opciones", opciones: ESTADOS_DOCUMENTO },
+    },
+    { clave: "cobro", etiqueta: "Cobró", tipo: "texto", ancho: 160, buscable: true },
   ],
   campos: [],
 };

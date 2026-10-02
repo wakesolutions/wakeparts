@@ -309,6 +309,27 @@ Totales: `bruto = cantidad·precio`; `neto = bruto·(1 − desc. línea)·(1 −
 | `anular_documento(…)` | No anula facturas con notas vigentes; anular una devolución reintegrada saca las piezas (kardex «anulacion»). |
 | `carrito_desde_documento(…)` | Solo cotizaciones y facturas; copia la exoneración (sin la orden de compra). |
 
+## Crédito y cuentas por cobrar (0017)
+
+| Tabla / columna | Qué es |
+|---|---|
+| `clientes.credito_habilitado`, `limite_credito` (null = sin límite), `dias_credito` (0–365, defecto 30) | Solo dueño/admin los cambian (trigger `b_credito`). `v_clientes` + estas columnas y `saldo`. |
+| `carritos.condicion` | `contado` · `credito` (en `v_carritos`). |
+| `documentos.condicion`, `dias_credito` | Factura al crédito: `vence` = fecha + días. `v_documentos` + `condicion`, `pendiente`. |
+| `pagos` | Recibo de abono: `numero` `REC-000001` (correlativo `recibo`), cliente (copia de nombre y RTN), `monto` > 0, `forma_pago` (`efectivo` · `tarjeta` · `transferencia` · `deposito` · `cheque` · `otro`), `referencia`, `notas`, `estado` (`emitido` · `anulado`) y datos de anulación. Solo lectura por RLS; auditoría `zz_registrar_cambio`. |
+| `pagos_aplicaciones` | Reparto del recibo entre facturas (`id_documento`, `monto`). |
+
+| Vista / función | Qué hace |
+|---|---|
+| `v_cuentas_cobrar` | Una fila por factura al crédito vigente: `debitos`, `creditos`, `abonado`, `pendiente` (= total + débitos − créditos − abonos), `dias_vencida`, `estado` (`al_dia` · `por_vencer` ≤ 7 días · `vencida` · `pagada`). |
+| `v_cuentas_clientes` | Una fila por cliente con crédito o con saldo: `pendiente`, `vencido`, `disponible`, `facturas`, `dias_mora`, `proximo_vence`, `ultimo_abono`, `estado` (`vencida` · `al_dia` · `a_favor` · `sin_saldo`), `en_mora`. |
+| `v_pagos`, `v_pagos_aplicaciones` | Recibos (+ facturas que pagan y quién cobró) y su reparto. |
+| `emitir_documento(…)` | Como en 0016; al crédito exige cliente con crédito y, para vendedores, sin vencidas y dentro del límite (dueño/admin pasan). |
+| `registrar_pago(cliente, monto, forma, referencia?, notas?, aplicaciones?)` | Cualquier miembro. Bloquea las facturas del cliente; reparto elegido (debe sumar el monto) o a las más antiguas primero; no más de lo pendiente. |
+| `anular_pago(pago, motivo)` | Dueño/admin. |
+| `anular_documento(…)` | Además: no anula una factura con abonos vigentes. |
+| `pendiente_factura(factura)` | Lo pendiente (0 si es de contado o está anulada). |
+
 ## Sitio web y pedidos (0013)
 
 ### `pedidos_web` / `pedidos_web_lineas`

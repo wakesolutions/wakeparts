@@ -124,6 +124,60 @@
   color: var(--wp-aviso);
 }
 
+/* Contado / crédito: segmento metálico + lectura mono del crédito del cliente. */
+.condicion {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.35rem 0.6rem;
+  animation: abrir 240ms var(--ease-expo) both;
+}
+
+.condicion .segmento button {
+  width: auto;
+  padding: 0 0.7rem;
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+}
+
+.condicion .segmento button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.condicionDato {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.15rem 0.7rem;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.04em;
+  color: var(--wp-ink-3);
+}
+
+.condicionDato [data-tono="mal"] {
+  color: var(--wp-aviso);
+}
+
+.condicionAviso {
+  grid-column: 1 / -1;
+  margin: 0;
+  font-size: 0.72rem;
+  color: var(--wp-aviso);
+}
+
+.condicionAviso button {
+  padding: 0;
+  border: 0;
+  font: inherit;
+  text-decoration: underline;
+  color: var(--wp-ink);
+  background: none;
+  cursor: pointer;
+}
+
 .cliente {
   display: grid;
   gap: 0.1rem;

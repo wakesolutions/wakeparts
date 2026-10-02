@@ -12,6 +12,7 @@ import { validarValores } from "@/lib/recursos/validar";
 import type { ImagenProducto } from "@/components/imagenes/api";
 import type { EstadoSitio, PedidoWeb } from "@/components/sitio-web/api";
 import { armarBandeja } from "@/lib/notificaciones";
+import type { CreditoCliente, CuentaFactura, EstadoCuenta, Recibo } from "@/lib/cobros";
 import { normalizarSitio } from "@/lib/sitio-web";
 import { centavos } from "@/lib/formato";
 import type { ResultadoImportacion } from "@/lib/inventario";
@@ -150,9 +151,23 @@ const espera = <T>(v: T, ms = 120) => new Promise<T>((r) => setTimeout(() => r(v
 
 let carritos: Carrito[] = [];
 const lineas = new Map<string, LineaCarrito[]>();
-type ClienteDemo = Cliente & { exonerado?: boolean; exo_constancia?: string | null };
+type ClienteDemo = Cliente & {
+  exonerado?: boolean;
+  exo_constancia?: string | null;
+  credito_habilitado?: boolean;
+  limite_credito?: number | null;
+  dias_credito?: number;
+};
 const clientes: ClienteDemo[] = [
-  { id: 1, nombre: "TRANSPORTES LÓPEZ S. DE R.L.", rtn: "08019010123456", telefono: "2233-4455" },
+  {
+    id: 1,
+    nombre: "TRANSPORTES LÓPEZ S. DE R.L.",
+    rtn: "08019010123456",
+    telefono: "2233-4455",
+    credito_habilitado: true,
+    limite_credito: 25000,
+    dias_credito: 30,
+  },
   { id: 2, nombre: "JUAN PÉREZ", rtn: null, telefono: "9988-7766" },
   {
     id: 3,
@@ -213,6 +228,8 @@ const baseDocumento = (): Pick<
   | "motivo"
   | "reintegra_inventario"
   | "importe_exonerado"
+  | "condicion"
+  | "dias_credito"
 > => ({
   exoneracion: null,
   id_factura: null,
@@ -223,6 +240,8 @@ const baseDocumento = (): Pick<
   motivo: null,
   reintegra_inventario: false,
   importe_exonerado: 0,
+  condicion: "contado",
+  dias_credito: null,
 });
 
 function acreditables(idFactura: string): LineaAcreditable[] {
@@ -254,6 +273,159 @@ function saldoDemo(f: Documento) {
       .reduce((s, n) => s + (n.tipo === "nota_debito" ? n.total : -n.total), f.total),
   );
 }
+
+// --------------------------------------------------------- crédito (demo) --
+
+type PagoDemo = Omit<Recibo, "emisor" | "saldo_actual" | "aplicaciones"> & { aplicaciones: { id_documento: string; monto: number }[] };
+const pagosDemo: PagoDemo[] = [];
+let correlativoRecibo = 1;
+
+const hoyIso = () => new Date().toISOString().slice(0, 10);
+const diasEntreFechas = (a: string, b: string) => Math.round((Date.parse(a) - Date.parse(b)) / 86_400_000);
+
+/** Igual que v_cuentas_cobrar: facturas al crédito vigentes con lo que queda por cobrar. */
+function cuentasDemo(): CuentaFactura[] {
+  const hoy = hoyIso();
+  return documentos
+    .filter((d) => d.tipo === "factura" && d.condicion === "credito" && d.estado === "emitido")
+    .map((f) => {
+      const notas = documentos.filter((n) => n.id_factura === f.id && n.estado === "emitido");
+      const debitos = centavos(notas.filter((n) => n.tipo === "nota_debito").reduce((s, n) => s + n.total, 0));
+      const creditos = centavos(notas.filter((n) => n.tipo === "nota_credito").reduce((s, n) => s + n.total, 0));
+      const abonado = centavos(
+        pagosDemo
+          .filter((p) => p.estado === "emitido")
+          .flatMap((p) => p.aplicaciones)
+          .filter((a) => a.id_documento === f.id)
+          .reduce((s, a) => s + a.monto, 0),
+      );
+      const pendiente = centavos(f.total + debitos - creditos - abonado);
+      const vence = f.vence ?? hoy;
+      const estado: EstadoCuenta =
+        pendiente <= 0 ? "pagada" : hoy > vence ? "vencida" : diasEntreFechas(vence, hoy) <= 7 ? "por_vencer" : "al_dia";
+      return {
+        id: f.id,
+        numero: f.numero,
+        fecha: f.fecha,
+        vence,
+        id_cliente: clientes.find((c) => c.nombre === f.cliente_nombre)?.id ?? 0,
+        cliente_nombre: f.cliente_nombre,
+        total: f.total,
+        debitos,
+        creditos,
+        abonado,
+        pendiente,
+        dias_vencida: Math.max(diasEntreFechas(hoy, vence), 0),
+        estado,
+      };
+    });
+}
+
+function creditoDemo(id: number): CreditoCliente | null {
+  const c = clientes.find((x) => x.id === id);
+  if (!c) return null;
+  const cuentas = cuentasDemo().filter((f) => f.id_cliente === id);
+  if (!c.credito_habilitado && !cuentas.length) return null;
+  const pend = cuentas.filter((f) => f.pendiente > 0);
+  const pendiente = centavos(cuentas.reduce((s, f) => s + f.pendiente, 0));
+  const limite = c.limite_credito ?? null;
+  return {
+    id: c.id,
+    nombre: c.nombre,
+    rtn: c.rtn,
+    telefono: c.telefono,
+    credito_habilitado: Boolean(c.credito_habilitado),
+    limite_credito: limite,
+    dias_credito: c.dias_credito ?? 30,
+    pendiente,
+    vencido: centavos(pend.filter((f) => f.estado === "vencida").reduce((s, f) => s + f.pendiente, 0)),
+    disponible: limite === null ? null : centavos(limite - pendiente),
+    facturas: pend.length,
+    dias_mora: Math.max(0, ...pend.map((f) => f.dias_vencida)),
+    ultimo_abono: pagosDemo.filter((p) => p.id_cliente === id && p.estado === "emitido").at(-1)?.fecha ?? null,
+  };
+}
+
+function reciboDemo(id: string): Recibo | null {
+  const p = pagosDemo.find((x) => x.id === id);
+  if (!p) return null;
+  return {
+    ...p,
+    emisor: EMISOR_DEMO,
+    aplicaciones: p.aplicaciones.map((a) => {
+      const f = documentos.find((d) => d.id === a.id_documento)!;
+      return { id_documento: a.id_documento, numero: f.numero, fecha_factura: f.fecha, total: f.total, monto: a.monto };
+    }),
+    saldo_actual: creditoDemo(p.id_cliente)?.pendiente ?? 0,
+  };
+}
+
+function guardarReciboDemo(id: string) {
+  try {
+    localStorage.setItem(`wp:demo:rec:${id}`, JSON.stringify(reciboDemo(id)));
+  } catch {
+    // sin almacenamiento
+  }
+}
+
+/** Dos facturas al crédito de ejemplo para Transportes López: una vencida y otra al día. */
+function sembrarCredito() {
+  const cli = clientes[0];
+  const emitirSembrada = (diasAtras: number, items: [number, number][]) => {
+    const fecha = new Date(Date.now() - diasAtras * 86_400_000);
+    const ls = items.map(([i, cantidad]) => {
+      const p = PRODUCTOS[i];
+      return { cantidad, precio: p.precio, descuento_pct: 0, exento: p.exento, costo: p.costo, codigo: p.codigo, descripcion: p.nombre };
+    });
+    const t = calcularTotales(ls, 0);
+    const cai = numeroCai("factura");
+    documentos.push({
+      ...baseDocumento(),
+      id: crypto.randomUUID(),
+      tipo: "factura",
+      numero: cai.numero,
+      fecha: fecha.toISOString(),
+      vence: new Date(fecha.getTime() + (cli.dias_credito ?? 30) * 86_400_000).toISOString().slice(0, 10),
+      cai: cai.cai,
+      cai_rango: cai.cai_rango,
+      cai_fecha_limite: cai.cai_fecha_limite,
+      emisor: EMISOR_DEMO,
+      condicion: "credito",
+      dias_credito: cli.dias_credito ?? 30,
+      cliente_nombre: cli.nombre,
+      cliente_rtn: cli.rtn,
+      cliente_telefono: cli.telefono,
+      vehiculo: "TOYOTA HILUX 2018",
+      subtotal: t.subtotal,
+      descuento: t.descuento,
+      importe_exento: t.exento,
+      importe_gravado: t.gravado,
+      isv: t.isv,
+      total: t.total,
+      notas: null,
+      estado: "emitido",
+      motivo_anulacion: null,
+      vendedor: "Ana Demo",
+      lineas: ls.map((l, i) => ({
+        id: siguienteLineaDoc++,
+        codigo: l.codigo,
+        descripcion: l.descripcion,
+        cantidad: l.cantidad,
+        precio: l.precio,
+        descuento_pct: 0,
+        descuento: 0,
+        exento: l.exento,
+        total: t.lineas[i].neto,
+      })),
+    });
+  };
+  emitirSembrada(48, [
+    [2, 2],
+    [5, 4],
+  ]);
+  emitirSembrada(9, [[1, 2]]);
+}
+sembrarCredito();
 
 const conNotas = (d: DocumentoDemo): Documento => ({
   ...d,
@@ -295,6 +467,7 @@ function nuevoCarrito(): Carrito {
     exo_orden_compra: null,
     exo_constancia: null,
     exo_registro_sag: null,
+    condicion: "contado",
   };
 }
 
@@ -464,6 +637,12 @@ const ventas: Apis["ventas"] = {
         return { ok: false as const, error: "Escribí la orden de compra exenta o la constancia de registro de exonerado." };
       }
     }
+    const credito = tipo === "factura" && c.condicion === "credito";
+    const cliCredito = credito ? clientes.find((x) => x.id === c.id_cliente) : undefined;
+    if (credito && !cliCredito) return { ok: false as const, error: "Para vender al crédito elegí un cliente registrado." };
+    if (credito && !cliCredito?.credito_habilitado) {
+      return { ok: false as const, error: "Este cliente no tiene crédito. Habilitalo en Ventas › Clientes." };
+    }
     const t = calcularTotales(ls, c.descuento_pct, c.exonerado);
     const cai =
       tipo === "factura"
@@ -476,7 +655,14 @@ const ventas: Apis["ventas"] = {
       tipo,
       numero,
       fecha: new Date().toISOString(),
-      vence: tipo === "cotizacion" ? new Date(Date.now() + 15 * 864e5).toISOString().slice(0, 10) : null,
+      vence:
+        tipo === "cotizacion"
+          ? new Date(Date.now() + 15 * 864e5).toISOString().slice(0, 10)
+          : credito
+            ? new Date(Date.now() + (cliCredito!.dias_credito ?? 30) * 864e5).toISOString().slice(0, 10)
+            : null,
+      condicion: credito ? "credito" : "contado",
+      dias_credito: credito ? (cliCredito!.dias_credito ?? 30) : null,
       cai: cai.cai,
       cai_rango: cai.cai_rango,
       cai_fecha_limite: cai.cai_fecha_limite,
@@ -1093,8 +1279,38 @@ const BASES: Record<string, () => Fila[]> = {
         exonerado: Boolean(c.exonerado),
         exo_constancia: c.exo_constancia ?? null,
         exo_registro_sag: null,
+        credito_habilitado: Boolean(c.credito_habilitado),
+        limite_credito: c.limite_credito ?? null,
+        dias_credito: c.dias_credito ?? 30,
+        saldo: creditoDemo(c.id)?.pendiente ?? 0,
       };
     }),
+  cuentas_clientes: () =>
+    clientes
+      .map((c) => creditoDemo(c.id))
+      .filter((c): c is CreditoCliente => c !== null)
+      .map((c) => {
+        const pend = cuentasDemo().filter((f) => f.id_cliente === c.id && f.pendiente > 0);
+        return {
+          ...c,
+          proximo_vence: pend.map((f) => f.vence).sort()[0] ?? null,
+          en_mora: c.vencido > 0,
+          estado: c.vencido > 0 ? "vencida" : c.pendiente > 0 ? "al_dia" : c.pendiente < 0 ? "a_favor" : "sin_saldo",
+        };
+      }),
+  pagos: () =>
+    pagosDemo.map((p) => ({
+      id: p.id,
+      fecha: p.fecha,
+      numero: p.numero,
+      cliente_nombre: p.cliente_nombre,
+      monto: p.monto,
+      forma_pago: p.forma_pago,
+      referencia: p.referencia,
+      facturas: p.aplicaciones.map((a) => documentos.find((d) => d.id === a.id_documento)?.numero).join(", "),
+      estado: p.estado,
+      cobro: p.cobro,
+    })),
   cai: () =>
     (["factura", "nota_credito", "nota_debito"] as const).map((tipo, i) => ({
       id: i + 1,
@@ -1133,6 +1349,8 @@ const BASES: Record<string, () => Fila[]> = {
       punto: d.cai ? PUNTO_DEMO.codigo : null,
       exonerada: d.exoneracion != null,
       importe_exonerado: d.importe_exonerado,
+      condicion: d.condicion,
+      pendiente: cuentasDemo().find((f) => f.id === d.id)?.pendiente ?? null,
     })),
   pedidos_web: () =>
     pedidosDemo.map((p) => ({
@@ -1309,11 +1527,72 @@ const perfil: Apis["perfil"] = {
   marcarRecorrido: async () => ({ ok: true as const }),
 };
 
+const cobros: Apis["cobros"] = {
+  cartera: async () => espera(cuentasDemo().filter((f) => f.pendiente > 0)),
+  credito: async (id) => espera(creditoDemo(id)),
+  estadoDeCuenta: async (id) => {
+    const cliente = creditoDemo(id);
+    if (!cliente) return espera(null);
+    return espera({
+      cliente,
+      facturas: cuentasDemo()
+        .filter((f) => f.id_cliente === id && f.pendiente !== 0)
+        .sort((a, b) => a.vence.localeCompare(b.vence)),
+      recibos: pagosDemo
+        .filter((p) => p.id_cliente === id)
+        .reverse()
+        .map((p) => ({ id: p.id, numero: p.numero, fecha: p.fecha, monto: p.monto, forma_pago: p.forma_pago, estado: p.estado })),
+    });
+  },
+  registrarAbono: async (a) => {
+    const cli = clientes.find((c) => c.id === a.id_cliente);
+    if (!cli) return { ok: false as const, error: "El cliente no existe." };
+    const cuentas = cuentasDemo().filter((f) => f.id_cliente === cli.id && f.pendiente > 0);
+    const total = centavos(cuentas.reduce((s, f) => s + f.pendiente, 0));
+    if (a.monto > total) return { ok: false as const, error: `El abono supera lo pendiente del cliente (L ${total.toFixed(2)}).` };
+    for (const ap of a.aplicaciones) {
+      const f = cuentas.find((x) => x.id === ap.id_documento);
+      if (!f || ap.monto > f.pendiente) return { ok: false as const, error: "Revisá el reparto entre facturas." };
+    }
+    const id = crypto.randomUUID();
+    const numero = `REC-${String(correlativoRecibo++).padStart(6, "0")}`;
+    pagosDemo.push({
+      id,
+      numero,
+      fecha: new Date().toISOString(),
+      id_cliente: cli.id,
+      cliente_nombre: cli.nombre,
+      cliente_rtn: cli.rtn,
+      monto: a.monto,
+      forma_pago: a.forma_pago,
+      referencia: a.referencia ?? null,
+      notas: a.notas || null,
+      estado: "emitido",
+      motivo_anulacion: null,
+      cobro: "Demo Sandbox",
+      aplicaciones: a.aplicaciones,
+    });
+    guardarReciboDemo(id);
+    return espera({ ok: true as const, id, numero }, 400);
+  },
+  anularAbono: async (id, motivo) => {
+    const p = pagosDemo.find((x) => x.id === id);
+    if (!p) return { ok: false as const, error: "El recibo no existe." };
+    p.estado = "anulado";
+    p.motivo_anulacion = motivo;
+    guardarReciboDemo(id);
+    return espera({ ok: true as const });
+  },
+  recibo: async (id) => espera(reciboDemo(id)),
+  urlRecibo: (id) => `/demo/documento?recibo=${id}`,
+};
+
 export const APIS_DEMO: Partial<Apis> = {
   recursos,
   empresa,
   perfil,
   ventas,
+  cobros,
   compatibilidad,
   imagenes,
   inventario,

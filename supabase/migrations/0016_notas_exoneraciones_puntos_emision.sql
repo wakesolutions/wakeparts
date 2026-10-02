@@ -1,7 +1,7 @@
 -- =============================================================================
 -- 0016 · Notas de crédito y débito, devoluciones, exoneraciones y puntos de emisión
 -- -----------------------------------------------------------------------------
--- ESTADO: PENDIENTE
+-- ESTADO: YA APLICADA (el usuario corre cada migración al recibirla)
 -- Idempotente y atómica. Requiere 0005 (ventas) y 0003 (membresías). Usa 0011
 -- (auditoría) si existe.
 --

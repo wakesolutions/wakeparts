@@ -140,6 +140,14 @@ export function DocumentoVista({
             <p className={styles.vehiculo}>{doc.vehiculo}</p>
           </div>
         )}
+        {factura && (
+          <div>
+            <span className={styles.etiqueta}>Condición</span>
+            <p className={styles.vehiculo}>
+              {doc.condicion === "credito" ? `Crédito · vence ${doc.vence ? fechaDia(doc.vence) : "—"}` : "Contado"}
+            </p>
+          </div>
+        )}
         {doc.tipo === "cotizacion" && doc.vence && (
           <div>
             <span className={styles.etiqueta}>Válida hasta</span>

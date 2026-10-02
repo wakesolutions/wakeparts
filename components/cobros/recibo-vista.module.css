@@ -1,0 +1,65 @@
+/* Recibo de abono: usa la hoja de documento-vista y agrega el bloque «Recibimos de». */
+
+.recibimos {
+  display: grid;
+  gap: 0.2rem;
+  padding: 0.9rem 1rem;
+  border-radius: 4px;
+  background: var(--wp-papel-2);
+  box-shadow: inset 0 0 0 1px var(--wp-papel-linea);
+}
+
+.recibimos p {
+  margin: 0;
+}
+
+.cantidad {
+  font-family: var(--font-mono);
+  font-size: 1.6rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+  color: var(--doc-marca);
+}
+
+.letras {
+  font-size: 0.78rem;
+  font-weight: 600;
+  text-transform: uppercase;
+}
+
+.forma {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0 1rem;
+  margin-top: 0.3rem !important;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wp-papel-tinta-2);
+}
+
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+.firma {
+  display: grid;
+  justify-items: center;
+  gap: 0.25rem;
+  max-width: 240px;
+  margin-top: 2.2rem;
+}
+
+.firma span {
+  width: 100%;
+  border-top: 1px solid var(--wp-papel-tinta-2);
+}
+
+.firma p {
+  margin: 0;
+  font-size: 0.7rem;
+  color: var(--wp-papel-tinta-2);
+}

@@ -2,6 +2,16 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-02 · Ventas al crédito y cuentas por cobrar (migración 0017)
+
+- **Pedido del usuario**: permitir ventas al crédito y cuentas por cobrar («muchos talleres compran fiado»).
+- **El crédito lo da el dueño, el vendedor solo lo usa**: habilitar, límite y plazo son de dueño/admin (trigger). En el mostrador, un vendedor no puede pasar el límite ni venderle a quien tiene vencidas; dueño/admin sí, porque es su riesgo y en mostrador se negocia.
+- **Lo pendiente se calcula, no se guarda**: total + débitos − créditos − abonos en una vista. Así una nota de crédito o un recibo anulado se reflejan solos y nunca hay dos números que no cuadren.
+- **Recibos sin valor fiscal** (`REC-000001`): el abono no es un documento del SAR; la factura ya se emitió. Numeración propia, inmutable, se anula.
+- **Reparto visible = reparto guardado**: el estado de cuenta muestra «abona L X» en cada factura (las más antiguas primero o las marcadas) y manda ese reparto explícito; la base vuelve a validar contra lo pendiente.
+- **Contado = cobrado al emitir**: el dinero real (efectivo, tarjeta) se cuadra en el módulo de Caja, que es el siguiente.
+- **Diseño**: el tablero de cartera es el momento firma: odómetro LCD con lo que te deben y la **antigüedad de saldos como una banda de tablero** (verde al día → rojo +90 días) que se llena al abrir. El estado de cuenta repite el lenguaje: medidor de crédito usado/límite con lo vencido rayado, y una consola de abono con el monto en LCD.
+
 ## 2026-10-02 · Notas de crédito/débito, exoneraciones y puntos de emisión (migración 0016)
 
 - **Pedido del usuario** (punto 1 de «qué falta para vender»): notas de crédito y débito, exoneraciones, devoluciones y varios puntos de emisión por usuario o sucursal. Confirmó que el SAR no exige registrar el sistema emisor.

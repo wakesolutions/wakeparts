@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { Abonos } from "@/components/cobros/abonos";
+import { CuentasPorCobrar } from "@/components/cobros/cuentas-por-cobrar";
 import { useApi } from "@/components/datos/apis";
 import { useIdentidad } from "@/components/identidad/contexto";
 import { MantenimientoRecurso } from "@/components/mantenimiento/mantenimiento-recurso";
@@ -22,6 +24,8 @@ import styles from "./modulos.module.css";
 
 /** Ventas: documentos emitidos, pedidos del sitio web, clientes, reporte de ventas, puntos de emisión y CAI. */
 export function ModuloVentas() {
+  const { rol } = useSesion();
+  const administra = rol === "dueno" || rol === "admin";
   return (
     <ModuloTablas
       id="ventas"
@@ -45,7 +49,23 @@ export function ModuloVentas() {
             {
               recurso: "clientes",
               descripcion:
-                "Clientes del taller. Con RTN salen en la factura; sin RTN, como consumidor final. Los exonerados facturan sin ISV.",
+                "Clientes del taller. Con RTN salen en la factura; sin RTN, como consumidor final. Los exonerados facturan sin ISV; a los de confianza les das crédito.",
+            },
+          ],
+        },
+        {
+          titulo: "Cobros",
+          items: [
+            {
+              recurso: "cuentas_clientes",
+              descripcion:
+                "Lo que te deben las facturas al crédito, por cliente y por antigüedad. Abrí un cliente para ver su estado de cuenta y registrar un abono.",
+              contenido: () => <CuentasPorCobrar />,
+            },
+            {
+              recurso: "pagos",
+              descripcion: "Recibos de abono emitidos. Abrí uno para imprimirlo o anularlo.",
+              contenido: () => <Abonos administra={administra} />,
             },
           ],
         },

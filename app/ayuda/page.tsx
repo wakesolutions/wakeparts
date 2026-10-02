@@ -48,6 +48,11 @@ const PERMISOS: [string, boolean, boolean, boolean][] = [
   ["Anular facturas", true, true, false],
   ["Notas de crédito, devoluciones y notas de débito", true, true, false],
   ["Facturar exonerado del ISV", true, true, true],
+  ["Dar crédito a un cliente (límite y plazo)", true, true, false],
+  ["Vender al crédito dentro del límite", true, true, true],
+  ["Vender al crédito pasando el límite o con vencidas", true, true, false],
+  ["Registrar abonos", true, true, true],
+  ["Anular recibos de abono", true, true, false],
   ["Registrar CAI y puntos de emisión", true, true, false],
   ["Editar el taller, su apariencia y el formato de factura", true, true, false],
   ["Publicar y editar el sitio web", true, true, false],
@@ -545,6 +550,29 @@ export default function Manual() {
                   Cada nota lleva su propio número del SAR (tipo 06 crédito, 07 débito), la factura que modifica y el
                   motivo. Se ven listadas dentro de la factura.
                 </p>
+                <h3 className={styles.subtitulo}>Ventas al crédito</h3>
+                <p>
+                  En <em>Clientes</em>, el dueño o un administrador marca <strong>Puede comprar al crédito</strong> con su
+                  límite y su plazo en días. En el mostrador, al elegir ese cliente aparece <strong>Contado | Crédito</strong>{" "}
+                  con lo que le queda disponible y lo que tiene vencido. La factura sale con «Crédito · vence» y la
+                  fecha de pago.
+                </p>
+                <h3 className={styles.subtitulo}>Cuentas por cobrar y abonos</h3>
+                <ul className={styles.lista}>
+                  <li>
+                    <em>Ventas › Cuentas por cobrar</em> muestra cuánto te deben, cuánto está vencido y la{" "}
+                    <strong>antigüedad de saldos</strong> (al día, 1–30, 31–60, 61–90 y más de 90 días).
+                  </li>
+                  <li>
+                    Abrí un cliente para ver su <strong>estado de cuenta</strong> y registrar un abono: escribí el monto
+                    (o tocá «Lo vencido» o «Todo»), la forma de pago y la referencia. Se aplica a las facturas más
+                    antiguas, o marcá a cuáles. Ves cuánto le toca a cada una antes de confirmar.
+                  </li>
+                  <li>
+                    Cada abono da un <strong>recibo</strong> (REC-000001) para imprimir. Los anula el dueño o un
+                    administrador; una factura con abonos no se anula sin anular antes sus recibos.
+                  </li>
+                </ul>
                 <h3 className={styles.subtitulo}>Pedidos web</h3>
                 <p>
                   Lo que los clientes mandan desde tu sitio web llega aquí como <em>Nuevo</em> (y suena la campanita, con un número en Ventas del dock), con su nombre,

@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from "react";
 import { useApi } from "@/components/datos/apis";
 import ui from "@/components/ui/controles.module.css";
 import { IconoCerrar, IconoDocumento, IconoMas, IconoMenos, IconoPapelera } from "@/components/ui/iconos";
+import type { CreditoCliente } from "@/lib/cobros";
 import { cant, moneda, pct } from "@/lib/formato";
 import { urlImagen } from "@/lib/imagenes";
 import {
@@ -53,6 +54,8 @@ export function Ticket({
   const [confirmar, setConfirmar] = useState<TipoDocumento | null>(null);
   const [libre, setLibre] = useState(false);
   const [punto, setPunto] = useState<PuntoEmision | null | undefined>(undefined);
+  const [credito, setCredito] = useState<CreditoCliente | null>(null);
+  const alCredito = carrito.condicion === "credito";
   const utilidad = totales.gravado + totales.exonerado + totales.exento - totales.costo;
 
   // Al confirmar una factura se dice con qué caja sale (su CAI y su numeración).
@@ -73,6 +76,7 @@ export function Ticket({
       <div className={styles.encabezado}>
         <Cliente carrito={carrito} onCambiar={onCambiarCarrito} />
         <Exoneracion carrito={carrito} onCambiar={onCambiarCarrito} />
+        <Condicion carrito={carrito} total={totales.total} onCredito={setCredito} onCambiar={onCambiarCarrito} />
       </div>
 
       <div className={styles.lineas}>
@@ -174,7 +178,8 @@ export function Ticket({
                 {punto
                   ? `Sale de ${punto.nombre} (${punto.codigo}) con el siguiente número de su CAI`
                   : "La factura usa el siguiente número del CAI"}
-                {carrito.exonerado ? ", exonerada del ISV" : ""} y descuenta existencias.
+                {carrito.exonerado ? ", exonerada del ISV" : ""}
+                {alCredito ? `, al crédito a ${credito?.dias_credito ?? 30} días` : ""} y descuenta existencias.
               </p>
             )}
             <div className={styles.botones}>
@@ -413,6 +418,97 @@ function Descuento({ carrito, subtotal, onCambiar }: { carrito: Carrito; subtota
         </button>
       </div>
     </form>
+  );
+}
+
+// ------------------------------------------------------------- condición ----
+
+/**
+ * Contado o crédito. Solo con un cliente registrado; el crédito, si el dueño se
+ * lo habilitó (Ventas › Clientes). Muestra cuánto le queda disponible y si
+ * debe algo vencido: la base decide (vencidas y límite solo los pasa dueño/admin).
+ */
+function Condicion({
+  carrito,
+  total,
+  onCredito,
+  onCambiar,
+}: {
+  carrito: Carrito;
+  total: number;
+  onCredito: (c: CreditoCliente | null) => void;
+  onCambiar: (c: CambiosCarrito) => void;
+}) {
+  const api = useApi("cobros");
+  // Lo leído queda guardado con su cliente: al cambiar de cliente se ve «cargando» sin un setState en el efecto.
+  const [leido, setLeido] = useState<{ id: number; dato: CreditoCliente | null } | null>(null);
+  const credito = !carrito.id_cliente ? null : leido?.id === carrito.id_cliente ? leido.dato : undefined;
+  const alCredito = carrito.condicion === "credito";
+
+  useEffect(() => {
+    const id = carrito.id_cliente;
+    if (!id) return;
+    let vivo = true;
+    api
+      .credito(id)
+      .catch(() => null)
+      .then((c) => {
+        if (!vivo) return;
+        setLeido({ id, dato: c });
+        onCredito(c);
+      });
+    return () => {
+      vivo = false;
+    };
+  }, [api, carrito.id_cliente, onCredito]);
+
+  // Sin cliente registrado no hay crédito: solo se avisa si quedó marcado.
+  if (!carrito.id_cliente) {
+    return alCredito ? (
+      <p className={styles.condicionAviso}>
+        Al crédito solo con un cliente registrado.{" "}
+        <button type="button" onClick={() => onCambiar({ condicion: "contado" })}>
+          Volver a contado
+        </button>
+      </p>
+    ) : null;
+  }
+  if (credito === undefined) return null;
+  const habilitado = Boolean(credito?.credito_habilitado);
+  if (!habilitado && !alCredito) return null;
+
+  const disponible = credito?.disponible ?? null;
+  const excede = alCredito && disponible !== null && total > disponible;
+
+  return (
+    <div className={styles.condicion}>
+      <div className={styles.segmento} role="radiogroup" aria-label="Condición de la venta">
+        <button type="button" role="radio" aria-checked={!alCredito} onClick={() => onCambiar({ condicion: "contado" })}>
+          Contado
+        </button>
+        <button
+          type="button"
+          role="radio"
+          aria-checked={alCredito}
+          disabled={!habilitado}
+          onClick={() => onCambiar({ condicion: "credito" })}
+        >
+          Crédito
+        </button>
+      </div>
+      <p className={styles.condicionDato}>
+        {!habilitado ? (
+          <span data-tono="mal">Este cliente no tiene crédito.</span>
+        ) : (
+          <>
+            <span>{credito!.dias_credito} días</span>
+            <span>{disponible === null ? "Sin límite" : `Disponible ${moneda(disponible)}`}</span>
+            {credito!.vencido > 0 && <span data-tono="mal">Vencido {moneda(credito!.vencido)}</span>}
+          </>
+        )}
+      </p>
+      {excede && <p className={styles.condicionAviso}>Esta venta pasa el límite: solo el dueño o un administrador la pueden facturar.</p>}
+    </div>
   );
 }
 

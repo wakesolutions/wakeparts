@@ -70,7 +70,11 @@ export type Carrito = {
   exo_orden_compra: string | null;
   exo_constancia: string | null;
   exo_registro_sag: string | null;
+  /** Contado o crédito (0017): al crédito, el cliente debe tener crédito habilitado. */
+  condicion: CondicionVenta;
 };
+
+export type CondicionVenta = "contado" | "credito";
 
 export type CambiosCarrito = Partial<
   Pick<
@@ -90,6 +94,7 @@ export type CambiosCarrito = Partial<
     | "exo_orden_compra"
     | "exo_constancia"
     | "exo_registro_sag"
+    | "condicion"
   >
 >;
 
@@ -222,6 +227,9 @@ export type Documento = {
   motivo_tipo: MotivoNota | null;
   motivo: string | null;
   reintegra_inventario: boolean;
+  /** Factura al crédito: vence = fecha de pago (0017). */
+  condicion: CondicionVenta;
+  dias_credito: number | null;
   /** Factura: sus notas de crédito y débito (también las anuladas). */
   notasRelacionadas?: NotaRelacionada[];
   lineas: {

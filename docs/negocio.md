@@ -126,6 +126,17 @@ Muchos negocios hacen ambas cosas; el modelo de datos debe soportar las dos form
 
 **Pendiente**: el reporte de ventas todavía cuenta solo facturas (no resta notas de crédito); se ajustará con el módulo de Caja.
 
+### 3.8 Ventas al crédito y cuentas por cobrar (Implementado · 0017)
+
+- **Crédito por cliente**: lo habilitan dueño/admin en Ventas › Clientes, con **límite** (vacío = sin límite) y **plazo** en días (30 por defecto).
+- **Venta al crédito**: en el ticket, con un cliente registrado con crédito, aparece «Contado | Crédito» con su disponible y lo vencido. La factura lleva `condicion = credito` y **vence** el día de hoy + plazo; se imprime «Condición: Crédito · vence dd/mm/aaaa».
+- **Reglas** (decisión de diseño, ajustable): un vendedor **no** puede facturar al crédito a un cliente con facturas **vencidas** ni pasarse del **límite**; dueño/admin sí (es su riesgo). Cotizaciones sin efecto.
+- **Pendiente** de cada factura = total + notas de débito − notas de crédito − abonos vigentes. Negativo = **saldo a favor** (p. ej. devolución de algo ya pagado).
+- **Abonos**: cualquier miembro registra un abono desde el estado de cuenta (efectivo, transferencia, depósito, tarjeta, cheque u otro, con referencia). Se reparte a las facturas **más antiguas primero** o a las marcadas; lo que se ve es lo que se guarda. No se acepta más de lo pendiente. Genera un **recibo** `REC-000001` (sin valor fiscal) imprimible.
+- **Anular**: un recibo lo anula dueño/admin (la deuda vuelve). Una factura con abonos vigentes no se anula hasta anular sus recibos.
+- **Estados**: al día · por vencer (≤ 7 días) · vencida · pagada. Antigüedad de saldos: al día, 1–30, 31–60, 61–90, +90 días.
+- Las facturas de **contado** se consideran cobradas al emitirse; el dinero real se cuadra en el módulo de **Caja** (siguiente).
+
 ## 4. Reglas transversales
 
 - Montos en `numeric(14,2)` en la base; nunca `float`. Moneda: lempiras (HNL).

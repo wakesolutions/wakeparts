@@ -1,0 +1,803 @@
+/* Cuentas por cobrar. Momento firma: la antigüedad de saldos como una banda de
+   tablero que va del verde (al día) al rojo (+90 días), bajo el odómetro LCD de
+   lo que se debe. El estado de cuenta repite el lenguaje con un medidor de
+   crédito (usado / límite). */
+
+.etiqueta {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.led {
+  display: inline-block;
+  flex: none;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--banda, var(--wp-ink-3));
+  box-shadow: 0 0 6px color-mix(in oklab, var(--banda, transparent) 60%, transparent);
+}
+
+.tramo[data-banda="al_dia"],
+.leyenda [data-banda="al_dia"] {
+  --banda: var(--wp-ok);
+}
+.tramo[data-banda="d30"],
+.leyenda [data-banda="d30"] {
+  --banda: var(--wp-aviso);
+}
+.tramo[data-banda="d60"],
+.leyenda [data-banda="d60"] {
+  --banda: color-mix(in oklab, var(--wp-aviso) 50%, var(--wp-accent));
+}
+.tramo[data-banda="d90"],
+.leyenda [data-banda="d90"] {
+  --banda: var(--wp-accent);
+}
+.tramo[data-banda="d90mas"],
+.leyenda [data-banda="d90mas"] {
+  --banda: var(--wp-accent-lo);
+}
+
+/* ----------------------------------------------------------------- cartera */
+
+.cartera {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  gap: 0.8rem;
+  height: 100%;
+  min-height: 0;
+  container-type: inline-size;
+}
+
+.tabla {
+  min-height: 0;
+}
+
+.tableroCargando {
+  height: 132px;
+  border-radius: 14px;
+  background: linear-gradient(90deg, var(--wp-hover), color-mix(in oklab, var(--wp-hover) 40%, transparent), var(--wp-hover));
+  background-size: 200% 100%;
+  animation: brillo 1400ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.tablero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.9rem 1.2rem;
+  padding: 0.9rem 1rem;
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--wp-panel-2), var(--wp-panel));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 0 0 1px var(--wp-line);
+  animation: entra 320ms var(--ease-expo) both;
+}
+
+@container (min-width: 760px) {
+  .tablero {
+    grid-template-columns: minmax(230px, 0.9fr) minmax(200px, 0.7fr) minmax(0, 1.6fr);
+    align-items: center;
+  }
+}
+
+.lcd {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.lcdPie {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.06em;
+  color: var(--wp-ink-3);
+}
+
+.indicadores {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.6rem;
+}
+
+@container (min-width: 760px) {
+  .indicadores {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
+.indicadores div {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.indicadores strong {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ink);
+}
+
+.indicadores small {
+  font-size: 0.7rem;
+  color: var(--wp-ink-3);
+}
+
+.indicadores [data-tono="mal"] strong {
+  color: var(--wp-accent-hi);
+}
+
+.indicadores [data-tono="aviso"] strong {
+  color: var(--wp-aviso);
+}
+
+.antiguedad {
+  display: grid;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+/* La banda: tramos proporcionales al monto de cada antigüedad. */
+.banda {
+  display: flex;
+  gap: 2px;
+  height: 18px;
+  padding: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 1px 3px rgb(0 0 0 / 0.45),
+    inset 0 0 0 1px var(--wp-line);
+}
+
+.banda[data-vacia]::after {
+  content: "";
+  flex: 1;
+  border-radius: 999px;
+  background: repeating-linear-gradient(-45deg, var(--wp-line) 0 4px, transparent 4px 8px);
+}
+
+.tramo {
+  flex-basis: 0;
+  min-width: 6px;
+  border-radius: 999px;
+  background: var(--banda);
+  box-shadow: inset 0 1px 0 var(--wp-bevel-light);
+  transform-origin: left center;
+  animation: llenar 620ms var(--ease-expo) both;
+}
+
+.tramo:nth-child(2) {
+  animation-delay: 60ms;
+}
+.tramo:nth-child(3) {
+  animation-delay: 120ms;
+}
+.tramo:nth-child(4) {
+  animation-delay: 180ms;
+}
+.tramo:nth-child(5) {
+  animation-delay: 240ms;
+}
+
+.leyenda {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(98px, 1fr));
+  gap: 0.3rem 0.8rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.leyenda li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0 0.4rem;
+  font-size: 0.7rem;
+  color: var(--wp-ink-2);
+}
+
+.leyenda strong {
+  grid-column: 2;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ink);
+}
+
+.leyenda li[data-cero] {
+  opacity: 0.45;
+}
+
+.leyenda li[data-cero] .led {
+  box-shadow: none;
+}
+
+/* ---------------------------------------------------------- estado cuenta */
+
+.estado {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--wp-bg-deep);
+  container-type: inline-size;
+}
+
+.cargandoVentana {
+  height: 240px;
+  margin: 1.2rem;
+  border-radius: 12px;
+  background: linear-gradient(90deg, var(--wp-hover), color-mix(in oklab, var(--wp-hover) 40%, transparent), var(--wp-hover));
+  background-size: 200% 100%;
+  animation: brillo 1400ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.estadoCabecera {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.9rem;
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid var(--wp-line);
+  background: linear-gradient(180deg, var(--wp-panel), var(--wp-panel-2));
+  box-shadow: inset 0 1px 0 var(--wp-bevel-light);
+}
+
+@container (min-width: 640px) {
+  .estadoCabecera {
+    grid-template-columns: minmax(0, 1fr) minmax(240px, 0.85fr);
+    align-items: end;
+  }
+}
+
+.estadoCliente {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+  animation: entra 320ms var(--ease-expo) both;
+}
+
+.estadoCliente h2 {
+  margin: 0;
+  overflow: hidden;
+  font-size: clamp(1.3rem, 5cqi, 2rem);
+  font-weight: 800;
+  font-variation-settings: "wdth" 64;
+  line-height: 0.95;
+  letter-spacing: -0.02em;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--wp-ink);
+}
+
+.estadoCliente p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.1rem 0.8rem;
+  margin: 0.25rem 0 0;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--wp-ink-3);
+}
+
+/* Medidor de crédito */
+.credito {
+  display: grid;
+  gap: 0.35rem;
+  animation: entra 320ms var(--ease-expo) 80ms both;
+}
+
+.pista {
+  position: relative;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 1px 3px rgb(0 0 0 / 0.45),
+    inset 0 0 0 1px var(--wp-line);
+}
+
+.usado,
+.vencidoPista {
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  transform-origin: left center;
+  transition: transform 520ms var(--ease-expo);
+}
+
+.usado {
+  background: var(--wp-ok);
+  box-shadow: inset 0 1px 0 var(--wp-bevel-light);
+  transform: scaleX(var(--usado));
+}
+
+/* Lo vencido se pinta encima, desde la izquierda: es lo primero que hay que cobrar. */
+.vencidoPista {
+  background: repeating-linear-gradient(
+    -45deg,
+    var(--wp-accent) 0 4px,
+    color-mix(in oklab, var(--wp-accent) 60%, transparent) 4px 8px
+  );
+  transform: scaleX(var(--vencido));
+}
+
+.pista[data-excedido] .usado {
+  background: var(--wp-aviso);
+}
+
+.lectura,
+.lecturaMal {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.74rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ink-2);
+}
+
+.lectura strong {
+  color: var(--wp-ink);
+}
+
+.lectura [data-mal],
+.lecturaMal {
+  color: var(--wp-accent-hi);
+}
+
+.estadoCuerpo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  align-content: start;
+  gap: 1rem;
+  padding: 1rem 1.2rem 1.4rem;
+}
+
+@container (min-width: 760px) {
+  .estadoCuerpo {
+    grid-template-columns: minmax(0, 1.5fr) minmax(280px, 1fr);
+    align-items: start;
+  }
+}
+
+.seccionBarra {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 28px;
+}
+
+.enlace {
+  padding: 0;
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+  background: none;
+  cursor: pointer;
+}
+
+.enlace:hover {
+  color: var(--wp-accent-hi);
+}
+
+.vacio {
+  margin: 0;
+  padding: 1rem;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  color: var(--wp-ink-2);
+  background: var(--wp-hover);
+}
+
+.facturas {
+  display: grid;
+  gap: 0.4rem;
+  min-width: 0;
+}
+
+.listaFacturas,
+.listaRecibos {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: 10px;
+  background: var(--wp-panel);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.listaFacturas li + li,
+.listaRecibos li + li {
+  border-top: 1px solid var(--wp-line);
+}
+
+.listaFacturas label {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas:
+    "casilla numero monto"
+    "casilla fechas monto"
+    "casilla estado abona";
+  align-items: center;
+  gap: 0.1rem 0.7rem;
+  padding: 0.6rem 0.8rem;
+  cursor: pointer;
+  transition: background-color 160ms var(--ease-quart);
+}
+
+.listaFacturas label:hover {
+  background: var(--wp-hover);
+}
+
+.listaFacturas input {
+  grid-area: casilla;
+}
+
+.listaFacturas [data-estado="vencida"] {
+  --banda: var(--wp-accent);
+}
+.listaFacturas [data-estado="por_vencer"] {
+  --banda: var(--wp-aviso);
+}
+.listaFacturas [data-estado="al_dia"] {
+  --banda: var(--wp-ok);
+}
+.listaFacturas [data-estado="pagada"] {
+  --banda: var(--wp-ink-3);
+}
+
+.listaFacturas li[data-abona] {
+  background: color-mix(in oklab, var(--wp-ok) 6%, transparent);
+}
+
+.facturaNumero {
+  grid-area: numero;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: var(--wp-ink);
+}
+
+.facturaFechas {
+  grid-area: fechas;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  color: var(--wp-ink-3);
+}
+
+.facturaFechas b {
+  color: var(--wp-accent-hi);
+}
+
+.facturaEstado {
+  grid-area: estado;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.72rem;
+  color: var(--wp-ink-2);
+}
+
+.facturaMonto {
+  grid-area: monto;
+  display: grid;
+  justify-items: end;
+  font-family: var(--font-mono);
+  font-size: 0.86rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ink);
+}
+
+.facturaMonto small {
+  font-size: 0.62rem;
+  font-weight: 400;
+  color: var(--wp-ink-3);
+}
+
+.abona {
+  grid-area: abona;
+  justify-self: end;
+  padding: 0.05rem 0.45rem;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ok);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-ok) 50%, transparent);
+  animation: entra 220ms var(--ease-expo) both;
+}
+
+.listaRecibos li {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.5rem 0.8rem;
+}
+
+.listaRecibos li[data-anulado] {
+  opacity: 0.5;
+}
+
+.listaRecibos li[data-anulado] strong {
+  text-decoration: line-through;
+}
+
+.listaRecibos strong {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.listaRecibos a {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  color: var(--wp-ink-3);
+}
+
+.listaRecibos a:hover {
+  color: var(--wp-ink);
+  background: var(--wp-hover);
+}
+
+/* Panel de abono: una consola a la derecha (abajo en angosto). */
+.abono {
+  display: grid;
+  gap: 0.55rem;
+  padding: 0.9rem;
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--wp-panel-2), var(--wp-panel));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 0 0 1px var(--wp-line);
+}
+
+@container (min-width: 760px) {
+  .abono {
+    position: sticky;
+    top: 0;
+  }
+}
+
+.monto {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+  padding: 0.5rem 0.8rem;
+  border-radius: 10px;
+  background: var(--wp-lcd);
+  box-shadow:
+    inset 0 2px 6px rgb(0 0 0 / 0.55),
+    inset 0 0 0 1px var(--wp-line);
+}
+
+.montoMoneda {
+  font-family: var(--font-mono);
+  font-size: 1rem;
+  color: color-mix(in oklab, var(--wp-lcd-ink) 60%, transparent);
+}
+
+.monto input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: clamp(1.5rem, 6cqi, 2.1rem);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+  text-align: right;
+  color: var(--wp-lcd-ink);
+  background: none;
+  outline: none;
+}
+
+.monto input::placeholder {
+  color: color-mix(in oklab, var(--wp-lcd-ink) 25%, transparent);
+}
+
+.monto:focus-within {
+  box-shadow:
+    inset 0 2px 6px rgb(0 0 0 / 0.55),
+    0 0 0 2px var(--wp-accent);
+}
+
+.atajos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.atajos button {
+  padding: 0.2rem 0.55rem;
+  border: 0;
+  border-radius: 999px;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ink-2);
+  background: var(--wp-hover);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  cursor: pointer;
+  transition: color 160ms var(--ease-quart);
+}
+
+.atajos button:hover {
+  color: var(--wp-ink);
+}
+
+.formas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--wp-field);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.4);
+}
+
+.formas button {
+  min-height: 30px;
+  padding: 0 0.3rem;
+  border: 0;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--wp-ink-3);
+  background: none;
+  cursor: pointer;
+  transition: color 160ms var(--ease-quart);
+}
+
+.formas button:hover {
+  color: var(--wp-ink);
+}
+
+.formas button[aria-checked="true"] {
+  color: var(--wp-ink);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 -2px 0 var(--wp-accent),
+    0 0 0 1px rgb(0 0 0 / 0.3);
+}
+
+.formas button:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 1px;
+}
+
+.ayuda {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--wp-ink-3);
+}
+
+.aviso {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--wp-aviso);
+}
+
+.error {
+  margin: 0;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  font-size: 0.78rem;
+  background: var(--wp-sel);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-accent) 50%, transparent);
+}
+
+.confirmar {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: 10px;
+  background: var(--wp-hover);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  animation: entra 240ms var(--ease-expo) both;
+}
+
+.confirmar p {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.botones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.registrar {
+  justify-content: center;
+  width: 100%;
+}
+
+.emitido {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.7rem 0.8rem;
+  border-radius: 10px;
+  background: color-mix(in oklab, var(--wp-ok) 9%, var(--wp-hover));
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-ok) 40%, transparent);
+  animation: entra 280ms var(--ease-expo) both;
+}
+
+.emitido p {
+  margin: 0;
+  font-size: 0.82rem;
+}
+
+.emitido a {
+  justify-self: start;
+  text-decoration: none;
+}
+
+/* Recibo abierto desde Ventas › Abonos */
+.recibo {
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  height: 100%;
+  overflow-y: auto;
+  padding: 1rem 1.2rem 1.6rem;
+  overscroll-behavior: contain;
+  background: var(--wp-bg-deep);
+}
+
+.reciboBarra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.reciboBarra a {
+  text-decoration: none;
+}
+
+.anular {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.5rem;
+}
+
+@keyframes entra {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+}
+
+@keyframes llenar {
+  from {
+    opacity: 0;
+    transform: scaleX(0);
+  }
+}
+
+@keyframes brillo {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}

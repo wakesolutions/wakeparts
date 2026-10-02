@@ -47,6 +47,8 @@ export function documentoEjemplo(tipo: TipoDocumento, emisor: Emisor, vendedor: 
     motivo_tipo: null,
     motivo: null,
     reintegra_inventario: false,
+    condicion: "contado",
+    dias_credito: null,
     vendedor,
     lineas: [
       { id: 1, codigo: "KYB-334082", descripcion: "AMORTIGUADOR DELANTERO KYB", cantidad: 2, precio: 1850, descuento_pct: 0, descuento: 0, exento: false, total: 3700 },
