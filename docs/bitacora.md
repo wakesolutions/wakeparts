@@ -2,11 +2,16 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-02 · Exportación de datos y documentos legales
+
+- **Exportar todos los datos** (pedido del usuario; lo promete el contrato, cláusula novena): Taller › Datos, solo dueño/admin. Un .zip con un Excel por tema y un LEEME. Se arma **en el navegador** (el servidor solo entrega filas, paginadas de a 1000): no hay archivos temporales en el servidor ni límites de tiempo de una función. Las fotos no van en el zip (pesan mucho); la hoja «10 Fotos» lista sus rutas. Cada exportación queda en el registro de actividad (`empresa.exportar`).
+- **Documentos para el abogado** en `docs/legal/`: «Revisión legal» (el negocio en una página, qué revisar, 37 preguntas con espacio para respuestas, decisiones y los textos publicados como anexo) y el contrato de servicio en versión de revisión (PDF con notas que remiten a las preguntas) y editable (.docx sin notas, campos en amarillo, plan a marcar en el Anexo A). El usuario no sabe de leyes: todas las dudas legales quedaron como preguntas en esos documentos, no como afirmaciones.
+
 ## 2026-10-02 · Plan de lanzamiento (evaluación con las respuestas del usuario)
 
 - Hecho en este ciclo: notas de crédito/débito, devoluciones, exoneraciones, puntos de emisión (0016), crédito y cuentas por cobrar (0017), caja con arqueo (0018), ticket térmico. Cubre lo que un yonker pide la primera semana.
 - Confirmado por el usuario: el SAR no exige registrar el sistema; respaldos con plan pago de Supabase; soporte 24/7 sí; un abogado revisa términos y privacidad; pruebas automáticas, después.
-- Antes de vender abierto: reunión con contador (redondeo del ISV, precios sin ISV, leyendas, requisitos de exoneración, umbrales de CAI por vencer); cierre legal (términos, privacidad, contrato de servicio); **exportación completa de datos** (la promete el contrato y no existe); respaldo de **Storage** (fotos y logos no van en el respaldo de la base); precio publicado en la landing; que la propia empresa de Wake Parts facture la suscripción con su CAI.
+- Antes de vender abierto: reunión con contador (redondeo del ISV, precios sin ISV, leyendas, requisitos de exoneración, umbrales de CAI por vencer); cierre legal (términos, privacidad, contrato de servicio); ~~exportación completa de datos~~ (hecha el mismo día); respaldo de **Storage** (fotos y logos no van en el respaldo de la base); precio publicado en la landing; que la propia empresa de Wake Parts facture la suscripción con su CAI.
 - Propuesta de precio (a validar con 3–5 talleres): Mostrador desde L 690/mes · Taller L 1,190/mes · Multisucursal L 1,890/mes; anual = 10 meses; implementación opcional L 2,500. Sin licencia perpetua; si se ofrece pago único, L 14,900 + L 250/mes de servicio.
 
 ## 2026-10-02 · Ticket de 80 mm

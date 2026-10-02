@@ -13,6 +13,7 @@ import type { ImagenProducto } from "@/components/imagenes/api";
 import type { EstadoSitio, PedidoWeb } from "@/components/sitio-web/api";
 import { armarBandeja } from "@/lib/notificaciones";
 import type { CreditoCliente, CuentaFactura, EstadoCuenta, Recibo } from "@/lib/cobros";
+import { aplanar, FUENTES_EXPORTACION } from "@/lib/exportacion";
 import { resumirTurno, totalArqueo, type Arqueo, type MovimientoCaja, type Turno } from "@/lib/caja";
 import { normalizarSitio } from "@/lib/sitio-web";
 import { centavos } from "@/lib/formato";
@@ -1795,6 +1796,42 @@ const caja: Apis["caja"] = {
   },
 };
 
+const exportacion: Apis["exportacion"] = {
+  datos: async () => {
+    const de = (recurso: string) => (filasDemo(recurso) ?? []).map((f) => aplanar(f as Record<string, unknown>));
+    const filas: Record<string, Record<string, unknown>[]> = {
+      "01 Empresa": [{ ...EMISOR_DEMO }],
+      "02 Usuarios": de("miembros"),
+      "03 Puntos de emision": de("puntos_emision"),
+      "04 CAI": de("cai"),
+      "05 Productos": de("productos"),
+      "07 Kardex": de("movimientos"),
+      "08 Categorias propias": [],
+      "09 Marcas propias": [],
+      "11 Clientes": de("clientes"),
+      "12 Documentos": documentos.map((d) => aplanar(Object.fromEntries(Object.entries(d).filter(([k]) => k !== "lineas")))),
+      "13 Lineas de documentos": documentos.flatMap((d) =>
+        d.lineas.map((l) => ({ documentos_numero: d.numero, documentos_tipo: d.tipo, ...l })),
+      ),
+      "14 Cuentas por cobrar": cuentasDemo(),
+      "15 Abonos": pagosDemo.map((p) => Object.fromEntries(Object.entries(p).filter(([k]) => k !== "aplicaciones"))),
+      "17 Turnos de caja": de("cajas_turnos"),
+      "19 Pedidos web": de("pedidos_web"),
+    };
+    return espera(
+      {
+        ok: true as const,
+        datos: {
+          empresa: EMISOR_DEMO.nombre ?? "Yonker Demo",
+          generado: new Date().toISOString(),
+          hojas: FUENTES_EXPORTACION.map((f) => ({ archivo: f.archivo, filas: filas[f.archivo] ?? [] })),
+        },
+      },
+      500,
+    );
+  },
+};
+
 export const APIS_DEMO: Partial<Apis> = {
   recursos,
   empresa,
@@ -1802,6 +1839,7 @@ export const APIS_DEMO: Partial<Apis> = {
   ventas,
   cobros,
   caja,
+  exportacion,
   compatibilidad,
   imagenes,
   inventario,

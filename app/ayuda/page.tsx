@@ -57,6 +57,7 @@ const PERMISOS: [string, boolean, boolean, boolean][] = [
   ["Abrir caja, registrar entradas y salidas", true, true, true],
   ["Cerrar la caja que abrió otra persona", true, true, false],
   ["Exigir la caja abierta para facturar", true, true, false],
+  ["Exportar todos los datos de la empresa", true, true, false],
   ["Registrar CAI y puntos de emisión", true, true, false],
   ["Editar el taller, su apariencia y el formato de factura", true, true, false],
   ["Publicar y editar el sitio web", true, true, false],
@@ -704,6 +705,11 @@ export default function Manual() {
                   ticket, el ancho del rollo (80 o 58 mm), la letra y si lleva logo. Vale para facturas, notas, recibos
                   y cortes de caja. Al imprimir siempre podés cambiar entre Carta y Ticket arriba de la hoja. En el
                   diálogo de impresión elegí tu impresora térmica y márgenes «Ninguno».
+                </p>
+                <p>
+                  <strong>Tus datos</strong>: en <em>Taller › Datos</em>, «Exportar datos» baja un archivo .zip con un
+                  Excel por tema (empresa, usuarios, CAI, productos, kardex, clientes, facturas y notas, cuentas por cobrar,
+                  abonos, caja y pedidos web). Lo pueden hacer el dueño y los administradores, cuando quieran.
                 </p>
               </div>
               <div>

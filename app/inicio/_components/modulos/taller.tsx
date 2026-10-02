@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import type { leerEmpresa, ResultadoDemo } from "@/app/acciones/empresa";
 import { useApi } from "@/components/datos/apis";
+import { ExportarDatos } from "@/components/exportacion/exportar-datos";
 import { Formulario } from "@/components/formulario/formulario";
 import { AparienciaEmpresa } from "@/components/identidad/apariencia-empresa";
 import { useIdentidad } from "@/components/identidad/contexto";
@@ -203,6 +204,14 @@ export function ModuloTaller() {
                       : `Listo: ${demo.productos} productos, ${demo.compatibilidades} compatibilidades y ${demo.clientes} clientes. Probalos en Cotizar y facturar.`}
                 </p>
               )}
+            </div>
+          )}
+          {editable && (
+            <div className={styles.bloque}>
+              <p className={ui.etiquetaSeccion}>Tus datos</p>
+              <div className={styles.bloqueFila}>
+                <ExportarDatos />
+              </div>
             </div>
           )}
         </section>

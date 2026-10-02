@@ -59,6 +59,7 @@
 
 .tableroCargando {
   height: 132px;
+  margin: 0.4rem 0.9rem 0;
   border-radius: 14px;
   background: linear-gradient(90deg, var(--wp-hover), color-mix(in oklab, var(--wp-hover) 40%, transparent), var(--wp-hover));
   background-size: 200% 100%;
@@ -69,6 +70,8 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   gap: 0.9rem 1.2rem;
+  /* La tabla de abajo trae su propio margen; el tablero se alinea con ella y con el título. */
+  margin: 0.4rem 0.9rem 0;
   padding: 0.9rem 1rem;
   border-radius: 14px;
   background: linear-gradient(180deg, var(--wp-panel-2), var(--wp-panel));
