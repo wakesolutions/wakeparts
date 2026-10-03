@@ -391,7 +391,7 @@ Avisos de la campanita. `id_empresa`, `id_usuario` (null = para todos los miembr
 
 - `seguimiento_empresas()` (security definer; vacía si no sos admin de plataforma) → una fila por empresa activa: `empresa`, `registrada_en`, `dias_registrada`, dueño (`dueno`, `correo`, `telefono` de `usuarios`), `telefono_empresa`, `miembros`, `productos`, `cotizaciones`, `facturas`, `ultimo_documento`, `ultimo_acceso` (`auth.users.last_sign_in_at` de sus miembros), `dias_sin_entrar`, `sitio_publicado`, `pedidos_web`, `etapa` (`sin_productos` · `sin_cotizar` · `cotizando` · `facturando`) y la nota de contacto. `v_seguimiento_empresas` la expone para TablaMaestra.
 - `seguimiento_contactos` (`id_empresa` PK, `contactado_en`, `nota` ≤ 1000, `actualizado_*`): lo anota el admin desde el módulo Seguimiento. RLS: solo `es_admin_plataforma()`.
-- Nada se manda solo: el módulo arma el mensaje y abre WhatsApp o el correo del admin.
+- Nada se manda solo: el módulo arma el mensaje y el admin lo manda. WhatsApp se abre en el teléfono/navegador; el **correo se envía desde el sistema** (`enviarCorreoSeguimiento`, SMTP de `ventas@wake.solutions`) al correo del dueño leído en el servidor, con confirmación, y marca `contactado_en`. Cada envío queda en `registros` (`seguimiento.correo` / `seguimiento.correo_error`).
 
 ## Funciones
 

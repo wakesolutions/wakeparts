@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { guardarContacto } from "@/app/acciones/seguimiento";
+import { enviarCorreoSeguimiento, guardarContacto } from "@/app/acciones/seguimiento";
 import { useSesion } from "@/app/inicio/_components/sesion-contexto";
 import { MantenimientoRecurso } from "@/components/mantenimiento/mantenimiento-recurso";
 import ui from "@/components/ui/controles.module.css";
@@ -86,9 +86,24 @@ function Detalle({ taller: t, onGuardado }: { taller: Taller; onGuardado: () => 
 
   const telefono = (t.telefono ?? t.telefono_empresa ?? "").replace(/\D/g, "");
   const wa = telefono ? enlaceWhatsapp(telefono, texto) : null;
-  const correo = t.correo
-    ? `mailto:${t.correo}?subject=${encodeURIComponent(`Wake Parts · ${t.empresa}`)}&body=${encodeURIComponent(texto)}`
-    : null;
+  const [asunto, setAsunto] = useState(`Wake Parts · ${t.empresa}`);
+  const [confirmando, setConfirmando] = useState(false);
+  const [enviando, setEnviando] = useState(false);
+
+  async function enviar() {
+    setEnviando(true);
+    setAviso(null);
+    const r = await enviarCorreoSeguimiento(t.id_empresa, { asunto, texto }).catch(() => ({
+      ok: false as const,
+      error: "Sin conexión.",
+    }));
+    setEnviando(false);
+    setConfirmando(false);
+    if (!r.ok) return setAviso(r.error);
+    setContactado(r.contactadoEn);
+    setAviso(`Correo enviado a ${r.para}. Quedó marcado como contactado hoy.`);
+    onGuardado();
+  }
 
   async function guardar(marcar: boolean) {
     setGuardando(true);
@@ -130,6 +145,13 @@ function Detalle({ taller: t, onGuardado }: { taller: Taller; onGuardado: () => 
         ))}
       </dl>
 
+      {t.correo && (
+        <label className={styles.campo}>
+          <span>Asunto del correo</span>
+          <input className={ui.campo} value={asunto} maxLength={200} onChange={(e) => setAsunto(e.target.value)} />
+        </label>
+      )}
+
       <label className={styles.campo}>
         <span>Mensaje (editalo antes de mandarlo)</span>
         <textarea className={ui.campo} rows={5} value={texto} onChange={(e) => setTexto(e.target.value)} />
@@ -143,11 +165,34 @@ function Detalle({ taller: t, onGuardado }: { taller: Taller; onGuardado: () => 
         ) : (
           <span className={styles.nota}>Sin teléfono: pedile que lo agregue en Mi usuario.</span>
         )}
-        {correo && (
-          <a href={correo} className={ui.boton}>
-            Escribir correo
-          </a>
-        )}
+        {t.correo &&
+          (confirmando ? (
+            <span className={styles.confirmar} role="group" aria-label="Confirmar envío">
+              <span>
+                ¿Enviar a <strong>{t.correo}</strong>?
+              </span>
+              <button
+                type="button"
+                className={`${ui.boton} ${ui.primario}`}
+                disabled={enviando || !texto.trim() || !asunto.trim()}
+                onClick={enviar}
+              >
+                {enviando ? "Enviando…" : "Sí, enviar"}
+              </button>
+              <button
+                type="button"
+                className={`${ui.boton} ${ui.fantasma}`}
+                disabled={enviando}
+                onClick={() => setConfirmando(false)}
+              >
+                Cancelar
+              </button>
+            </span>
+          ) : (
+            <button type="button" className={ui.boton} onClick={() => setConfirmando(true)}>
+              Enviar correo
+            </button>
+          ))}
       </div>
 
       <label className={styles.campo}>

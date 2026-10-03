@@ -83,3 +83,30 @@
   font-size: 0.78rem;
   color: var(--wp-ink-3);
 }
+
+/* Confirmación en línea antes de enviar el correo */
+.confirmar {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.3rem 0.3rem 0.7rem;
+  border-radius: 10px;
+  font-size: 0.8rem;
+  color: var(--wp-ink-2);
+  background: var(--wp-sel);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  animation: aparecer 220ms var(--ease-expo) both;
+}
+
+.confirmar strong {
+  color: var(--wp-ink);
+  font-weight: 600;
+}
+
+@keyframes aparecer {
+  from {
+    opacity: 0;
+    transform: translate3d(-4px, 0, 0);
+  }
+}

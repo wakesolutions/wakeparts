@@ -167,6 +167,7 @@ Configuración externa necesaria en Supabase → Authentication → URL Configur
 | `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto Supabase. |
 | `SUPABASE_PUBLISHABLE_KEY` | Llave publicable. **Solo servidor** hoy. Si algún día hace falta un cliente de navegador (realtime), exponer como `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. |
 | `SUPABASE_SECRET_KEY` | Llave secreta (salta RLS). Solo scripts/admin en servidor; nunca en el cliente. |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_FROM_NAME` | Correo saliente (Zoho Mail, `ventas@wake.solutions`) con `lib/correo.ts` (`enviarCorreo`, `verificarCorreo`; nodemailer, STARTTLS obligatorio en 587). `SMTP_PASSWORD` es **secreta**: solo servidor, también en Vercel. Hoy lo usa Seguimiento. |
 
 ## Datos y multiempresa
 
