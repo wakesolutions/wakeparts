@@ -14,6 +14,7 @@ import {
   IconoSeguimiento,
   IconoSitio,
   IconoTaller,
+  IconoToma,
   IconoVentas,
 } from "./iconos-modulos";
 import { ModuloActividad } from "./actividad";
@@ -25,6 +26,7 @@ import { ModuloSeguimiento } from "./seguimiento";
 import { ModuloSitioWeb } from "./sitio-web";
 import { ModuloMantenimiento, ModuloUsuarios } from "./tablas";
 import { ModuloTaller } from "./taller";
+import { TomaRapida } from "@/components/inventario/toma-rapida";
 import { ModuloVentas } from "./ventas";
 
 export type ModuloEscritorio = DefModulo & {
@@ -60,6 +62,15 @@ export const MODULOS: ModuloEscritorio[] = [
     icono: <IconoInventario />,
     componente: ModuloInventario,
     tamano: { w: 1240, h: 760 },
+  },
+  {
+    // Alta de productos desde el teléfono (foto + lo mínimo), para cargar el inventario inicial.
+    id: "toma",
+    nombre: "Toma rápida",
+    icono: <IconoToma />,
+    componente: TomaRapida,
+    tamano: { w: 980, h: 760 },
+    visible: administra,
   },
   {
     id: "ventas",

@@ -389,6 +389,19 @@ export default function Manual() {
                   mínima enciende la alerta <Led tono="aviso" /> cuando queda poco. La mano de obra no lleva
                   inventario.
                 </p>
+                <h3 className={styles.subtitulo}>Toma rápida desde el teléfono</h3>
+                <p>
+                  Para cargar el inventario la primera vez, abrí <em>Toma rápida</em> en el dock (dueño o
+                  administrador) desde tu celular: tocás el visor, tomás la foto y llenás lo mínimo (qué pieza es,
+                  categoría, precio, existencia y condición). <strong>Guardar y tomar otra</strong> deja lista la
+                  siguiente; la categoría, la condición y la ubicación se quedan, porque se suele ir estante por
+                  estante. La foto sube sola mientras tomás la siguiente. Después completás vehículos, costo y más
+                  fotos aquí en Productos.
+                </p>
+                <p>
+                  Truco: con Wake Parts instalado en el teléfono, mantené presionado el ícono y elegí{" "}
+                  <em>Toma rápida</em> para entrar directo.
+                </p>
                 <h3 className={styles.subtitulo}>Fotos</h3>
                 <p>
                   Soltá fotos en la pestaña <em>Fotos</em> (hasta 12). Se comprimen solas en tu navegador antes de

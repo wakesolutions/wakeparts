@@ -1,12 +1,12 @@
 "use client";
 
-import { useEffect, useMemo, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, type ReactNode } from "react";
 import { AmbienteEmpresa } from "@/components/identidad/ambiente-empresa";
 import { IdentidadProvider } from "@/components/identidad/contexto";
 import { AvisosRecien } from "@/components/notificaciones/campana";
 import { NotificacionesProvider } from "@/components/notificaciones/contexto";
 import { CapaVentanas } from "@/components/ventanas/ventana";
-import { VentanasProvider } from "@/components/ventanas/contexto";
+import { VentanasProvider, useVentanas } from "@/components/ventanas/contexto";
 import { IDENTIDAD_VACIA } from "@/lib/identidad";
 import { aplicarPaleta, paletaActual } from "@/lib/paletas-cliente";
 import type { Sesion } from "@/lib/sesion";
@@ -20,11 +20,14 @@ import { SesionProvider } from "./sesion-contexto";
 export function Escritorio({
   sesion,
   recorrido = null,
+  abrir,
   children,
 }: {
   sesion: Sesion;
   /** ¿Mostrar el recorrido guiado? null = decide este navegador (sin la migración 0008 o en el sandbox). */
   recorrido?: boolean | null;
+  /** Módulo que se abre al cargar (`/inicio?abrir=toma`). */
+  abrir?: string;
   children: ReactNode;
 }) {
   // La paleta de la empresa manda sobre la cookie.
@@ -45,6 +48,7 @@ export function Escritorio({
                 <BarraMenu />
                 {children}
                 <CapaVentanas />
+                {abrir && <AbrirAlCargar id={abrir} />}
                 <Dock />
                 <AvisosRecien />
               </div>
@@ -54,4 +58,16 @@ export function Escritorio({
       </IdentidadProvider>
     </SesionProvider>
   );
+}
+
+/** Abre un módulo una sola vez al cargar (si existe y es visible para la sesión). */
+function AbrirAlCargar({ id }: { id: string }) {
+  const { abrir } = useVentanas();
+  const hecho = useRef(false);
+  useEffect(() => {
+    if (hecho.current) return;
+    hecho.current = true;
+    abrir(id);
+  }, [abrir, id]);
+  return null;
 }

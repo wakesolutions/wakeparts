@@ -20,7 +20,7 @@ function saludo() {
   return "Buenas noches";
 }
 
-export default async function Inicio() {
+export default async function Inicio({ searchParams }: { searchParams: Promise<{ abrir?: string | string[] }> }) {
   await aceptarInvitaciones();
   const sesion = await obtenerSesion();
   if (!sesion) redirect("/");
@@ -28,9 +28,11 @@ export default async function Inicio() {
 
   const primerNombre = sesion.usuario.nombre.split(" ")[0];
   const recorrido = await recorridoPendiente();
+  // ?abrir=toma: acceso directo a un módulo (p. ej. desde la pantalla de inicio del teléfono).
+  const { abrir } = await searchParams;
 
   return (
-    <Escritorio sesion={sesion} recorrido={recorrido}>
+    <Escritorio sesion={sesion} recorrido={recorrido} abrir={typeof abrir === "string" ? abrir : undefined}>
       <main className="flex flex-1 items-center px-4 pb-40 sm:px-10 lg:px-20">
         <div>
           <LogoEmpresa className="wp-entra mb-6 h-[clamp(3rem,8vw,5.5rem)] w-auto max-w-[min(60vw,20rem)] object-contain" />

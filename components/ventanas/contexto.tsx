@@ -104,6 +104,20 @@ export function acotar(g: Geometria): Geometria {
   };
 }
 
+/** ¿`v` cuelga (directa o indirectamente) de la ventana `id`? */
+function esDescendiente(vs: Ventana[], v: Ventana, id: string): boolean {
+  let padre = v.padre;
+  for (let i = 0; padre && i < 20; i++) {
+    if (padre === id) return true;
+    padre = vs.find((x) => x.id === padre)?.padre;
+  }
+  return false;
+}
+
+function descendientes(vs: Ventana[], id: string): Ventana[] {
+  return vs.filter((v) => esDescendiente(vs, v, id));
+}
+
 export function VentanasProvider({ modulos, children }: { modulos: DefModulo[]; children: ReactNode }) {
   const [ventanas, setVentanas] = useState<Ventana[]>([]);
   const [capa, registrarCapa] = useState<HTMLElement | null>(null);
@@ -113,19 +127,23 @@ export function VentanasProvider({ modulos, children }: { modulos: DefModulo[]; 
     setVentanas((vs) => vs.map(fn));
   }, []);
 
-  /** Lleva la ventana al frente y, encima de ella, a sus hijas visibles. */
+  /** Lleva la ventana al frente y, encima de ella, a sus descendientes visibles (en su orden). */
   const alFrente = (vs: Ventana[], id: string): Ventana[] => {
-    const z = ++zTope.current;
-    const conZ = vs.map((x) => (x.id === id ? { ...x, z } : x));
-    return conZ.map((x) => (x.padre === id && x.estado !== "minimizada" ? { ...x, z: ++zTope.current } : x));
+    const desc = descendientes(vs, id).filter((x) => x.estado !== "minimizada");
+    const orden = [vs.find((x) => x.id === id)!, ...desc.sort((a, b) => a.z - b.z)];
+    const nuevoZ = new Map(orden.map((x) => [x.id, ++zTope.current]));
+    return vs.map((x) => (nuevoZ.has(x.id) ? { ...x, z: nuevoZ.get(x.id)! } : x));
   };
 
   const enfocar = useCallback((id: string) => {
     setVentanas((vs) => {
       const v = vs.find((x) => x.id === id);
       if (!v) return vs;
-      const hijas = vs.filter((x) => x.padre === id && x.estado !== "minimizada");
-      const ya = v.z === zTope.current || (hijas.length > 0 && hijas.every((h) => h.z > v.z) && Math.max(...hijas.map((h) => h.z)) === zTope.current);
+      // Ya está al frente si ella o una de sus descendientes ocupa la cima y
+      // todas sus descendientes visibles quedan encima de ella.
+      const desc = descendientes(vs, id).filter((x) => x.estado !== "minimizada");
+      const tope = Math.max(v.z, ...desc.map((x) => x.z));
+      const ya = tope === zTope.current && desc.every((x) => x.z > v.z);
       return ya ? vs : alFrente(vs, id);
     });
   }, []);
@@ -134,8 +152,8 @@ export function VentanasProvider({ modulos, children }: { modulos: DefModulo[]; 
     const z = ++zTope.current;
     return vs.map((v) => {
       if (v.id === id) return { ...v, z, estado: v.estado === "minimizada" ? (v.previo ?? "normal") : v.estado };
-      // Las hijas vuelven con la madre, encima de ella.
-      if (v.padre === id && v.conPadre) {
+      // Las hijas (y nietas) vuelven con la madre, encima de ella.
+      if (v.conPadre && esDescendiente(vs, v, id)) {
         return { ...v, z: ++zTope.current, estado: v.previo ?? "normal", conPadre: false };
       }
       return v;
@@ -199,18 +217,20 @@ export function VentanasProvider({ modulos, children }: { modulos: DefModulo[]; 
   );
 
   const cerrar = useCallback((id: string) => {
-    setVentanas((vs) => vs.filter((v) => v.id !== id && v.padre !== id));
+    setVentanas((vs) => vs.filter((v) => v.id !== id && !esDescendiente(vs, v, id)));
   }, []);
 
   const minimizar = useCallback(
     (id: string) =>
-      actualizar((v) => {
-        if (v.estado === "minimizada") return v;
-        if (v.id === id) return { ...v, estado: "minimizada", previo: v.estado, conPadre: false };
-        if (v.padre === id) return { ...v, estado: "minimizada", previo: v.estado, conPadre: true };
-        return v;
-      }),
-    [actualizar],
+      setVentanas((vs) =>
+        vs.map((v) => {
+          if (v.estado === "minimizada") return v;
+          if (v.id === id) return { ...v, estado: "minimizada", previo: v.estado, conPadre: false };
+          if (esDescendiente(vs, v, id)) return { ...v, estado: "minimizada", previo: v.estado, conPadre: true };
+          return v;
+        }),
+      ),
+    [],
   );
 
   const restaurar = useCallback((id: string) => setVentanas((vs) => restaurarEn(vs, id)), []);

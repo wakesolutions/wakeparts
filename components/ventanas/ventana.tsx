@@ -244,7 +244,12 @@ export function Ventana({ ventana, titulo, children, onCerrar }: Props) {
       hidden={oculta}
       aria-label={titulo}
       role="dialog"
-      onPointerDownCapture={() => !activa && enfocar(ventana.id)}
+      onPointerDownCapture={(e) => {
+        // Las hijas se dibujan por portal: en React el evento sube hasta las
+        // ventanas madre aunque en el DOM no estén dentro. Solo reacciona la
+        // ventana que de verdad contiene el clic.
+        if (!activa && e.currentTarget.contains(e.target as Node)) enfocar(ventana.id);
+      }}
     >
       <div ref={marco} className={styles.marco}>
         <header
@@ -312,9 +317,10 @@ export function Ventana({ ventana, titulo, children, onCerrar }: Props) {
 /** Ventanas de módulos. Las hijas se montan aquí mediante portales (VentanaFlotante). */
 export function CapaVentanas() {
   const { ventanas, modulos, registrarCapa, enfocada } = useVentanas();
-  // Tapa barra y dock si la ventana enfocada (o la madre de una hija enfocada) está maximizada.
-  const madre = ventanas.find((v) => v.id === enfocada)?.padre;
-  const focoCompleto = ventanas.some((v) => (v.id === enfocada || v.id === madre) && v.estado === "maximizada");
+  // Tapa barra y dock si la ventana enfocada (o alguna de sus ancestras) está maximizada.
+  const linaje = new Set<string>();
+  for (let id = enfocada ?? undefined; id && !linaje.has(id); id = ventanas.find((v) => v.id === id)?.padre) linaje.add(id);
+  const focoCompleto = ventanas.some((v) => linaje.has(v.id) && v.estado === "maximizada");
   return (
     <div className={styles.capa} ref={registrarCapa} data-completa={focoCompleto || undefined}>
       {ventanas.map((v) => {

@@ -127,7 +127,7 @@ Recursos con `escritura: "admin_plataforma"`: además de RLS, `guardarRecurso`/`
 
 ### Ventanas hijas
 
-`<VentanaFlotante id titulo padre onCerrar foco>`: ventana independiente controlada por un componente (vive mientras se renderiza; el contenido se monta por portal en la capa de ventanas, así conserva estado y callbacks de su dueña). `padre` = `useVentanaActual()`: se minimiza, se restaura y se cierra con su madre, y siempre queda encima de ella. Minimizada sola, aparece como mosaico en el dock. `foco`: al cambiar la trae al frente.
+`<VentanaFlotante id titulo padre onCerrar foco>`: ventana independiente controlada por un componente (vive mientras se renderiza; el contenido se monta por portal en la capa de ventanas, así conserva estado y callbacks de su dueña). `padre` = `useVentanaActual()`: se minimiza, se restaura y se cierra con su madre (y con su abuela, si es nieta), y siempre queda encima de ella. Como el portal hace que los eventos de React suban hasta las ventanas ancestras, el foco por clic solo lo toma la ventana que contiene el clic **en el DOM**. Minimizada sola, aparece como mosaico en el dock. `foco`: al cambiar la trae al frente.
 
 ### Gestor
 
@@ -174,6 +174,7 @@ Donde la tabla maestra no alcanza (mostrador, fotos, compatibilidad, entradas, i
 | `components/cobros/abonos.tsx`, `recibo-vista.tsx` | Ventas › Abonos (recibos, imprimir/anular) y la hoja del recibo (`/recibos/[id]`). |
 | `components/inventario/entrada-inventario.tsx` | «Entrada» (Inventario › Productos): buscar o escanear, **Enter** agrega y salta a la cantidad; costo por línea; costo del producto por **promedio ponderado**, último costo o sin cambio; referencia (factura del proveedor). Llama a `entrada_inventario()` (kardex «compra»). Solo dueño/admin. |
 | `components/inventario/importar-productos.tsx` | «Importar» desde **.xlsx o .csv** (`read-excel-file`; CSV con , o ;): plantilla descargable (`write-excel-file`), columnas reconocidas por nombre y alias (`lib/inventario.ts` › `COLUMNAS_IMPORTACION`), vista previa, **Revisar** (corre `importar_productos(…, probar)` y deshace) y luego importar en lotes de 400 con progreso. Errores por número de fila. |
+| `components/inventario/toma-rapida.tsx` · `TomaRapida` | Módulo **Toma rápida** (dueño/admin), pensado para el teléfono: visor de cámara (`capture="environment"`) o galería, nombre, categoría (`CampoRelacion`), precio, existencia con − / +, condición y, plegados, ubicación y OEM. Crea con `useApi("recursos").guardar("productos", null, …)` más los `porDefecto` de la definición; la foto se procesa y sube en segundo plano con `useApi("imagenes")`. Marbetes de lo tomado en la sesión con LED de la foto. `/inicio?abrir=toma` lo abre directo (también `shortcuts` del manifest). |
 | `components/imagenes/galeria-producto.tsx` | Fotos: arrastrar y soltar, se comprimen en el navegador a WebP (1600 px + miniatura 400 px, `procesar.ts`), la primera es la principal, reordenar, ampliar. |
 
 Cálculos de venta compartidos (cliente, servidor, impresión): `lib/ventas.ts` (`calcularTotales` usa el mismo redondeo que `emitir_documento()`). Formatos: `lib/formato.ts` (`moneda`, `enLetras`…).

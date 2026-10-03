@@ -2,6 +2,11 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-03 · Toma rápida de productos y foco de ventanas
+
+- **Toma rápida** (pedido del usuario: captura rápida desde el teléfono para empresas nuevas): módulo propio en el dock (dueño/admin), sin migración. Guarda con `useApi("recursos").guardar("productos")` + los `porDefecto` de la definición, así valida y se comporta igual que Inventario › Productos y funciona en la demo. Mínimo: foto, nombre, categoría (obligatoria en la definición), precio (vacío = 0, el marbete lo marca «Sin precio»), existencia y condición; ubicación y OEM plegados. Categoría, condición y ubicación **se quedan** entre piezas (se carga por estante). La foto se comprime y sube **en segundo plano** (LED por pieza, «Reintentar» si falla) para no frenar la siguiente toma. `capture="environment"` abre la cámara trasera; «Galería» para fotos ya tomadas. Acceso directo: `/inicio?abrir=toma` y `shortcuts` del manifest.
+- **Bug de foco de ventanas**: las hijas se montan por portal y los eventos de React suben por el árbol de React, no por el DOM; un clic en una nieta (p. ej. la nota de crédito dentro del documento de Ventas) disparaba `onPointerDownCapture` en sus ancestras, que pasaban adelante y la tapaban. Ahora solo reacciona la ventana que contiene el clic en el DOM, y `alFrente`, minimizar, restaurar y cerrar recorren **todas** las descendientes (antes solo las hijas directas: una nieta quedaba visible al minimizar el módulo).
+
 ## 2026-10-02 · Exportación de datos y documentos legales
 
 - **Exportar todos los datos** (pedido del usuario; lo promete el contrato, cláusula novena): Taller › Datos, solo dueño/admin. Un .zip con un Excel por tema y un LEEME. Se arma **en el navegador** (el servidor solo entrega filas, paginadas de a 1000): no hay archivos temporales en el servidor ni límites de tiempo de una función. Las fotos no van en el zip (pesan mucho); la hoja «10 Fotos» lista sus rutas. Cada exportación queda en el registro de actividad (`empresa.exportar`).

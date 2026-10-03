@@ -45,6 +45,22 @@ export function IconoInventario() {
   );
 }
 
+export function IconoToma() {
+  // Teléfono con lente y un marbete colgando
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <rect x="9" y="5" width="22" height="38" rx="4" fill="currentColor" />
+      <rect x="12" y="10" width="16" height="22" rx="1.5" fill="var(--wp-accent-lo)" opacity="0.55" />
+      <circle cx="20" cy="21" r="5" fill="none" stroke="currentColor" strokeWidth="2" />
+      <circle cx="20" cy="21" r="2" fill="var(--wp-accent)" />
+      <path d="M31 17c4 0 6 2 6.5 5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" />
+      <path d="M33 24h8.5a1.5 1.5 0 0 1 1.5 1.5V37a1.5 1.5 0 0 1-1.5 1.5H33l-3-3.5v-7.5z" fill="var(--wp-accent)" />
+      <circle cx="33.4" cy="31.2" r="1.3" fill="var(--wp-accent-lo)" />
+      <path d="M36.5 29.5h4M36.5 33h3" stroke="var(--wp-on-accent)" strokeWidth="1.4" strokeLinecap="round" />
+    </svg>
+  );
+}
+
 export function IconoVentas() {
   // Carpeta de facturas con sello
   return (

@@ -164,6 +164,19 @@ export const PASOS: Paso[] = [
     preparar: (c) => c.minimizarTodas(),
   },
   {
+    id: "dock-toma",
+    titulo: "Toma rápida",
+    texto: (
+      <>
+        ¿Inventario por cargar? Abrí esto <strong>desde tu celular</strong>: foto de la pieza, nombre, precio y
+        siguiente. Lo demás lo completás después en Inventario.
+      </>
+    ),
+    objetivo: '[data-dock="toma"]',
+    preparar: (c) => c.minimizarTodas(),
+    aplica: administra,
+  },
+  {
     id: "dock-ventas",
     titulo: "Ventas",
     texto: (

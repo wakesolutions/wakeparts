@@ -1,0 +1,714 @@
+/* Toma rápida: pensada para el teléfono (una columna, controles de 44 px,
+   letra de 16 px para que iOS no haga zoom). En ventanas anchas se abre en
+   dos columnas: visor a la izquierda, datos a la derecha. */
+
+.toma {
+  height: 100%;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.marco {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  grid-template-areas:
+    "cabeza"
+    "foto"
+    "datos"
+    "tomados";
+  gap: 1.1rem;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 1rem 1rem 1.5rem;
+}
+
+@container (min-width: 760px) {
+  .marco {
+    grid-template-columns: minmax(300px, 0.95fr) minmax(0, 1fr);
+    grid-template-areas:
+      "cabeza cabeza"
+      "foto datos"
+      "tomados tomados";
+    column-gap: 2rem;
+    row-gap: 1.4rem;
+    padding: 1.6rem 2rem 2rem;
+  }
+}
+
+/* ---------------------------------------------------------------- cabeza -- */
+
+.cabeza {
+  grid-area: cabeza;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.sobretitulo {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: var(--wp-accent);
+}
+
+.titulo {
+  margin-top: 0.35rem;
+  font-size: clamp(1.55rem, 6.4cqi, 2.6rem);
+  font-weight: 800;
+  line-height: 0.88;
+  letter-spacing: -0.03em;
+  text-transform: uppercase;
+  font-variation-settings: "wdth" 62;
+  text-wrap: balance;
+  color: var(--wp-ink);
+}
+
+/* Contador LCD de lo tomado */
+.contador {
+  flex: none;
+  display: grid;
+  justify-items: end;
+  gap: 0.2rem;
+}
+
+.lcd {
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 1.5rem;
+  font-weight: 600;
+  line-height: 1.1;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.06em;
+  color: var(--wp-lcd-ink);
+  background: var(--wp-lcd);
+  box-shadow:
+    inset 0 1px 3px rgb(0 0 0 / 0.5),
+    0 0 0 1px var(--wp-line);
+  text-shadow: 0 0 8px color-mix(in oklab, var(--wp-lcd-ink) 45%, transparent);
+}
+
+.lcdEtiqueta {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+/* ----------------------------------------------------------------- visor -- */
+
+.columnaFoto {
+  grid-area: foto;
+  display: grid;
+  gap: 0.6rem;
+  align-content: start;
+}
+
+.visor {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  border-radius: 14px;
+  overflow: hidden;
+  background:
+    radial-gradient(120% 90% at 50% 40%, color-mix(in oklab, var(--wp-accent) 7%, var(--wp-field)), var(--wp-field));
+  box-shadow:
+    inset 0 2px 6px rgb(0 0 0 / 0.22),
+    inset 0 0 0 1px var(--wp-line);
+}
+
+/* Marcas de encuadre en las cuatro esquinas */
+.esquinas {
+  position: absolute;
+  inset: 12px;
+  pointer-events: none;
+  --l: 22px;
+  --g: 2px;
+  --c: color-mix(in oklab, var(--wp-ink) 55%, transparent);
+  background:
+    linear-gradient(var(--c), var(--c)) top left / var(--l) var(--g) no-repeat,
+    linear-gradient(var(--c), var(--c)) top left / var(--g) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / var(--l) var(--g) no-repeat,
+    linear-gradient(var(--c), var(--c)) top right / var(--g) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / var(--l) var(--g) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom left / var(--g) var(--l) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / var(--l) var(--g) no-repeat,
+    linear-gradient(var(--c), var(--c)) bottom right / var(--g) var(--l) no-repeat;
+  transition: inset 360ms var(--ease-expo);
+}
+
+.visor[data-con-foto] .esquinas {
+  inset: 8px;
+  --c: rgb(255 255 255 / 0.85);
+}
+
+.vista {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  animation: revelar 420ms var(--ease-expo) both;
+}
+
+@keyframes revelar {
+  from {
+    opacity: 0;
+    transform: scale(1.04);
+  }
+}
+
+.disparador {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 0.55rem;
+  padding: 1rem;
+  border: 0;
+  font: inherit;
+  text-align: center;
+  color: var(--wp-ink);
+  background: transparent;
+  cursor: pointer;
+}
+
+.obturador {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  color: var(--wp-on-accent);
+  background: radial-gradient(circle at 50% 35%, var(--wp-accent-hi), var(--wp-accent) 70%);
+  box-shadow:
+    0 0 0 4px var(--wp-field),
+    0 0 0 5px var(--wp-line),
+    0 6px 18px color-mix(in oklab, var(--wp-accent) 30%, transparent);
+  transition: transform 200ms var(--ease-quart);
+}
+
+.disparador:hover .obturador {
+  transform: scale(1.04);
+}
+
+.disparador:active .obturador {
+  transform: scale(0.95);
+}
+
+.disparador:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: -6px;
+  border-radius: 14px;
+}
+
+.disparadorTexto {
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.disparadorAyuda {
+  max-width: 28ch;
+  font-size: 0.78rem;
+  color: var(--wp-ink-3);
+}
+
+.accionesFoto {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.accionesFoto > button {
+  height: 36px;
+}
+
+/* ----------------------------------------------------------------- datos -- */
+
+.columnaDatos {
+  grid-area: datos;
+  display: grid;
+  gap: 0.95rem;
+  align-content: start;
+}
+
+.campo {
+  display: grid;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+/* Teléfono: controles de 44 px y letra de 16 px (sin zoom de iOS al enfocar). */
+.columnaDatos input {
+  height: 44px;
+  font-size: 16px;
+}
+
+.etiqueta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wp-ink-2);
+}
+
+.etiqueta[data-requerido]::after {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--wp-accent);
+  box-shadow: 0 0 5px var(--wp-accent-glow);
+}
+
+.columnaDatos .nombre {
+  height: 50px;
+  font-size: 1.1rem;
+  font-weight: 600;
+}
+
+.ayuda {
+  font-size: 0.74rem;
+  color: var(--wp-ink-3);
+}
+
+.error {
+  font-size: 0.76rem;
+  color: var(--wp-accent-hi);
+}
+
+.fila {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 0.75rem;
+}
+
+.conPrefijo {
+  position: relative;
+  display: block;
+}
+
+.prefijo {
+  position: absolute;
+  top: 50%;
+  left: 0.75rem;
+  translate: 0 -50%;
+  font-family: var(--font-mono);
+  font-size: 0.85rem;
+  color: var(--wp-ink-3);
+  pointer-events: none;
+}
+
+.columnaDatos .cifra {
+  padding-left: 1.8rem;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* Existencia: − valor + */
+.pasos {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) 44px;
+  height: 44px;
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 1px 2px rgb(0 0 0 / 0.14),
+    inset 0 0 0 1px var(--wp-line);
+}
+
+.paso {
+  display: grid;
+  place-items: center;
+  border: 0;
+  color: var(--wp-ink);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow: inset 0 1px 0 var(--wp-bevel-light), 0 0 0 1px var(--wp-line);
+  cursor: pointer;
+  transition: color 160ms var(--ease-quart);
+}
+
+.paso:hover {
+  color: var(--wp-accent-hi);
+}
+
+.paso:active {
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.25);
+}
+
+.paso:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: -2px;
+}
+
+.columnaDatos .pasosValor {
+  width: 100%;
+  min-width: 0;
+  height: 44px;
+  border: 0;
+  font-family: var(--font-mono);
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  color: var(--wp-ink);
+  background: transparent;
+  outline: none;
+}
+
+.pasosValor:focus-visible {
+  box-shadow: inset 0 0 0 1px var(--wp-accent);
+}
+
+/* Condición: teclas metálicas que se hunden */
+.segmentos {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.35rem;
+}
+
+.segmento {
+  position: relative;
+  height: 44px;
+  border: 0;
+  border-radius: 8px;
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  color: var(--wp-ink-2);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px var(--wp-line),
+    0 1px 1px rgb(0 0 0 / 0.12);
+  cursor: pointer;
+  transition:
+    color 160ms var(--ease-quart),
+    box-shadow 160ms var(--ease-quart);
+}
+
+.segmento::before {
+  content: "";
+  position: absolute;
+  top: 7px;
+  left: 50%;
+  width: 14px;
+  height: 3px;
+  translate: -50% 0;
+  border-radius: 2px;
+  background: var(--wp-line);
+  transition:
+    background 160ms var(--ease-quart),
+    box-shadow 160ms var(--ease-quart);
+}
+
+.segmento[aria-checked="true"] {
+  color: var(--wp-ink);
+  background: var(--wp-sel);
+  box-shadow:
+    inset 0 1px 3px rgb(0 0 0 / 0.22),
+    0 0 0 1px var(--wp-line);
+}
+
+.segmento[aria-checked="true"]::before {
+  background: var(--wp-accent-hi);
+  box-shadow: 0 0 6px var(--wp-accent-glow);
+}
+
+.segmento:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 2px;
+}
+
+/* Más datos (plegable) */
+.mas {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  min-height: 44px;
+  padding: 0 0.2rem;
+  border: 0;
+  border-top: 1px solid var(--wp-line);
+  font: inherit;
+  font-size: 0.86rem;
+  font-weight: 600;
+  text-align: left;
+  color: var(--wp-ink-2);
+  background: transparent;
+  cursor: pointer;
+}
+
+.mas::after {
+  content: "";
+  flex: none;
+  width: 7px;
+  height: 7px;
+  margin-right: 0.3rem;
+  border-right: 1.6px solid currentColor;
+  border-bottom: 1.6px solid currentColor;
+  rotate: 45deg;
+  translate: 0 -2px;
+  transition: rotate 220ms var(--ease-expo);
+}
+
+.mas[aria-expanded="true"]::after {
+  rotate: 225deg;
+  translate: 0 2px;
+}
+
+.mas:hover {
+  color: var(--wp-ink);
+}
+
+.mas:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.masResumen {
+  margin-left: auto;
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--wp-ink-3);
+}
+
+.masCampos {
+  animation: bajar 260ms var(--ease-expo) both;
+}
+
+@keyframes bajar {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -6px, 0);
+  }
+}
+
+.aviso {
+  padding: 0.6rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.82rem;
+  color: var(--wp-accent-hi);
+  background: color-mix(in oklab, var(--wp-accent) 10%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-accent) 35%, transparent);
+}
+
+/* En el teléfono el botón queda pegado abajo mientras se desplaza. */
+.pie {
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  margin: 0 -1rem;
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom));
+  background: linear-gradient(180deg, transparent, var(--wp-panel) 30%);
+}
+
+@container (min-width: 760px) {
+  .pie {
+    position: static;
+    margin: 0.2rem 0 0;
+    padding: 0;
+    background: none;
+  }
+}
+
+.guardar {
+  width: 100%;
+  height: 52px;
+  border-radius: 12px;
+  font-size: 1rem;
+  letter-spacing: 0.01em;
+}
+
+/* --------------------------------------------------------------- tomados -- */
+
+.tomados {
+  grid-area: tomados;
+  display: grid;
+  gap: 0.6rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--wp-line);
+}
+
+.tomadosCabeza {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.tomadosResumen {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--wp-ink-3);
+}
+
+.vacio {
+  max-width: 52ch;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: var(--wp-ink-3);
+}
+
+.marbetes {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.5rem;
+  list-style: none;
+}
+
+@container (min-width: 760px) {
+  .marbetes {
+    grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  }
+}
+
+/* Marbete: la etiqueta de cartón que cuelga de la pieza en el estante. */
+.marbete {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 48px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.55rem 0.7rem 0.55rem 0.6rem;
+  border-radius: 6px 12px 12px 6px;
+  background: var(--wp-panel-2);
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px var(--wp-line);
+  animation: colgar 460ms var(--ease-expo) both;
+  transform-origin: 10px 50%;
+}
+
+.marbete:first-child {
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px color-mix(in oklab, var(--wp-accent) 35%, var(--wp-line));
+}
+
+@keyframes colgar {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -14px, 0) rotate(-2.5deg);
+  }
+}
+
+.ojal {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 1px 2px rgb(0 0 0 / 0.35),
+    0 0 0 2px color-mix(in oklab, var(--wp-ink) 14%, transparent);
+}
+
+.miniatura {
+  display: grid;
+  place-items: center;
+  width: 48px;
+  height: 48px;
+  border-radius: 8px;
+  overflow: hidden;
+  color: var(--wp-ink-3);
+  background: var(--wp-field);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.miniatura img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.marbeteTexto {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.marbeteNombre {
+  overflow: hidden;
+  font-size: 0.9rem;
+  font-weight: 600;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--wp-ink);
+}
+
+.marbeteDatos {
+  overflow: hidden;
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  color: var(--wp-ink-2);
+}
+
+.marbeteDatos em {
+  font-style: normal;
+  color: var(--wp-aviso);
+}
+
+.estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.estado[data-estado="lista"] {
+  color: var(--wp-ok);
+}
+
+.led {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--wp-ink-3);
+}
+
+.estado[data-estado="subiendo"] .led {
+  background: var(--wp-aviso);
+  box-shadow: 0 0 6px var(--wp-aviso);
+  animation: latido 900ms var(--ease-inout) infinite alternate;
+}
+
+@keyframes latido {
+  to {
+    opacity: 0.35;
+  }
+}
+
+/* En el teléfono el estado se dice con el LED; el texto queda para lectores. */
+@container (max-width: 459px) {
+  .estadoTexto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
+.reintentar {
+  height: 32px;
+  color: var(--wp-accent-hi);
+}
