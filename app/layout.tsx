@@ -47,6 +47,8 @@ export const metadata: Metadata = {
   },
   twitter: { card: "summary_large_image", title: `${NOMBRE_SITIO} · ${LEMA}`, description: DESCRIPCION_SITIO },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, "max-image-preview": "large", "max-snippet": -1 } },
+  // Instalable en el teléfono («Agregar a pantalla de inicio»): en iOS abre sin barra de Safari.
+  appleWebApp: { capable: true, title: NOMBRE_SITIO, statusBarStyle: "black" },
   formatDetection: { telephone: false, email: false, address: false },
   other: { "geo.region": "HN", "geo.placename": "Honduras" },
 };

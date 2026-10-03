@@ -84,7 +84,7 @@ En Tailwind están expuestos como `text-wp-ink`, `text-wp-ink-2`, `text-wp-ink-3
 
 Detalle técnico y API en [`componentes.md`](componentes.md). Lineamientos visuales:
 
-- **Ventanas**: barra de título satinada con título en tipo oración (no mayúsculas), semáforo de tres luces (gris cuando la ventana no está enfocada), sombra suave (`--wp-sombra-ventana`). Minimizar «vuela» hacia el ícono del dock; abrir sale del dock.
+- **Ventanas**: barra de título satinada con título en tipo oración (no mayúsculas), semáforo de tres luces (gris cuando la ventana no está enfocada), sombra suave (`--wp-sombra-ventana`). Minimizar «vuela» hacia el ícono del dock; abrir sale del dock. En el teléfono no hay semáforo: botón «Cerrar» de acento con texto (36 px a la vista, 44 px de zona táctil) (lo usan mecánicos y gente mayor, dedos grandes) y la ventana tapa barra y dock.
 - **Tablas**: marco levemente hundido (`--wp-field`), encabezado metálico con etiquetas en mono, números en mono alineados a la derecha, fila seleccionada con barra LED roja a la izquierda, LED que barre el borde superior mientras carga.
 - **Formularios**: etiquetas mono en mayúsculas, campos apenas hundidos (sombra interior de 1 px), obligatorio = punto LED rojo, opciones como teclas metálicas que se hunden al elegirse.
 - **Tokens adicionales**: `--wp-panel`, `--wp-panel-2`, `--wp-field`, `--wp-line`, `--wp-hover`, `--wp-sel`, `--wp-ok`, `--wp-aviso` (ámbar de tablero: existencia baja, «verificar»), `--wp-sombra-ventana` (ambas paletas). Papel para documentos impresos (iguales en todas las paletas): `--wp-papel`, `--wp-papel-2`, `--wp-papel-tinta`, `--wp-papel-tinta-2`, `--wp-papel-linea`.

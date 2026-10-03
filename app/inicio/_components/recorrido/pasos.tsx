@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import type { Ventana } from "@/components/ventanas/contexto";
+import { ANCHO_MOVIL, type Ventana } from "@/components/ventanas/contexto";
 import type { Sesion } from "@/lib/sesion";
 
 export type ContextoPaso = {
@@ -23,6 +23,7 @@ export type Paso = {
   aplica?: (c: Pick<ContextoPaso, "sesion">) => boolean;
 };
 
+const enTelefono = () => typeof window !== "undefined" && window.matchMedia(`(max-width: ${ANCHO_MOVIL - 1}px)`).matches;
 const abierta = (c: ContextoPaso, id: string) => c.ventanas.some((v) => v.id === id && v.estado !== "minimizada");
 const administra = ({ sesion }: Pick<ContextoPaso, "sesion">) => sesion.rol === "dueno" || sesion.rol === "admin";
 const enMostrador = (c: ContextoPaso) => {
@@ -150,6 +151,22 @@ export const PASOS: Paso[] = [
     objetivo: 'section[role="dialog"][data-activa] [data-luz="minimizar"]',
     preparar: enMostrador,
     listo: (c) => c.ventanas.some((v) => v.id === "cotizar" && v.estado === "minimizada"),
+    aplica: () => !enTelefono(),
+  },
+  {
+    // En el teléfono las ventanas no se minimizan: solo se cierran.
+    id: "cerrar-movil",
+    titulo: "Volver al escritorio",
+    texto: (
+      <>
+        Cada módulo ocupa toda la pantalla. Para volver, <strong>tocá Cerrar</strong>: tus carritos quedan
+        guardados.
+      </>
+    ),
+    objetivo: 'section[role="dialog"][data-activa] button[aria-label^="Cerrar"]',
+    preparar: enMostrador,
+    listo: (c) => !c.ventanas.some((v) => v.id === "cotizar"),
+    aplica: () => enTelefono(),
   },
   {
     id: "dock-inventario",

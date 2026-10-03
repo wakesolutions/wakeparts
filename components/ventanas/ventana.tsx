@@ -10,7 +10,12 @@ import {
   type ReactNode,
 } from "react";
 import { flushSync } from "react-dom";
-import { ANCHO_MOVIL, BARRA_ALTO, DOCK_ALTO, acotar, useVentanas, type Ventana as TVentana } from "./contexto";
+import {
+  ANCHO_MOVIL,
+  acotar,
+  useVentanas,
+  type Ventana as TVentana,
+} from "./contexto";
 import styles from "./ventanas.module.css";
 
 const EXPO = "cubic-bezier(0.16, 1, 0.3, 1)";
@@ -18,7 +23,10 @@ const QUART_IN = "cubic-bezier(0.5, 0, 0.75, 0)";
 const HACIA_DOCK = "cubic-bezier(0.7, 0, 0.84, 0)";
 
 function sinMovimiento() {
-  return typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  return (
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches
+  );
 }
 
 const consultaMovil = `(max-width: ${ANCHO_MOVIL - 1}px)`;
@@ -66,16 +74,23 @@ type Props = {
 };
 
 export function Ventana({ ventana, titulo, children, onCerrar }: Props) {
-  const { enfocada, enfocar, cerrar, minimizar, alternarMaximizar, mover } = useVentanas();
+  const { enfocada, enfocar, cerrar, minimizar, alternarMaximizar, mover } =
+    useVentanas();
   const ref = useRef<HTMLElement>(null);
   // La capa interior es la que se anima; la exterior solo posiciona.
   const marco = useRef<HTMLDivElement>(null);
   const estadoPrevio = useRef<TVentana["estado"] | null>(null);
   const rectPrevio = useRef<DOMRect | null>(null);
-  const movil = useSyncExternalStore(suscribirMovil, esMovilAhora, esMovilServidor);
+  const movil = useSyncExternalStore(
+    suscribirMovil,
+    esMovilAhora,
+    esMovilServidor,
+  );
   const activa = enfocada === ventana.id;
-  const maxi = ventana.estado === "maximizada";
-  const completa = maxi && !movil;
+  // En el teléfono toda ventana abierta ocupa la pantalla entera (sobre barra y
+  // dock) y solo se cierra: minimizar y achicar no tienen sentido ahí.
+  const maxi = ventana.estado === "maximizada" || movil;
+  const completa = maxi;
   const oculta = ventana.estado === "minimizada";
   const destinos = [ventana.id, ventana.padre];
 
@@ -125,7 +140,11 @@ export function Ventana({ ventana, titulo, children, onCerrar }: Props) {
             { transform: "none", opacity: 1 },
             { transform: "scale(0.96)", opacity: 0 },
           ],
-      { duration: destino === "dock" ? 420 : 180, easing: destino === "dock" ? HACIA_DOCK : QUART_IN, fill: "forwards" },
+      {
+        duration: destino === "dock" ? 420 : 180,
+        easing: destino === "dock" ? HACIA_DOCK : QUART_IN,
+        fill: "forwards",
+      },
     );
     let hecho = false;
     const terminar = () => {
@@ -152,7 +171,8 @@ export function Ventana({ ventana, titulo, children, onCerrar }: Props) {
 
   // ---------------------------------------------------------- arrastre ----
   function iniciarArrastre(e: PEvent<HTMLElement>) {
-    if (maxi || e.button !== 0 || (e.target as HTMLElement).closest("button")) return;
+    if (maxi || e.button !== 0 || (e.target as HTMLElement).closest("button"))
+      return;
     const el = ref.current!;
     const barra = e.currentTarget;
     barra.setPointerCapture(e.pointerId);
@@ -162,7 +182,12 @@ export function Ventana({ ventana, titulo, children, onCerrar }: Props) {
     el.dataset.arrastrando = "";
 
     const mov = (ev: PointerEvent) => {
-      pos = acotar({ x: ev.clientX - x0, y: ev.clientY - y0, w: ventana.w, h: ventana.h });
+      pos = acotar({
+        x: ev.clientX - x0,
+        y: ev.clientY - y0,
+        w: ventana.w,
+        h: ventana.h,
+      });
       el.style.transform = `translate3d(${pos.x}px, ${pos.y}px, 0)`;
     };
     const fin = () => {
@@ -187,13 +212,24 @@ export function Ventana({ ventana, titulo, children, onCerrar }: Props) {
     const el = ref.current!;
     const handle = e.currentTarget;
     handle.setPointerCapture(e.pointerId);
-    const inicio = { mx: e.clientX, my: e.clientY, x: ventana.x, y: ventana.y, w: ventana.w, h: ventana.h };
+    const inicio = {
+      mx: e.clientX,
+      my: e.clientY,
+      x: ventana.x,
+      y: ventana.y,
+      w: ventana.w,
+      h: ventana.h,
+    };
     let g = { x: inicio.x, y: inicio.y, w: inicio.w, h: inicio.h };
 
     const mov = (ev: PointerEvent) => {
       const dx = ev.clientX - inicio.mx;
       const dy = ev.clientY - inicio.my;
-      const w = dir.includes("e") ? inicio.w + dx : dir.includes("w") ? inicio.w - dx : inicio.w;
+      const w = dir.includes("e")
+        ? inicio.w + dx
+        : dir.includes("w")
+          ? inicio.w - dx
+          : inicio.w;
       const h = dir.includes("s") ? inicio.h + dy : inicio.h;
       const ancho = Math.max(w, 360);
       g = {
@@ -220,17 +256,11 @@ export function Ventana({ ventana, titulo, children, onCerrar }: Props) {
   const estilo = completa
     ? // Maximizada: ocupa todo el escritorio, encima de la barra de menú y del dock.
       { transform: "none", width: "100vw", height: "100dvh" }
-    : maxi
-      ? {
-          transform: `translate3d(0, ${BARRA_ALTO}px, 0)`,
-          width: "100vw",
-          height: `calc(100dvh - ${BARRA_ALTO + DOCK_ALTO - 8}px)`,
-        }
-      : {
-          transform: `translate3d(${ventana.x}px, ${ventana.y}px, 0)`,
-          width: ventana.w,
-          height: ventana.h,
-        };
+    : {
+        transform: `translate3d(${ventana.x}px, ${ventana.y}px, 0)`,
+        width: ventana.w,
+        height: ventana.h,
+      };
 
   return (
     <section
@@ -241,6 +271,7 @@ export function Ventana({ ventana, titulo, children, onCerrar }: Props) {
       data-maximizada={maxi || undefined}
       data-completa={completa || undefined}
       data-hija={ventana.padre ? "" : undefined}
+      data-movil={movil || undefined}
       hidden={oculta}
       aria-label={titulo}
       role="dialog"
@@ -248,7 +279,8 @@ export function Ventana({ ventana, titulo, children, onCerrar }: Props) {
         // Las hijas se dibujan por portal: en React el evento sube hasta las
         // ventanas madre aunque en el DOM no estén dentro. Solo reacciona la
         // ventana que de verdad contiene el clic.
-        if (!activa && e.currentTarget.contains(e.target as Node)) enfocar(ventana.id);
+        if (!activa && e.currentTarget.contains(e.target as Node))
+          enfocar(ventana.id);
       }}
     >
       <div ref={marco} className={styles.marco}>
@@ -256,59 +288,98 @@ export function Ventana({ ventana, titulo, children, onCerrar }: Props) {
           className={styles.titulo}
           onPointerDown={iniciarArrastre}
           onDoubleClick={(e) => {
-            if (!(e.target as HTMLElement).closest("button")) alternar();
+            if (!movil && !(e.target as HTMLElement).closest("button"))
+              alternar();
           }}
         >
-          <div className={styles.semaforo}>
+          {movil ? (
             <button
               type="button"
-              className={styles.luz}
-              data-luz="cerrar"
+              className={styles.cerrarMovil}
               aria-label={`Cerrar ${titulo}`}
-              onClick={() => animarYSalir(() => (onCerrar ? onCerrar() : cerrar(ventana.id)), "cerrar")}
+              onClick={() =>
+                animarYSalir(
+                  () => (onCerrar ? onCerrar() : cerrar(ventana.id)),
+                  "cerrar",
+                )
+              }
             >
-              <svg viewBox="0 0 8 8" aria-hidden="true">
-                <path d="m2 2 4 4M6 2 2 6" />
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="m4 4 8 8M12 4l-8 8" />
               </svg>
+              Cerrar
             </button>
-            <button
-              type="button"
-              className={styles.luz}
-              data-luz="minimizar"
-              aria-label={`Minimizar ${titulo}`}
-              onClick={() => animarYSalir(() => minimizar(ventana.id), "dock")}
-            >
-              <svg viewBox="0 0 8 8" aria-hidden="true">
-                <path d="M1.5 4h5" />
-              </svg>
-            </button>
-            <button
-              type="button"
-              className={styles.luz}
-              data-luz="maximizar"
-              aria-label={maxi ? `Achicar ${titulo}` : `Maximizar ${titulo}`}
-              onClick={alternar}
-            >
-              <svg viewBox="0 0 8 8" aria-hidden="true">
-                {maxi ? (
-                  <path d="M4.5 1v2.5H7M3.5 7V4.5H1" />
-                ) : (
-                  <path d="M2 6V2.5L5.5 6zM6 2v3.5L2.5 2z" fill="currentColor" stroke="none" />
-                )}
-              </svg>
-            </button>
-          </div>
+          ) : (
+            <div className={styles.semaforo}>
+              <button
+                type="button"
+                className={styles.luz}
+                data-luz="cerrar"
+                aria-label={`Cerrar ${titulo}`}
+                onClick={() =>
+                  animarYSalir(
+                    () => (onCerrar ? onCerrar() : cerrar(ventana.id)),
+                    "cerrar",
+                  )
+                }
+              >
+                <svg viewBox="0 0 8 8" aria-hidden="true">
+                  <path d="m2 2 4 4M6 2 2 6" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className={styles.luz}
+                data-luz="minimizar"
+                aria-label={`Minimizar ${titulo}`}
+                onClick={() =>
+                  animarYSalir(() => minimizar(ventana.id), "dock")
+                }
+              >
+                <svg viewBox="0 0 8 8" aria-hidden="true">
+                  <path d="M1.5 4h5" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className={styles.luz}
+                data-luz="maximizar"
+                aria-label={maxi ? `Achicar ${titulo}` : `Maximizar ${titulo}`}
+                onClick={alternar}
+              >
+                <svg viewBox="0 0 8 8" aria-hidden="true">
+                  {maxi ? (
+                    <path d="M4.5 1v2.5H7M3.5 7V4.5H1" />
+                  ) : (
+                    <path
+                      d="M2 6V2.5L5.5 6zM6 2v3.5L2.5 2z"
+                      fill="currentColor"
+                      stroke="none"
+                    />
+                  )}
+                </svg>
+              </button>
+            </div>
+          )}
           <h2 className={styles.tituloTexto}>{titulo}</h2>
         </header>
 
         <div className={styles.contenido}>
-          <VentanaActual.Provider value={ventana.id}>{children}</VentanaActual.Provider>
+          <VentanaActual.Provider value={ventana.id}>
+            {children}
+          </VentanaActual.Provider>
         </div>
       </div>
 
       {!maxi &&
         (["e", "w", "s", "se", "sw"] as Direccion[]).map((d) => (
-          <span key={d} className={styles.borde} data-dir={d} onPointerDown={iniciarRedimension} aria-hidden="true" />
+          <span
+            key={d}
+            className={styles.borde}
+            data-dir={d}
+            onPointerDown={iniciarRedimension}
+            aria-hidden="true"
+          />
         ))}
     </section>
   );
@@ -317,12 +388,29 @@ export function Ventana({ ventana, titulo, children, onCerrar }: Props) {
 /** Ventanas de módulos. Las hijas se montan aquí mediante portales (VentanaFlotante). */
 export function CapaVentanas() {
   const { ventanas, modulos, registrarCapa, enfocada } = useVentanas();
+  const movil = useSyncExternalStore(
+    suscribirMovil,
+    esMovilAhora,
+    esMovilServidor,
+  );
   // Tapa barra y dock si la ventana enfocada (o alguna de sus ancestras) está maximizada.
   const linaje = new Set<string>();
-  for (let id = enfocada ?? undefined; id && !linaje.has(id); id = ventanas.find((v) => v.id === id)?.padre) linaje.add(id);
-  const focoCompleto = ventanas.some((v) => linaje.has(v.id) && v.estado === "maximizada");
+  for (
+    let id = enfocada ?? undefined;
+    id && !linaje.has(id);
+    id = ventanas.find((v) => v.id === id)?.padre
+  )
+    linaje.add(id);
+  // En el teléfono cualquier ventana abierta tapa barra y dock.
+  const focoCompleto = ventanas.some(
+    (v) => linaje.has(v.id) && (movil || v.estado === "maximizada"),
+  );
   return (
-    <div className={styles.capa} ref={registrarCapa} data-completa={focoCompleto || undefined}>
+    <div
+      className={styles.capa}
+      ref={registrarCapa}
+      data-completa={focoCompleto || undefined}
+    >
       {ventanas.map((v) => {
         if (v.titulo) return null;
         const modulo = modulos.find((m) => m.id === v.id);

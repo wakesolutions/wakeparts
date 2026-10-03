@@ -8,6 +8,7 @@ export default function manifest(): MetadataRoute.Manifest {
     description: DESCRIPCION_SITIO,
     lang: "es-HN",
     dir: "ltr",
+    id: "/inicio",
     start_url: "/inicio",
     scope: "/",
     display: "standalone",

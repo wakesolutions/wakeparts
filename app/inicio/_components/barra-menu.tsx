@@ -92,7 +92,7 @@ export function BarraMenu() {
           <span className={styles.marcaEmpresa}>
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={identidad.logo} alt="" className={styles.logo} />
-            {empresa?.nombre}
+            <span className={styles.recorte}>{empresa?.nombre}</span>
           </span>
         ) : (
           <span className={styles.marca}>
@@ -106,13 +106,19 @@ export function BarraMenu() {
       </div>
 
       <div className={styles.barraDerecha}>
-        {empresa && administra && <SelectorPaleta key={empresa.paleta} inicial={empresa.paleta} />}
+        {empresa && administra && (
+          // En el teléfono no cabe: la paleta se cambia en Taller › Apariencia.
+          <span className={styles.soloAncho}>
+            <SelectorPaleta key={empresa.paleta} inicial={empresa.paleta} />
+          </span>
+        )}
         <Campana />
         <Reloj />
         <button
           type="button"
           className={styles.usuario}
           title={`${usuario.correo} · Mi usuario`}
+          aria-label={`${usuario.nombre} · Mi usuario`}
           onClick={() => abrir("mi-usuario")}
         >
           {usuario.avatar ? (
@@ -125,7 +131,11 @@ export function BarraMenu() {
               referrerPolicy="no-referrer"
               className={styles.avatar}
             />
-          ) : null}
+          ) : (
+            <span className={styles.inicial} aria-hidden="true">
+              {usuario.nombre.trim().charAt(0).toUpperCase() || "?"}
+            </span>
+          )}
           <span className={styles.nombre}>{usuario.nombre}</span>
         </button>
         <a href="/ayuda" target="_blank" rel="noopener" className={styles.manual} title="Manual del propietario">

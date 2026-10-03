@@ -224,8 +224,9 @@ export default function Manual() {
               </div>
             </div>
             <Nota titulo="En el celular">
-              Las ventanas ocupan la pantalla pero dejan la barra y el dock a la vista, porque ahí el dock es la
-              navegación.
+              Cada módulo ocupa la pantalla entera, sin barra ni dock, y arriba a la izquierda tiene un botón grande{" "}
+              <strong>Cerrar</strong> para darle fácil con el dedo. Al cerrarlo volvés al escritorio, donde el dock
+              se desliza de lado para ver todos los módulos.
             </Nota>
           </Capitulo>
 

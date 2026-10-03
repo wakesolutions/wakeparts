@@ -46,7 +46,11 @@
 }
 
 .moduloActivo {
+  min-width: 0;
+  overflow: hidden;
   font-weight: 700;
+  white-space: nowrap;
+  text-overflow: ellipsis;
   animation: cambiarModulo 240ms var(--ease-quart) both;
 }
 
@@ -135,6 +139,42 @@
 @media (max-width: 520px) {
   .manual {
     display: none;
+  }
+}
+
+.inicial {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--wp-on-accent);
+  background: linear-gradient(180deg, var(--wp-accent-hi), var(--wp-accent));
+  box-shadow: 0 0 0 1px var(--wp-line);
+}
+
+.recorte {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.soloAncho {
+  display: contents;
+}
+
+/* Teléfono: un módulo abierto tapa la barra, así que su nombre aquí sobra;
+   el espacio queda para el nombre del taller. */
+@media (max-width: 767px) {
+  .moduloActivo,
+  .soloAncho {
+    display: none;
+  }
+
+  .barraDerecha {
+    gap: 0.8rem;
   }
 }
 
@@ -240,6 +280,36 @@
     inset 0 1px 0 var(--wp-bevel-light),
     0 0 0 1px var(--wp-line),
     0 16px 32px -18px rgb(0 0 0 / 0.55);
+}
+
+/* Teléfono y tableta vertical: con todos los módulos el dock no cabe; se
+   vuelve una repisa que se desliza de lado (con imán en cada ícono). El
+   relleno de arriba deja espacio para las insignias y la lupa del hover. */
+@media (max-width: 819px) {
+  .dock {
+    max-width: calc(100vw - 16px);
+    padding-top: 12px;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scroll-snap-type: x proximity;
+    scroll-padding-inline: 10px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .dock::-webkit-scrollbar {
+    display: none;
+  }
+
+  .dockItem {
+    flex: none;
+    scroll-snap-align: start;
+  }
+
+  /* En pantallas táctiles el nombre lo da el ícono; la etiqueta flotante quedaría recortada. */
+  .tooltip {
+    display: none;
+  }
 }
 
 .dockItem {
