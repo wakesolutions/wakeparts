@@ -76,10 +76,19 @@ export function CuentasPorPagar() {
 }
 
 /** Lo que se le debe a un proveedor y el registro de un pago (a las que vencen primero, o a las marcadas). */
-export function EstadoProveedor({ idProveedor, onCambio }: { idProveedor: number; onCambio: () => void }) {
+export function EstadoProveedor({
+  idProveedor,
+  onCambio,
+  compra,
+}: {
+  idProveedor: number;
+  onCambio: () => void;
+  /** Abierto desde una compra: queda marcada para pagarla. */
+  compra?: string;
+}) {
   const api = useApi("compras");
   const [estado, setEstado] = useState<Estado | null | undefined>(undefined);
-  const [elegidas, setElegidas] = useState<Set<string>>(new Set());
+  const [elegidas, setElegidas] = useState<Set<string>>(() => new Set(compra ? [compra] : []));
   const [monto, setMonto] = useState("");
   const [forma, setForma] = useState<FormaPago>("transferencia");
   const [referencia, setReferencia] = useState("");

@@ -10,6 +10,7 @@ import { etiquetaForma } from "@/lib/cobros";
 import { ETIQUETA_TIPO_COMPRA, type Compra } from "@/lib/compras";
 import { cant, fechaDia, fechaYHora, moneda } from "@/lib/formato";
 import { formatoRtn } from "@/lib/ventas";
+import { EstadoProveedor } from "./por-pagar";
 import styles from "./compras.module.css";
 
 /** Compras › Compras: las registradas. Abrir una la muestra con sus líneas y pagos (y se anula). */
@@ -47,6 +48,9 @@ export function CompraVista({ id, onCambio }: { id: string; onCambio?: () => voi
   const [anulando, setAnulando] = useState(false);
   const [motivo, setMotivo] = useState("");
   const [aviso, setAviso] = useState<string | null>(null);
+  const [pagando, setPagando] = useState(false);
+  const [version, setVersion] = useState(0);
+  const madre = useVentanaActual() ?? undefined;
 
   useEffect(() => {
     let vivo = true;
@@ -57,7 +61,7 @@ export function CompraVista({ id, onCambio }: { id: string; onCambio?: () => voi
     return () => {
       vivo = false;
     };
-  }, [api, id]);
+  }, [api, id, version]);
 
   async function anular() {
     const r = await api.anular(id, motivo);
@@ -71,10 +75,16 @@ export function CompraVista({ id, onCambio }: { id: string; onCambio?: () => voi
   if (compra === null) return <p className={styles.error}>No se encontró la compra.</p>;
 
   const vigentes = compra.pagos.filter((p) => p.estado === "emitido");
+  const porPagar = compra.estado === "emitido" && compra.condicion === "credito" && (compra.pendiente ?? 0) > 0;
   return (
     <div className={styles.vista}>
       {compra.estado === "emitido" && (
         <div className={styles.vistaBarra}>
+          {porPagar && (
+            <button type="button" className={`${ui.boton} ${ui.primario}`} onClick={() => setPagando(true)}>
+              Registrar pago · {moneda(compra.pendiente ?? 0)}
+            </button>
+          )}
           {!anulando && (
             <button
               type="button"
@@ -241,6 +251,26 @@ export function CompraVista({ id, onCambio }: { id: string; onCambio?: () => voi
           </section>
         )}
       </article>
+
+      {pagando && (
+        <VentanaFlotante
+          id="estado-proveedor"
+          titulo={`Por pagar · ${compra.proveedor_nombre}`}
+          padre={madre}
+          tamano={{ w: 980, h: 740 }}
+          foco={`${compra.id_proveedor}-${compra.id}`}
+          onCerrar={() => setPagando(false)}
+        >
+          <EstadoProveedor
+            idProveedor={compra.id_proveedor}
+            compra={compra.id}
+            onCambio={() => {
+              setVersion((v) => v + 1);
+              onCambio?.();
+            }}
+          />
+        </VentanaFlotante>
+      )}
     </div>
   );
 }

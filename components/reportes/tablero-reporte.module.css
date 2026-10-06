@@ -142,7 +142,7 @@
   font-size: 0.85rem;
   color: var(--wp-ink);
   background: var(--wp-hover);
-  box-shadow: inset 3px 0 0 var(--wp-accent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-accent) 45%, transparent);
 }
 
 .reintentar {

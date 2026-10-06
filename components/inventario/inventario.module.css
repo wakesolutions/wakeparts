@@ -91,7 +91,7 @@
 
 .sugerencia[aria-selected="true"] {
   background: var(--wp-sel);
-  box-shadow: inset 3px 0 0 var(--wp-accent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-accent) 45%, transparent);
 }
 
 .sugerencia[data-servicio] {
@@ -310,11 +310,11 @@
   font-size: 0.84rem;
   color: var(--wp-ink);
   background: var(--wp-hover);
-  box-shadow: inset 3px 0 0 var(--wp-ok);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-ok) 45%, transparent);
 }
 
 .aviso[data-tono="error"] {
-  box-shadow: inset 3px 0 0 var(--wp-accent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-accent) 45%, transparent);
 }
 
 /* ---------------------------------------------------------- importación --- */
@@ -535,12 +535,12 @@
   padding: 0.9rem 1rem;
   border-radius: 12px;
   background: var(--wp-panel-2);
-  box-shadow: inset 0 0 0 1px var(--wp-line), inset 3px 0 0 var(--wp-aviso);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-aviso) 45%, transparent);
   animation: bajar 320ms var(--ease-expo) both;
 }
 
 .resumen[data-listo] {
-  box-shadow: inset 0 0 0 1px var(--wp-line), inset 3px 0 0 var(--wp-ok);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-ok) 45%, transparent);
 }
 
 .resumenTitulo {

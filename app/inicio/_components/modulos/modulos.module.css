@@ -274,12 +274,12 @@
   font-size: 0.8rem;
   color: var(--wp-ink-2);
   background: var(--wp-hover);
-  box-shadow: inset 3px 0 0 var(--wp-ink-3);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-ink-3) 45%, transparent);
 }
 
 .avisoOk {
   color: var(--wp-ink);
-  box-shadow: inset 3px 0 0 var(--wp-ok);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-ok) 45%, transparent);
 }
 
 .cargando {

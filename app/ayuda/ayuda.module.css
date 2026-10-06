@@ -410,7 +410,7 @@
   border-radius: 12px;
   background: var(--wp-panel);
   box-shadow:
-    inset 3px 0 0 var(--c),
+    inset 0 0 0 1px color-mix(in oklab, var(--c) 45%, transparent),
     inset 0 0 0 1px var(--wp-line);
   --c: var(--wp-ink-3);
 }

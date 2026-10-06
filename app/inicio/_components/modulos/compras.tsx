@@ -76,10 +76,10 @@ function Recepcion() {
             <span>Recibido</span>
             <strong>{recibida.numero}</strong>
           </div>
-          <p className={styles.ayuda}>Quedó registrada. Si fue al crédito, ya está en Por pagar.</p>
+          <p className={styles.ayuda}>Quedó registrada. Si fue al crédito, la pagás desde la compra o en Por pagar › Cuentas por pagar.</p>
           <div className={styles.botones}>
             <button type="button" className={`${ui.boton} ${ui.fantasma}`} onClick={() => setAbierta(recibida)}>
-              Ver la compra
+              Ver la compra · registrar pago
             </button>
             <button
               type="button"

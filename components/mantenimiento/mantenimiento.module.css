@@ -136,7 +136,7 @@
   font-size: 0.8rem;
   color: var(--wp-ink-2);
   background: var(--wp-hover);
-  box-shadow: inset 3px 0 0 var(--wp-aviso);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-aviso) 45%, transparent);
 }
 
 .sugerencia {
@@ -145,6 +145,6 @@
   font-size: 0.8rem;
   color: var(--wp-ink);
   background: var(--wp-hover);
-  box-shadow: inset 3px 0 0 var(--wp-ok);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-ok) 45%, transparent);
   animation: subir 420ms var(--ease-expo) both;
 }
