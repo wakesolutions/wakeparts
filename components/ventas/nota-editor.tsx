@@ -4,12 +4,15 @@ import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import { useApi } from "@/components/datos/apis";
 import ui from "@/components/ui/controles.module.css";
 import { IconoMas, IconoMenos, IconoPapelera } from "@/components/ui/iconos";
+import { FORMAS_PAGO, type FormaPago } from "@/lib/cobros";
 import { cant, centavos, fechaYHora, moneda } from "@/lib/formato";
 import {
-  MOTIVOS_NOTA,
+  formatoRtn,
+  motivosNota,
   NOMBRE_DOCUMENTO,
   pendienteDevolver,
   totalesNota,
+  type Cliente,
   type Documento,
   type LineaAcreditable,
   type MotivoNota,
@@ -20,6 +23,9 @@ import styles from "./nota-editor.module.css";
 
 type Monto = { clave: number; descripcion: string; monto: string; exento: boolean };
 
+/** A nombre de quién va una nota sin factura: un cliente registrado o nombre y RTN libres. */
+type ClienteNota = { id: number | null; nombre: string; rtn: string };
+
 /** Saldo de una factura: total + notas de débito − notas de crédito vigentes (igual que saldo_factura()). */
 export function saldoFactura(doc: Documento) {
   const notas = (doc.notasRelacionadas ?? []).filter((n) => n.estado === "emitido");
@@ -28,10 +34,14 @@ export function saldoFactura(doc: Documento) {
   );
 }
 
+const numero = (texto: string) => Number(texto.replace(",", ".")) || 0;
+
 /**
- * Nota de crédito o débito sobre una factura emitida. Devolución: se eligen
- * unidades de las líneas de la factura (y si regresan al inventario); lo demás:
- * montos sin ISV. Calcula igual que emitir_nota() y muestra cómo queda el saldo.
+ * Nota de crédito o débito. Sobre una factura emitida: devolución (unidades de
+ * sus líneas, y si regresan al inventario) o montos sin ISV; calcula igual que
+ * emitir_nota() y muestra cómo queda el saldo. Sin factura (`factura` null,
+ * 0019): montos sin ISV a nombre de un cliente y cómo se liquida, igual que
+ * emitir_nota_libre().
  */
 export function NotaEditor({
   factura,
@@ -39,39 +49,46 @@ export function NotaEditor({
   onEmitida,
   onCancelar,
 }: {
-  factura: Documento;
+  factura: Documento | null;
   tipo: TipoNota;
   onEmitida: (id: string, numero: string) => void;
   onCancelar: () => void;
 }) {
   const api = useApi("ventas");
   const credito = tipo === "nota_credito";
-  const motivos = MOTIVOS_NOTA[tipo];
+  const libre = factura === null;
+  const motivos = motivosNota(tipo, !libre);
   const [motivoTipo, setMotivoTipo] = useState<MotivoNota>(motivos[0].valor);
   const [motivo, setMotivo] = useState("");
   const [lineas, setLineas] = useState<LineaAcreditable[] | null>(null);
   const [cantidades, setCantidades] = useState<Record<number, number>>({});
   const [montos, setMontos] = useState<Monto[]>([{ clave: 1, descripcion: "", monto: "", exento: false }]);
   const [reintegrar, setReintegrar] = useState(true);
+  const [cliente, setCliente] = useState<ClienteNota>({ id: null, nombre: "", rtn: "" });
+  // undefined = todavía no eligió; null = la nota no mueve dinero.
+  const [liquidacion, setLiquidacion] = useState<FormaPago | null | undefined>(undefined);
+  const [referencia, setReferencia] = useState("");
   const [confirmar, setConfirmar] = useState(false);
   const [ocupado, setOcupado] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const devolucion = motivoTipo === "devolucion";
-  const exonerada = factura.exoneracion != null;
-  const saldo = saldoFactura(factura);
+  const exonerada = factura?.exoneracion != null;
+  const saldo = factura ? saldoFactura(factura) : 0;
+  const idFactura = factura?.id ?? null;
+  const nombreCliente = factura ? factura.cliente_nombre : cliente.nombre.trim() || "Consumidor final";
 
   useEffect(() => {
-    if (!credito) return;
+    if (!credito || !idFactura) return;
     let vivo = true;
     api
-      .lineasAcreditables(factura.id)
+      .lineasAcreditables(idFactura)
       .then((l) => vivo && setLineas(l))
       .catch(() => vivo && setLineas([]));
     return () => {
       vivo = false;
     };
-  }, [api, credito, factura.id]);
+  }, [api, credito, idFactura]);
 
   const totales = useMemo(
     () =>
@@ -81,18 +98,22 @@ export function NotaEditor({
             exonerada,
           )
         : totalesNota(
-            montos.map((m) => ({ monto: Number(m.monto.replace(",", ".")) || 0, exento: m.exento })),
+            montos.map((m) => ({ monto: numero(m.monto), exento: m.exento })),
             exonerada,
           ),
     [devolucion, lineas, cantidades, montos, exonerada],
   );
 
   const despues = centavos(credito ? saldo - totales.total : saldo + totales.total);
-  const excede = credito && totales.total > saldo + 0.02;
+  const excede = !libre && credito && totales.total > saldo + 0.02;
   const hayAlgo = totales.total > 0;
-  const puedeEmitir = hayAlgo && motivo.trim().length > 0 && !excede && !ocupado;
+  const rtnLibre = cliente.id ? "" : cliente.rtn.replace(/\D/g, "");
+  const rtnMal = rtnLibre.length > 0 && rtnLibre.length !== 14;
+  const faltaLiquidar = libre && liquidacion === undefined;
+  const puedeEmitir = hayAlgo && motivo.trim().length > 0 && !excede && !rtnMal && !faltaLiquidar && !ocupado;
   const hayInventario = devolucion && (lineas ?? []).some((l) => l.controla_inventario && (cantidades[l.id] ?? 0) > 0);
   const motivoActual = motivos.find((m) => m.valor === motivoTipo)!;
+  const formaActual = FORMAS_PAGO.find((f) => f.valor === liquidacion);
 
   function cambiarCantidad(l: LineaAcreditable, valor: number) {
     const tope = pendienteDevolver(l);
@@ -106,26 +127,41 @@ export function NotaEditor({
     setConfirmar(false);
   }
 
+  const montosValidos = () =>
+    montos
+      .filter((m) => numero(m.monto) > 0)
+      .map((m) => ({
+        descripcion: m.descripcion.trim() || motivoActual.etiqueta,
+        monto: numero(m.monto),
+        exento: m.exento,
+      }));
+
   async function emitir() {
     setOcupado(true);
     setError(null);
-    const r = await api.emitirNota(factura.id, {
-      tipo,
-      motivo_tipo: motivoTipo,
-      motivo: motivo.trim(),
-      reintegrar: devolucion && reintegrar,
-      lineas: devolucion
-        ? (lineas ?? [])
-            .filter((l) => (cantidades[l.id] ?? 0) > 0)
-            .map((l) => ({ id_linea: l.id, cantidad: cantidades[l.id] }))
-        : montos
-            .filter((m) => Number(m.monto.replace(",", ".")) > 0)
-            .map((m) => ({
-              descripcion: m.descripcion.trim() || motivoActual.etiqueta,
-              monto: Number(m.monto.replace(",", ".")),
-              exento: m.exento,
-            })),
-    });
+    const r = factura
+      ? await api.emitirNota(factura.id, {
+          tipo,
+          motivo_tipo: motivoTipo,
+          motivo: motivo.trim(),
+          reintegrar: devolucion && reintegrar,
+          lineas: devolucion
+            ? (lineas ?? [])
+                .filter((l) => (cantidades[l.id] ?? 0) > 0)
+                .map((l) => ({ id_linea: l.id, cantidad: cantidades[l.id] }))
+            : montosValidos(),
+        })
+      : await api.emitirNotaLibre({
+          tipo,
+          motivo_tipo: motivoTipo,
+          motivo: motivo.trim(),
+          id_cliente: cliente.id,
+          cliente_nombre: cliente.id ? null : cliente.nombre.trim() || null,
+          cliente_rtn: cliente.id ? null : rtnLibre || null,
+          lineas: montosValidos(),
+          forma_pago: liquidacion ?? null,
+          referencia_pago: formaActual?.pideReferencia ? referencia.trim() || null : null,
+        });
     setOcupado(false);
     if (!r.ok) {
       setConfirmar(false);
@@ -135,7 +171,7 @@ export function NotaEditor({
   }
 
   // Medidor de saldo: cuánto de la factura queda después de la nota.
-  const escala = Math.max(factura.total, saldo, despues, 0.01);
+  const escala = Math.max(factura?.total ?? 0, saldo, despues, 0.01);
   const medidor = {
     "--antes": String(Math.max(saldo, 0) / escala),
     "--despues": String(Math.max(despues, 0) / escala),
@@ -143,29 +179,47 @@ export function NotaEditor({
 
   return (
     <div className={styles.editor} data-tipo={tipo}>
-      <header className={styles.cabecera}>
-        <div className={styles.origen}>
-          <span className={styles.etiqueta}>{NOMBRE_DOCUMENTO[tipo]} sobre la factura</span>
-          <strong className={styles.numero}>{factura.numero}</strong>
-          <span className={styles.meta}>
-            {factura.cliente_nombre} · {fechaYHora(factura.fecha)}
-            {exonerada && <span className={styles.sello}>Exonerada</span>}
-          </span>
-        </div>
-        <div className={styles.medidor} style={medidor} data-sube={!credito || undefined} aria-hidden="true">
-          <span className={styles.etiqueta}>Saldo de la factura</span>
-          <div className={styles.pista}>
-            <span className={styles.relleno} />
-            <span className={styles.cambio} />
+      {factura ? (
+        <header className={styles.cabecera}>
+          <div className={styles.origen}>
+            <span className={styles.etiqueta}>{NOMBRE_DOCUMENTO[tipo]} sobre la factura</span>
+            <strong className={styles.numero}>{factura.numero}</strong>
+            <span className={styles.meta}>
+              {factura.cliente_nombre} · {fechaYHora(factura.fecha)}
+              {exonerada && <span className={styles.sello}>Exonerada</span>}
+            </span>
           </div>
-          <span className={styles.lectura}>
-            {moneda(saldo)} <span className={styles.flecha}>→</span> <strong data-mal={excede || undefined}>{moneda(despues)}</strong>
-          </span>
-        </div>
-      </header>
+          <div className={styles.medidor} style={medidor} data-sube={!credito || undefined} aria-hidden="true">
+            <span className={styles.etiqueta}>Saldo de la factura</span>
+            <div className={styles.pista}>
+              <span className={styles.relleno} />
+              <span className={styles.cambio} />
+            </div>
+            <span className={styles.lectura}>
+              {moneda(saldo)} <span className={styles.flecha}>→</span>{" "}
+              <strong data-mal={excede || undefined}>{moneda(despues)}</strong>
+            </span>
+          </div>
+        </header>
+      ) : (
+        <header className={styles.cabecera}>
+          <ElegirCliente
+            cliente={cliente}
+            rtnMal={rtnMal}
+            onCambiar={(c) => {
+              setCliente(c);
+              setConfirmar(false);
+            }}
+          />
+          <div className={styles.sinFactura}>
+            <span className={styles.etiqueta}>Sin factura relacionada</span>
+            <p>No cambia el saldo de ninguna factura ni las cuentas por cobrar.</p>
+          </div>
+        </header>
+      )}
 
       <section className={styles.seccion} aria-label="Motivo">
-        <div className={styles.teclas} role="radiogroup" aria-label="Motivo de la nota">
+        <div className={styles.teclas} role="radiogroup" aria-label="Motivo de la nota" data-n={motivos.length}>
           {motivos.map((m) => (
             <button
               key={m.valor}
@@ -223,7 +277,7 @@ export function NotaEditor({
                             key={n}
                             defaultValue={n ? cant(n) : ""}
                             placeholder="0"
-                            onBlur={(e) => cambiarCantidad(l, Number(e.target.value.replace(",", ".")) || 0)}
+                            onBlur={(e) => cambiarCantidad(l, numero(e.target.value))}
                             onKeyDown={(e) => e.key === "Enter" && e.currentTarget.blur()}
                           />
                           <button type="button" aria-label="Una más" disabled={n >= queda} onClick={() => cambiarCantidad(l, n + 1)}>
@@ -319,6 +373,56 @@ export function NotaEditor({
             onChange={(e) => setMotivo(e.target.value)}
           />
         </label>
+
+        {libre && (
+          <fieldset className={styles.liquidar}>
+            <legend className={styles.etiqueta}>{credito ? "¿Cómo se le devuelve?" : "¿Cómo lo paga?"}</legend>
+            <div className={styles.teclas} role="radiogroup" aria-label="Cómo se liquida la nota" data-n={FORMAS_PAGO.length + 1}>
+              {FORMAS_PAGO.map((f) => (
+                <button
+                  key={f.valor}
+                  type="button"
+                  role="radio"
+                  aria-checked={liquidacion === f.valor}
+                  onClick={() => {
+                    setLiquidacion(f.valor);
+                    setConfirmar(false);
+                  }}
+                >
+                  {f.etiqueta}
+                </button>
+              ))}
+              <button
+                type="button"
+                role="radio"
+                aria-checked={liquidacion === null}
+                onClick={() => {
+                  setLiquidacion(null);
+                  setConfirmar(false);
+                }}
+              >
+                Sin dinero
+              </button>
+            </div>
+            <p className={styles.ayuda}>
+              {liquidacion === undefined
+                ? "Elegí cómo se liquida: con una forma de pago, la nota cae en tu caja abierta."
+                : liquidacion === null
+                  ? "Solo el documento: no entra ni sale dinero de la caja."
+                  : `${credito ? "Sale de" : "Entra a"} la caja en ${formaActual!.etiqueta.toLowerCase()}.`}
+            </p>
+            {formaActual?.pideReferencia && (
+              <input
+                className={`${ui.campo} ${ui.campoMono}`}
+                placeholder="Referencia (opcional)"
+                value={referencia}
+                maxLength={80}
+                aria-label="Referencia del pago"
+                onChange={(e) => setReferencia(e.target.value)}
+              />
+            )}
+          </fieldset>
+        )}
       </section>
 
       <footer className={styles.pie}>
@@ -364,11 +468,12 @@ export function NotaEditor({
           <div className={styles.confirmar} role="alertdialog" aria-label="Confirmar emisión">
             <p>
               ¿Emitir la {NOMBRE_DOCUMENTO[tipo].toLowerCase()} por <strong>{moneda(totales.total)}</strong> a{" "}
-              <strong>{factura.cliente_nombre}</strong>?
+              <strong>{nombreCliente}</strong>?
             </p>
             <p className={styles.nota}>
               Usa el siguiente número del CAI de {credito ? "notas de crédito (06)" : "notas de débito (07)"} de tu punto de emisión.
               {devolucion && hayInventario && reintegrar && " Las piezas vuelven al inventario."}
+              {libre && " Sin factura relacionada."}
             </p>
             <div className={styles.botones}>
               <button type="button" className={`${ui.boton} ${ui.fantasma}`} onClick={() => setConfirmar(false)}>
@@ -388,7 +493,13 @@ export function NotaEditor({
               type="button"
               className={`${ui.boton} ${ui.primario}`}
               disabled={!puedeEmitir}
-              title={!motivo.trim() && hayAlgo ? "Escribí el detalle del motivo" : undefined}
+              title={
+                hayAlgo && !motivo.trim()
+                  ? "Escribí el detalle del motivo"
+                  : hayAlgo && faltaLiquidar
+                    ? "Elegí cómo se liquida"
+                    : undefined
+              }
               onClick={() => setConfirmar(true)}
             >
               Emitir {NOMBRE_DOCUMENTO[tipo].toLowerCase()}
@@ -396,6 +507,104 @@ export function NotaEditor({
           </div>
         )}
       </footer>
+    </div>
+  );
+}
+
+/**
+ * Cliente de una nota sin factura: buscador de clientes registrados, o nombre y
+ * RTN escritos a mano (vacío = consumidor final).
+ */
+function ElegirCliente({
+  cliente,
+  rtnMal,
+  onCambiar,
+}: {
+  cliente: ClienteNota;
+  rtnMal: boolean;
+  onCambiar: (c: ClienteNota) => void;
+}) {
+  const api = useApi("ventas");
+  const [abierto, setAbierto] = useState(false);
+  const [sugerencias, setSugerencias] = useState<Cliente[]>([]);
+  const termino = cliente.id ? "" : cliente.nombre || cliente.rtn;
+
+  useEffect(() => {
+    if (!abierto) return;
+    let vivo = true;
+    const t = setTimeout(() => {
+      api
+        .clientes(termino)
+        .then((s) => vivo && setSugerencias(s))
+        .catch(() => {});
+    }, 160);
+    return () => {
+      vivo = false;
+      clearTimeout(t);
+    };
+  }, [api, abierto, termino]);
+
+  if (cliente.id) {
+    return (
+      <div className={styles.origen}>
+        <span className={styles.etiqueta}>Cliente</span>
+        <strong className={styles.clienteNombre}>{cliente.nombre}</strong>
+        <span className={styles.meta}>
+          {cliente.rtn ? `RTN ${formatoRtn(cliente.rtn)}` : "Sin RTN"}
+          <button type="button" className={styles.cambiar} onClick={() => onCambiar({ id: null, nombre: "", rtn: "" })}>
+            Cambiar
+          </button>
+        </span>
+      </div>
+    );
+  }
+
+  return (
+    <div className={styles.origen}>
+      <span className={styles.etiqueta}>Cliente</span>
+      <div className={styles.clienteCampos}>
+        <input
+          className={ui.campo}
+          placeholder="Consumidor final · buscá o escribí"
+          value={cliente.nombre}
+          maxLength={160}
+          aria-label="Nombre del cliente"
+          onFocus={() => setAbierto(true)}
+          onBlur={() => setAbierto(false)}
+          onChange={(e) => onCambiar({ id: null, nombre: e.target.value, rtn: cliente.rtn })}
+        />
+        <input
+          className={`${ui.campo} ${ui.campoMono}`}
+          placeholder="RTN (opcional)"
+          inputMode="numeric"
+          value={cliente.rtn}
+          maxLength={16}
+          aria-label="RTN del cliente"
+          aria-invalid={rtnMal || undefined}
+          onChange={(e) => onCambiar({ id: null, nombre: cliente.nombre, rtn: e.target.value })}
+        />
+      </div>
+      {rtnMal && <span className={styles.rtnMal}>El RTN son 14 dígitos.</span>}
+      {abierto && sugerencias.length > 0 && (
+        <ul className={styles.sugerencias} aria-label="Clientes registrados">
+          {sugerencias.map((c) => (
+            <li key={c.id}>
+              <button
+                type="button"
+                // Antes del blur del campo, para que la lista no se cierre primero.
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  onCambiar({ id: c.id, nombre: c.nombre, rtn: c.rtn ?? "" });
+                  setAbierto(false);
+                }}
+              >
+                <span>{c.nombre}</span>
+                <small>{c.rtn ? formatoRtn(c.rtn) : (c.telefono ?? "")}</small>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   );
 }

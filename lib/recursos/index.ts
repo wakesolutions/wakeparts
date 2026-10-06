@@ -30,6 +30,7 @@ export const RECURSOS: Record<string, DefRecurso> = Object.fromEntries(
     ventas.puntosEmision,
     ventas.cai,
     ventas.documentos,
+    ventas.notas,
     ventas.pedidosWeb,
     ventas.cuentasClientes,
     ventas.pagos,

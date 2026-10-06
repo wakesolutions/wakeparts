@@ -10,6 +10,7 @@ import {
   IconoInventario,
   IconoLlave,
   IconoMostrador,
+  IconoNotas,
   IconoPerfil,
   IconoSeguimiento,
   IconoSitio,
@@ -22,6 +23,7 @@ import { ModuloCaja } from "./caja";
 import { ModuloCotizar } from "./cotizar";
 import { ModuloInventario } from "./inventario";
 import { ModuloMiUsuario } from "./mi-usuario";
+import { ModuloNotas } from "./notas";
 import { ModuloSeguimiento } from "./seguimiento";
 import { ModuloSitioWeb } from "./sitio-web";
 import { ModuloMantenimiento, ModuloUsuarios } from "./tablas";
@@ -78,6 +80,15 @@ export const MODULOS: ModuloEscritorio[] = [
     icono: <IconoVentas />,
     componente: ModuloVentas,
     tamano: { w: 1180, h: 720 },
+  },
+  {
+    // Notas de crédito y débito, con o sin factura (0019). Solo las emiten dueño/admin.
+    id: "notas",
+    nombre: "Notas",
+    icono: <IconoNotas />,
+    componente: ModuloNotas,
+    tamano: { w: 1120, h: 800 },
+    visible: administra,
   },
   {
     id: "sitio",

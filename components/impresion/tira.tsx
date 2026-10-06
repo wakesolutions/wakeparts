@@ -110,8 +110,8 @@ export function TiraDocumento({ doc, identidad }: { doc: Documento; identidad?: 
 
       {nota && (
         <section className={styles.bloque}>
-          <p>Factura que modifica: {doc.factura_numero}</p>
-          <p>Fecha de la factura: {doc.factura_fecha ? fechaDia(doc.factura_fecha) : "—"}</p>
+          <p>Factura que modifica: {doc.factura_numero ?? "sin factura relacionada"}</p>
+          {doc.factura_numero && <p>Fecha de la factura: {doc.factura_fecha ? fechaDia(doc.factura_fecha) : "—"}</p>}
           {doc.factura_cai && doc.factura_cai !== doc.cai && <p>CAI de la factura: {doc.factura_cai}</p>}
           <p>
             Motivo: {etiquetaMotivo(doc.motivo_tipo)}

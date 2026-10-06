@@ -177,6 +177,10 @@ export const MOTIVOS_NOTA: Record<TipoNota, readonly { valor: MotivoNota; etique
   ],
 };
 
+/** Motivos de una nota sin factura relacionada (0019): no hay piezas que devolver. */
+export const motivosNota = (tipo: TipoNota, conFactura: boolean) =>
+  conFactura ? MOTIVOS_NOTA[tipo] : MOTIVOS_NOTA[tipo].filter((m) => m.valor !== "devolucion");
+
 export const etiquetaMotivo = (motivo: string | null | undefined) =>
   [...MOTIVOS_NOTA.nota_credito, ...MOTIVOS_NOTA.nota_debito].find((m) => m.valor === motivo)?.etiqueta ?? motivo ?? "";
 
@@ -288,6 +292,31 @@ export type NuevaNota = {
   /** Devolución: líneas de la factura; lo demás: montos libres sin ISV. */
   lineas: LineaNota[];
   reintegrar: boolean;
+};
+
+/** Lo que se manda a emitir_nota_libre() (0019): nota sin factura, a nombre de un cliente. */
+export type NuevaNotaLibre = {
+  tipo: TipoNota;
+  motivo_tipo: MotivoNota;
+  motivo: string;
+  /** Cliente registrado; si es null, nombre y RTN libres (vacío = consumidor final). */
+  id_cliente: number | null;
+  cliente_nombre: string | null;
+  cliente_rtn: string | null;
+  lineas: { descripcion: string; monto: number; exento: boolean }[];
+  /** null = la nota no mueve dinero (no cae en la caja). */
+  forma_pago: FormaPago | null;
+  referencia_pago: string | null;
+};
+
+/** Factura emitida que se puede modificar con una nota (buscador del módulo Notas). */
+export type FacturaParaNota = {
+  id: string;
+  numero: string;
+  fecha: string;
+  cliente_nombre: string;
+  total: number;
+  saldo: number;
 };
 
 /** Punto de emisión con el que factura quien está en el mostrador. */

@@ -295,6 +295,84 @@ export const documentos: DefRecurso = {
   campos: [],
 };
 
+const TIPOS_NOTA: readonly Opcion[] = TIPOS_DOCUMENTO.filter((t) => String(t.valor).startsWith("nota_"));
+
+const RELACION_NOTA: readonly Opcion[] = [
+  { valor: "true", etiqueta: "Sobre una factura" },
+  { valor: "false", etiqueta: "Sin factura" },
+];
+
+const MOTIVOS: readonly Opcion[] = [
+  { valor: "devolucion", etiqueta: "Devolución" },
+  { valor: "descuento", etiqueta: "Rebaja" },
+  { valor: "correccion", etiqueta: "Corrección" },
+  { valor: "gastos", etiqueta: "Gastos o flete" },
+  { valor: "intereses", etiqueta: "Intereses" },
+  { valor: "otro", etiqueta: "Otro" },
+];
+
+/** Notas de crédito y débito, con o sin factura (módulo Notas, 0019). Se emiten desde el compositor. */
+export const notas: DefRecurso = {
+  id: "notas",
+  nombre: "nota",
+  nombrePlural: "Notas",
+  genero: "f",
+  vista: "v_notas",
+  tabla: "documentos",
+  clave: "id",
+  ambito: "empresa",
+  escritura: "ninguna",
+  acciones: { crear: false, editar: false, eliminar: false },
+  titulo: "numero",
+  orden: [{ columna: "fecha", dir: "desc" }],
+  columnasInternas: ["id_factura"],
+  columnas: [
+    { clave: "fecha", etiqueta: "Fecha", tipo: "fecha", ancho: 130 },
+    {
+      clave: "tipo",
+      etiqueta: "Tipo",
+      tipo: "texto",
+      ancho: 140,
+      opciones: TIPOS_NOTA,
+      filtro: { tipo: "opciones", opciones: TIPOS_NOTA },
+    },
+    { clave: "numero", etiqueta: "Número", tipo: "texto", ancho: 200, buscable: true, formato: "codigo" },
+    { clave: "cliente_nombre", etiqueta: "Cliente", tipo: "texto", ancho: 230, buscable: true },
+    { clave: "factura_numero", etiqueta: "Factura", tipo: "texto", ancho: 200, buscable: true, formato: "codigo", vacio: "Sin factura" },
+    {
+      clave: "con_factura",
+      etiqueta: "Relación",
+      tipo: "booleano",
+      ancho: 150,
+      opciones: RELACION_NOTA,
+      oculta: true,
+    },
+    {
+      clave: "motivo_tipo",
+      etiqueta: "Motivo",
+      tipo: "texto",
+      ancho: 140,
+      opciones: MOTIVOS,
+      filtro: { tipo: "opciones", opciones: MOTIVOS },
+    },
+    { clave: "motivo", etiqueta: "Detalle", tipo: "texto", ancho: 260, buscable: true, oculta: true },
+    { clave: "total", etiqueta: "Total", tipo: "decimal", ancho: 130, formato: "moneda" },
+    { clave: "isv", etiqueta: "ISV", tipo: "decimal", ancho: 110, formato: "moneda", oculta: true },
+    { clave: "forma_pago", etiqueta: "Forma", tipo: "texto", ancho: 130, opciones: FORMAS, vacio: "Sin dinero", oculta: true },
+    {
+      clave: "estado",
+      etiqueta: "Estado",
+      tipo: "texto",
+      ancho: 110,
+      opciones: ESTADOS_DOCUMENTO,
+      filtro: { tipo: "opciones", opciones: ESTADOS_DOCUMENTO },
+    },
+    { clave: "emitio", etiqueta: "Emitió", tipo: "texto", ancho: 160, buscable: true, oculta: true },
+    { clave: "punto", etiqueta: "Punto", tipo: "texto", ancho: 110, formato: "codigo", oculta: true },
+  ],
+  campos: [],
+};
+
 /** Clientes con crédito o con saldo (0017). Se abre el estado de cuenta; no se edita aquí. */
 export const cuentasClientes: DefRecurso = {
   id: "cuentas_clientes",

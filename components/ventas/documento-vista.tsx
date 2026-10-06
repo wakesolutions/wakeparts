@@ -100,14 +100,23 @@ export function DocumentoVista({
 
       {nota && (
         <section className={styles.referencia} aria-label="Documento que modifica">
-          <div>
-            <span>Factura que modifica</span>
-            <strong>{doc.factura_numero}</strong>
-          </div>
-          <div>
-            <span>Fecha de la factura</span>
-            <strong>{doc.factura_fecha ? fechaDia(doc.factura_fecha) : "—"}</strong>
-          </div>
+          {doc.factura_numero ? (
+            <>
+              <div>
+                <span>Factura que modifica</span>
+                <strong>{doc.factura_numero}</strong>
+              </div>
+              <div>
+                <span>Fecha de la factura</span>
+                <strong>{doc.factura_fecha ? fechaDia(doc.factura_fecha) : "—"}</strong>
+              </div>
+            </>
+          ) : (
+            <div>
+              <span>Factura que modifica</span>
+              <strong>Sin factura relacionada</strong>
+            </div>
+          )}
           {doc.factura_cai && doc.factura_cai !== doc.cai && (
             <div>
               <span>CAI de la factura</span>

@@ -192,3 +192,17 @@ export function IconoCaja() {
     </svg>
   );
 }
+
+export function IconoNotas() {
+  // Dos hojas con signo: la nota de crédito (−) delante de la de débito (+)
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <path d="M17 6h16l6 6v23a2 2 0 0 1-2 2H17a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2z" fill="currentColor" opacity="0.5" />
+      <path d="M29.5 21.5v6M26.5 24.5h6" stroke="var(--wp-accent-lo)" strokeWidth="2" strokeLinecap="round" />
+      <path d="M11 12h16l6 6v22a2 2 0 0 1-2 2H11a2 2 0 0 1-2-2V14a2 2 0 0 1 2-2z" fill="currentColor" />
+      <path d="M13.5 20h9M13.5 24.5h6" stroke="var(--wp-accent-lo)" strokeWidth="2" strokeLinecap="round" />
+      <rect x="13.5" y="31" width="14" height="5" rx="1.5" fill="var(--wp-accent)" />
+      <path d="M17.5 33.5h6" stroke="var(--wp-bg-deep)" strokeWidth="1.8" strokeLinecap="round" />
+    </svg>
+  );
+}

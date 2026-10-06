@@ -39,7 +39,7 @@ export function ModuloVentas() {
               recurso: "documentos",
               descripcion:
                 "Cotizaciones, facturas y notas de crédito o débito. Abrí una factura para imprimirla, repetirla, hacer una devolución o anularla.",
-              contenido: () => <Documentos />,
+              contenido: () => <ListaDocumentos recurso="documentos" />,
             },
             {
               recurso: "pedidos_web",
@@ -102,14 +102,15 @@ export function ModuloVentas() {
   );
 }
 
-function Documentos() {
+/** Listado de documentos (o solo notas) que abre cada uno en una ventana hija con su detalle. */
+export function ListaDocumentos({ recurso }: { recurso: "documentos" | "notas" }) {
   const [abierto, setAbierto] = useState<{ id: string; numero: string } | null>(null);
   const [version, setVersion] = useState(0);
   const madre = useVentanaActual() ?? undefined;
   return (
     <>
       <MantenimientoRecurso
-        recurso="documentos"
+        recurso={recurso}
         puedeEditar={false}
         version={version}
         onAbrir={(f) => setAbierto({ id: String(f.id), numero: String(f.numero) })}
@@ -135,7 +136,7 @@ function Documentos() {
   );
 }
 
-function DetalleDocumento({
+export function DetalleDocumento({
   id,
   onCambio,
   onAbrir,

@@ -563,3 +563,137 @@
     background-position: -100% 0;
   }
 }
+
+/* ------------------------------------------------- nota sin factura (0019) */
+
+.clienteNombre {
+  overflow: hidden;
+  font-size: clamp(1rem, 3.4cqi, 1.3rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--wp-ink);
+}
+
+.cambiar {
+  padding: 0;
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+  background: none;
+  cursor: pointer;
+}
+
+.cambiar:hover {
+  color: var(--wp-accent-hi);
+}
+
+.cambiar:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.clienteCampos {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 11rem;
+  gap: 0.4rem;
+  margin-top: 0.15rem;
+}
+
+.rtnMal {
+  font-size: 0.74rem;
+  color: var(--wp-accent-hi);
+}
+
+.sugerencias {
+  display: grid;
+  margin: 0.2rem 0 0;
+  padding: 3px;
+  list-style: none;
+  border-radius: 10px;
+  background: var(--wp-panel);
+  box-shadow:
+    inset 0 0 0 1px var(--wp-line),
+    0 10px 24px rgb(0 0 0 / 0.28);
+  animation: entra 200ms var(--ease-expo) both;
+}
+
+.sugerencias button {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  width: 100%;
+  padding: 0.45rem 0.6rem;
+  border: 0;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 0.82rem;
+  text-align: left;
+  color: var(--wp-ink);
+  background: none;
+  cursor: pointer;
+}
+
+.sugerencias button:hover,
+.sugerencias button:focus-visible {
+  outline: none;
+  background: var(--wp-hover);
+}
+
+.sugerencias small {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--wp-ink-3);
+}
+
+/* Placa «sin factura»: donde iría el medidor de saldo, un rótulo troquelado. */
+.sinFactura {
+  display: grid;
+  gap: 0.25rem;
+  align-self: stretch;
+  align-content: center;
+  padding: 0.6rem 0.8rem;
+  border-radius: 10px;
+  background: repeating-linear-gradient(
+    -45deg,
+    transparent 0 6px,
+    color-mix(in oklab, var(--wp-line) 70%, transparent) 6px 7px
+  );
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  animation: entra 320ms var(--ease-expo) 80ms both;
+}
+
+.sinFactura p {
+  margin: 0;
+  font-size: 0.76rem;
+  color: var(--wp-ink-2);
+}
+
+.liquidar {
+  display: grid;
+  gap: 0.45rem;
+  margin: 0.4rem 0 0;
+  padding: 0;
+  border: 0;
+  min-width: 0;
+}
+
+.liquidar legend {
+  padding: 0;
+  margin-bottom: 0.35rem;
+}
+
+.liquidar .teclas {
+  grid-template-columns: repeat(auto-fit, minmax(6.4rem, 1fr));
+}
+
+@container (min-width: 520px) {
+  .teclas[data-n="3"] {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}

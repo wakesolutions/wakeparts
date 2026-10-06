@@ -10,17 +10,19 @@ import type {
   Cliente,
   ConsultaMostrador,
   Documento,
+  FacturaParaNota,
   LineaAcreditable,
   LineaCarrito,
   NotaRelacionada,
   NuevaLinea,
   NuevaNota,
+  NuevaNotaLibre,
   PuntoEmision,
   Resultado,
   ResultadoBusqueda,
   TipoDocumento,
 } from "@/lib/ventas";
-import { MOTIVOS_NOTA } from "@/lib/ventas";
+import { motivosNota, MOTIVOS_NOTA } from "@/lib/ventas";
 import { FORMAS_PAGO } from "@/lib/cobros";
 
 // Mostrador: búsqueda, carritos y emisión. La autorización real es RLS y las
@@ -423,6 +425,86 @@ export async function emitirNota(idFactura: string, nota: NuevaNota): Promise<Re
   if (error || !data) return { ok: false, error: error ? mensaje(error, "No se pudo emitir la nota.") : "No se pudo emitir la nota." };
   const { data: doc } = await supabase.from("documentos").select("numero").eq("id", data).single();
   return { ok: true, id: data as string, numero: doc?.numero ?? "" };
+}
+
+/**
+ * Nota de crédito o débito sin factura relacionada (0019): a nombre de un
+ * cliente o de consumidor final, con montos sin ISV y, si mueve dinero, su forma
+ * de pago.
+ */
+export async function emitirNotaLibre(nota: NuevaNotaLibre): Promise<Resultado<{ id: string; numero: string }>> {
+  const sesion = await obtenerSesion();
+  if (!sesion?.empresa) return { ok: false, error: "No hay una empresa activa." };
+  if (nota?.tipo !== "nota_credito" && nota?.tipo !== "nota_debito") return { ok: false, error: "Datos no válidos." };
+  if (!motivosNota(nota.tipo, false).some((m) => m.valor === nota.motivo_tipo)) return { ok: false, error: "Elegí el motivo." };
+  const motivo = String(nota.motivo ?? "").trim().slice(0, 300);
+  if (!motivo) return { ok: false, error: "Escribí el motivo de la nota." };
+  if (!Array.isArray(nota.lineas) || !nota.lineas.length || nota.lineas.length > 100) {
+    return { ok: false, error: "La nota no tiene líneas." };
+  }
+  const lineas = [];
+  for (const l of nota.lineas) {
+    const descripcion = String(l.descripcion ?? "").trim().slice(0, 240);
+    const monto = Math.round(Number(l.monto) * 100) / 100;
+    if (!descripcion || !(monto > 0)) return { ok: false, error: "Revisá la descripción y el monto." };
+    lineas.push({ descripcion, monto, exento: Boolean(l.exento) });
+  }
+  if (nota.id_cliente !== null && !esId(nota.id_cliente)) return { ok: false, error: "Cliente no válido." };
+  const rtn = nota.cliente_rtn ? String(nota.cliente_rtn).replace(/\D/g, "") : null;
+  if (rtn && rtn.length !== 14) return { ok: false, error: "El RTN son 14 dígitos." };
+  const forma = nota.forma_pago === null ? null : FORMAS_PAGO.find((f) => f.valor === nota.forma_pago);
+  if (forma === undefined) return { ok: false, error: "Elegí la forma de pago." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("emitir_nota_libre", {
+    p_empresa: sesion.empresa.id,
+    p_tipo: nota.tipo,
+    p_cliente: nota.id_cliente,
+    p_cliente_nombre: nota.id_cliente ? null : String(nota.cliente_nombre ?? "").trim().slice(0, 160) || null,
+    p_cliente_rtn: nota.id_cliente ? null : rtn,
+    p_motivo_tipo: nota.motivo_tipo,
+    p_motivo: motivo,
+    p_lineas: lineas,
+    p_forma_pago: forma?.valor ?? null,
+    p_referencia: forma?.pideReferencia ? String(nota.referencia_pago ?? "").trim().slice(0, 80) || null : null,
+  });
+  if (error || !data) return { ok: false, error: error ? mensaje(error, "No se pudo emitir la nota.") : "No se pudo emitir la nota." };
+  const { data: doc } = await supabase.from("documentos").select("numero").eq("id", data).single();
+  return { ok: true, id: data as string, numero: doc?.numero ?? "" };
+}
+
+/** Facturas emitidas para elegir sobre cuál va una nota (por número o cliente), con su saldo. */
+export async function buscarFacturasParaNota(texto: string): Promise<FacturaParaNota[]> {
+  const sesion = await obtenerSesion();
+  if (!sesion?.empresa) return [];
+  const termino = String(texto ?? "").replace(/["\\*%_(),]/g, " ").trim().slice(0, 60);
+  const supabase = await createClient();
+  let q = supabase
+    .from("documentos")
+    .select("id, numero, fecha, cliente_nombre, total")
+    .eq("id_empresa", sesion.empresa.id)
+    .eq("tipo", "factura")
+    .eq("estado", "emitido")
+    .order("fecha", { ascending: false })
+    .limit(8);
+  if (termino) q = q.or([`numero.ilike."*${termino}*"`, `cliente_nombre.ilike."*${termino}*"`].join(","));
+  const { data } = await q;
+  const facturas = (data ?? []) as Omit<FacturaParaNota, "saldo">[];
+  if (!facturas.length) return [];
+  const { data: notas } = await supabase
+    .from("documentos")
+    .select("id_factura, tipo, total")
+    .in("id_factura", facturas.map((f) => f.id))
+    .eq("estado", "emitido");
+  return facturas.map((f) => ({
+    ...f,
+    total: Number(f.total),
+    saldo:
+      Math.round(
+        (notas ?? [])
+          .filter((n) => n.id_factura === f.id)
+          .reduce((s, n) => s + (n.tipo === "nota_debito" ? Number(n.total) : -Number(n.total)), Number(f.total)) * 100,
+      ) / 100,
+  }));
 }
 
 /** Punto de emisión con el que factura el usuario (el suyo o el predeterminado). */

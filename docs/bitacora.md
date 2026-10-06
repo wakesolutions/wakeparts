@@ -2,6 +2,16 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-06 · Módulo Notas y notas sin factura (migración 0019)
+
+- **Pedido del usuario**: las notas de crédito/débito como módulo propio, y poder hacerlas **sin factura relacionada** «para otros gastos que ocurran». Desde Ventas › Documentos se siguen haciendo sobre la factura abierta.
+- **Módulo Notas** en el dock (dueño/admin, los únicos que emiten notas): «Nueva nota» (compositor) y «Notas» (listado `v_notas`, abre el mismo detalle de Documentos). El compositor elige tipo con dos teclas con el código del SAR (06 · 07) y la relación «Sin factura | Sobre una factura» (buscador por número o cliente con el saldo); debajo va el mismo `NotaEditor`, que ahora acepta `factura = null`.
+- **Función aparte** (`emitir_nota_libre`) en vez de volver opcional el parámetro de `emitir_nota`: las reglas de la nota sobre factura (saldo, devoluciones, exoneración heredada) no se tocan y la libre queda corta y fácil de auditar.
+- **Sin devolución sin factura**: sin líneas de origen no hay tope de unidades ni costo; para devolver piezas de una venta vieja (antes del sistema) habría que diseñarlo aparte.
+- **Liquidación obligatoria de elegir**, sin valor por defecto: con forma de pago la nota mueve la caja (`forma_pago` propio); «Sin dinero» deja solo el documento. Un valor por defecto («efectivo») habría descuadrado cajas sin que nadie lo note.
+- **No entra a cuentas por cobrar**: el saldo se lleva por factura; un cargo suelto que se deba se factura al crédito. Ajustable si el usuario lo pide.
+- **A verificar con el contador** si el SAR admite estas notas sin documento de origen (anotado en `negocio.md` §3.7).
+
 ## 2026-10-03 · Toma rápida de productos y foco de ventanas
 
 - **Toma rápida** (pedido del usuario: captura rápida desde el teléfono para empresas nuevas): módulo propio en el dock (dueño/admin), sin migración. Guarda con `useApi("recursos").guardar("productos")` + los `porDefecto` de la definición, así valida y se comporta igual que Inventario › Productos y funciona en la demo. Mínimo: foto, nombre, categoría (obligatoria en la definición), precio (vacío = 0, el marbete lo marca «Sin precio»), existencia y condición; ubicación y OEM plegados. Categoría, condición y ubicación **se quedan** entre piezas (se carga por estante). La foto se comprime y sube **en segundo plano** (LED por pieza, «Reintentar» si falla) para no frenar la siguiente toma. `capture="environment"` abre la cámara trasera; «Galería» para fotos ya tomadas. Acceso directo: `/inicio?abrir=toma` y `shortcuts` del manifest.

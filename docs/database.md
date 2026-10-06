@@ -352,6 +352,16 @@ Totales: `bruto = cantidad·precio`; `neto = bruto·(1 − desc. línea)·(1 −
 | `v_cajas_turnos` | Turnos con punto, quién abrió/cerró, esperado (vivo si está abierta), cobrado, ventas, `propio`, `descuadre`. |
 | `v_caja_movimientos` | Todo lo del turno en orden: ventas, ventas al crédito, devoluciones, cargos, abonos, entradas y salidas; `monto` con signo y `en_caja`. |
 
+## Notas sin factura (0019)
+
+| Cambio | Qué es |
+|---|---|
+| `documentos_nota_check` | Una nota exige `motivo_tipo` y `motivo`; `id_factura` es opcional. Sin factura: ni `devolucion` ni `reintegra_inventario`. |
+| `documentos.forma_pago`, `referencia_pago` en notas sin factura | Cómo se liquidó (null = no mueve dinero). `condicion` siempre `contado`. |
+| `emitir_nota_libre(empresa, tipo, cliente?, nombre?, rtn?, motivo_tipo, motivo, lineas, forma_pago?, referencia?)` | Dueño/admin. Cliente registrado o nombre/RTN libres (vacío = `CONSUMIDOR FINAL`; RTN de 14 dígitos). Montos `[{descripcion, monto, exento}]` sin ISV, 15 % sobre lo gravado, sin exoneración. Crédito: `descuento` · `correccion` · `otro`; débito: `gastos` · `intereses` · `correccion` · `otro`. Con forma de pago y caja obligatoria exige turno abierto. No toca cuentas por cobrar. |
+| `resumen_turno`, `v_caja_movimientos` | La nota sin factura cuenta con **su** forma de pago (si tiene); sin forma, `en_caja` = false. |
+| `v_notas` | Notas de crédito y débito: `con_factura`, `factura_numero`, `motivo_tipo`, `motivo`, `total`, `forma_pago` (la de la factura o la propia), `estado`, `punto`, `emitio`. Recurso `notas` (módulo Notas). |
+
 ## Sitio web y pedidos (0013)
 
 ### `pedidos_web` / `pedidos_web_lineas`

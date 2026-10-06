@@ -24,6 +24,7 @@ import type { FilaCompat, NivelVehiculo } from "@/lib/vehiculos";
 import {
   calcularTotales,
   CODIGO_TIPO_DOCUMENTO,
+  motivosNota,
   pendienteDevolver,
   totalesNota,
   type Carrito,
@@ -320,7 +321,8 @@ function movimientosTurnoDemo(t: TurnoDemo): MovimientoCaja[] {
         detalle: d.cliente_nombre,
         forma_pago: d.forma_pago ?? f?.forma_pago ?? null,
         monto: d.tipo === "nota_credito" ? -d.total : d.total,
-        en_caja: d.tipo === "factura" ? d.condicion === "contado" : f?.condicion === "contado",
+        // Nota sin factura (0019): mueve dinero si tiene forma de pago.
+        en_caja: d.tipo === "factura" ? d.condicion === "contado" : f ? f.condicion === "contado" : d.forma_pago != null,
         estado: d.estado,
         usuario: d.vendedor,
       };
@@ -938,6 +940,76 @@ const ventas: Apis["ventas"] = {
     guardarDocumentoDemo(doc);
     return espera({ ok: true as const, id: doc.id, numero: doc.numero }, 400);
   },
+  emitirNotaLibre: async (nota) => {
+    if (!motivosNota(nota.tipo, false).some((m) => m.valor === nota.motivo_tipo)) return { ok: false as const, error: "Elegí el motivo." };
+    if (!nota.motivo.trim()) return { ok: false as const, error: "Escribí el motivo de la nota." };
+    if (!nota.lineas.length || nota.lineas.some((l) => !l.descripcion.trim() || !(l.monto > 0))) {
+      return { ok: false as const, error: "Revisá la descripción y el monto." };
+    }
+    if (nota.forma_pago && cajaObligatoriaDemo && !turnoAbiertoDemo()) {
+      return { ok: false as const, error: "Abrí la caja (módulo Caja) antes de emitir una nota que mueve dinero." };
+    }
+    const cli = nota.id_cliente ? clientes.find((c) => c.id === nota.id_cliente) : undefined;
+    const t = totalesNota(nota.lineas, false);
+    const cai = numeroCai(nota.tipo);
+    const doc: DocumentoDemo = {
+      ...baseDocumento(),
+      id: crypto.randomUUID(),
+      tipo: nota.tipo,
+      numero: cai.numero,
+      fecha: new Date().toISOString(),
+      vence: null,
+      cai: cai.cai,
+      cai_rango: cai.cai_rango,
+      cai_fecha_limite: cai.cai_fecha_limite,
+      emisor: EMISOR_DEMO,
+      motivo_tipo: nota.motivo_tipo,
+      motivo: nota.motivo.trim(),
+      forma_pago: nota.forma_pago,
+      referencia_pago: nota.forma_pago ? nota.referencia_pago : null,
+      id_turno: turnoAbiertoDemo()?.id ?? null,
+      cliente_nombre: cli?.nombre ?? (nota.cliente_nombre?.trim() || "CONSUMIDOR FINAL"),
+      cliente_rtn: cli ? cli.rtn : nota.cliente_rtn?.replace(/\D/g, "") || null,
+      cliente_telefono: cli?.telefono ?? null,
+      vehiculo: null,
+      subtotal: t.exento + t.gravado,
+      descuento: 0,
+      importe_exento: t.exento,
+      importe_gravado: t.gravado,
+      importe_exonerado: 0,
+      isv: t.isv,
+      total: t.total,
+      notas: null,
+      estado: "emitido",
+      motivo_anulacion: null,
+      vendedor: "Demo Sandbox",
+      lineas: nota.lineas.map((l, i) => ({
+        id: siguienteLineaDoc++,
+        codigo: null,
+        descripcion: l.descripcion.trim(),
+        cantidad: 1,
+        precio: l.monto,
+        descuento_pct: 0,
+        descuento: 0,
+        exento: l.exento,
+        total: t.netos[i],
+      })),
+    };
+    documentos.push(doc);
+    guardarDocumentoDemo(doc);
+    return espera({ ok: true as const, id: doc.id, numero: doc.numero }, 400);
+  },
+  facturasParaNota: async (texto) => {
+    const q = normal(texto.trim());
+    return espera(
+      documentos
+        .filter((d) => d.tipo === "factura" && d.estado === "emitido")
+        .filter((d) => !q || normal(d.numero).includes(q) || normal(d.cliente_nombre).includes(q))
+        .sort((a, b) => b.fecha.localeCompare(a.fecha))
+        .slice(0, 8)
+        .map((d) => ({ id: d.id, numero: d.numero, fecha: d.fecha, cliente_nombre: d.cliente_nombre, total: d.total, saldo: saldoDemo(d) })),
+    );
+  },
   puntoEmision: async () => espera(PUNTO_DEMO),
   urlImpresion: (id) => `/demo/documento?id=${id}`,
 };
@@ -1492,6 +1564,28 @@ const BASES: Record<string, () => Fila[]> = {
       condicion: d.condicion,
       pendiente: cuentasDemo().find((f) => f.id === d.id)?.pendiente ?? null,
     })),
+  notas: () =>
+    documentos
+      .filter((d) => d.tipo === "nota_credito" || d.tipo === "nota_debito")
+      .map((d) => ({
+        id: d.id,
+        fecha: d.fecha,
+        tipo: d.tipo,
+        numero: d.numero,
+        cliente_nombre: d.cliente_nombre,
+        cliente_rtn: d.cliente_rtn,
+        id_factura: d.id_factura,
+        factura_numero: d.factura_numero,
+        con_factura: d.id_factura != null,
+        motivo_tipo: d.motivo_tipo,
+        motivo: d.motivo,
+        isv: d.isv,
+        total: d.total,
+        forma_pago: d.id_factura ? (documentos.find((f) => f.id === d.id_factura)?.forma_pago ?? null) : (d.forma_pago ?? null),
+        estado: d.estado,
+        punto: PUNTO_DEMO.codigo,
+        emitio: d.vendedor,
+      })),
   pedidos_web: () =>
     pedidosDemo.map((p) => ({
       id: p.id,

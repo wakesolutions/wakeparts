@@ -112,12 +112,21 @@ Muchos negocios hacen ambas cosas; el modelo de datos debe soportar las dos form
 - La dirección de la sucursal se imprime si es distinta a la del taller, y el nombre de la caja en el pie.
 
 **Notas de crédito (06) y débito (07)**
-- Siempre sobre una **factura emitida** (no sobre cotizaciones ni otras notas). Solo dueño/admin.
+- Tienen su propio módulo, **Notas** (solo dueño/admin), y también se hacen desde una factura abierta en Ventas › Documentos.
+- **Sobre una factura emitida** (no sobre cotizaciones ni otras notas), o **sin factura relacionada** (0019, ver abajo).
 - Copian el cliente de la factura e imprimen: factura que modifican, su fecha, su CAI (si es otro) y el **motivo** (tipo + detalle obligatorio).
 - Crédito: **devolución** (unidades de las líneas de la factura; opcionalmente vuelven al inventario, kardex «devolución»), **rebaja**, **corrección** u otro (montos sin ISV). Débito: gastos/flete, intereses, corrección u otro.
 - Límites: no se devuelven más unidades de las vendidas (menos lo ya devuelto) y una nota de crédito no supera el **saldo** de la factura (total + débitos − créditos vigentes). Al devolver todo una línea, se acredita exactamente lo que le queda (sin diferencias de centavos); hay una tolerancia de 2 centavos en el ISV por redondeo.
 - El ISV de la nota sigue a la factura: 15 % sobre lo gravado; si la factura fue exonerada, lo gravado va como exonerado.
 - Se anulan como cualquier documento (dueño/admin, con motivo). Anular una devolución reintegrada vuelve a sacar las piezas. **Una factura con notas vigentes no se anula**: primero se anulan sus notas.
+
+**Notas sin factura relacionada** (0019, pedido del usuario: «para otros gastos que ocurran»)
+- A nombre de un cliente registrado o de nombre/RTN escritos (vacío = consumidor final). Montos sin ISV con su descripción; cada uno puede ir exento; 15 % sobre lo gravado. **Sin exoneración** (si hiciera falta, se agrega).
+- Motivos: crédito = rebaja, corrección u otro (sin devolución: no hay líneas que devolver); débito = gastos/flete, intereses, corrección u otro.
+- **Cómo se liquida** (obligatorio elegir): una forma de pago (cae en la caja abierta del punto: el crédito sale, el débito entra; con caja obligatoria exige turno) o «Sin dinero» (solo el documento).
+- No cambia saldos de facturas ni **cuentas por cobrar** (supuesto: si un cargo suelto debe quedar debiéndose, hoy se factura al crédito).
+- Impresión: «Factura que modifica: Sin factura relacionada» + motivo.
+- **A verificar con el contador**: que el Régimen de Facturación (Acuerdo 481-2017) admita notas de crédito/débito sin documento de origen en cada caso (p. ej. si un cargo suelto debería ser una factura).
 
 **Exoneración**
 - El cliente puede marcarse **exonerado** con su constancia de registro de exonerado y registro SAG; al elegirlo en el mostrador el carrito queda exonerado. También se puede activar a mano en el ticket (cualquier rol).

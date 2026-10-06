@@ -8,6 +8,7 @@ import {
   IconoInventario,
   IconoLlave,
   IconoMostrador,
+  IconoNotas,
   IconoSitio,
   IconoTaller,
   IconoVentas,
@@ -47,7 +48,7 @@ const PERMISOS: [string, boolean, boolean, boolean][] = [
   ["Crear marcas y categorías propias", true, true, false],
   ["Ver utilidad y margen en el reporte", true, true, false],
   ["Anular facturas", true, true, false],
-  ["Notas de crédito, devoluciones y notas de débito", true, true, false],
+  ["Notas de crédito, devoluciones y notas de débito (con o sin factura)", true, true, false],
   ["Facturar exonerado del ISV", true, true, true],
   ["Dar crédito a un cliente (límite y plazo)", true, true, false],
   ["Vender al crédito dentro del límite", true, true, true],
@@ -177,6 +178,7 @@ export default function Manual() {
               <IconoDock icono={<IconoCaja />} nombre="Caja" />
               <IconoDock icono={<IconoInventario />} nombre="Inventario" />
               <IconoDock icono={<IconoVentas />} nombre="Ventas" />
+              <IconoDock icono={<IconoNotas />} nombre="Notas" />
               <IconoDock icono={<IconoSitio />} nombre="Sitio web" />
               <IconoDock icono={<IconoLlave />} nombre="Mantenim." />
               <IconoDock icono={<IconoEquipo />} nombre="Usuarios" />
@@ -548,7 +550,10 @@ export default function Manual() {
                 </ul>
                 <h3 className={styles.subtitulo}>Devoluciones y notas</h3>
                 <p>
-                  Abrí la factura y tocá <strong>Nota de crédito</strong> (dueño o administrador):
+                  Las notas tienen su propio módulo, <strong>Notas</strong> (dueño o administrador). Arriba elegís{" "}
+                  <strong>06 · Nota de crédito</strong> o <strong>07 · Nota de débito</strong> y si va{" "}
+                  <strong>sobre una factura</strong> (la buscás por número o cliente) o <strong>sin factura</strong>. También
+                  podés abrir una factura en <em>Ventas › Documentos</em> y tocar <strong>Nota de crédito</strong>:
                 </p>
                 <ul className={styles.lista}>
                   <li>
@@ -567,8 +572,16 @@ export default function Manual() {
                   </li>
                 </ul>
                 <p>
-                  Cada nota lleva su propio número del SAR (tipo 06 crédito, 07 débito), la factura que modifica y el
-                  motivo. Se ven listadas dentro de la factura.
+                  <strong>Sin factura</strong>: para un cargo o un crédito que no sale de una venta (un flete, un gasto,
+                  una rebaja acordada). Elegís el cliente (o consumidor final), escribís los montos sin ISV y decís cómo se
+                  liquida: con una forma de pago la nota entra o sale de tu caja abierta; con <strong>Sin dinero</strong>{" "}
+                  queda solo el documento. No cambia el saldo de ninguna factura ni las cuentas por cobrar, y no admite
+                  devoluciones de piezas.
+                </p>
+                <p>
+                  Cada nota lleva su propio número del SAR (tipo 06 crédito, 07 débito), la factura que modifica (o «Sin
+                  factura relacionada») y el motivo. Las de una factura se ven dentro de ella; todas, en{" "}
+                  <em>Notas › Notas</em>.
                 </p>
                 <h3 className={styles.subtitulo}>Ventas al crédito</h3>
                 <p>

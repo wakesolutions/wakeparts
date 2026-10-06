@@ -1,0 +1,391 @@
+/* Módulo Notas › Nueva nota. Momento firma: dos teclas basculantes con el
+   código del SAR (06 · 07) en pantalla LCD; la encendida prende su LED con el
+   tono de la nota (verde crédito, ámbar débito) y debajo queda el editor. */
+
+.compositor {
+  --tono: var(--wp-ok);
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  background: var(--wp-bg-deep);
+  container-type: inline-size;
+}
+
+.compositor[data-tipo="nota_debito"] {
+  --tono: var(--wp-aviso);
+}
+
+.etiqueta {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+/* ----------------------------------------------------------------- tablero */
+
+.tablero {
+  display: grid;
+  gap: 0.75rem;
+  padding: 0.9rem 1.2rem 0.85rem;
+  border-bottom: 1px solid var(--wp-line);
+  background: linear-gradient(180deg, var(--wp-panel), var(--wp-panel-2));
+  box-shadow: inset 0 1px 0 var(--wp-bevel-light);
+}
+
+@container (min-width: 760px) {
+  .tablero {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+}
+
+.tipos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.tipo {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 64px;
+  padding: 0.55rem 0.8rem 0.55rem 0.55rem;
+  border: 0;
+  border-radius: 12px;
+  font-family: inherit;
+  text-align: left;
+  color: var(--wp-ink-2);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 -3px 0 var(--wp-bevel-dark),
+    0 0 0 1px var(--wp-metal-edge),
+    0 2px 6px rgb(0 0 0 / 0.25);
+  cursor: pointer;
+  transition:
+    transform 180ms var(--ease-quart),
+    box-shadow 180ms var(--ease-quart),
+    color 180ms var(--ease-quart);
+  animation: entra 360ms var(--ease-expo) both;
+}
+
+.tipo + .tipo {
+  animation-delay: 60ms;
+}
+
+.tipo:hover {
+  color: var(--wp-ink);
+}
+
+/* Encendida: la tecla queda hundida, como un interruptor de tablero. */
+.tipo[aria-checked="true"] {
+  color: var(--wp-ink);
+  transform: translateY(1px);
+  box-shadow:
+    inset 0 2px 4px rgb(0 0 0 / 0.35),
+    inset 0 -1px 0 var(--wp-bevel-light),
+    0 0 0 1px var(--wp-metal-edge);
+}
+
+.tipo:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 2px;
+}
+
+.codigo {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: clamp(54px, 9cqi, 72px);
+  aspect-ratio: 1.15;
+  border-radius: 8px;
+  font-family: var(--font-mono);
+  font-size: clamp(1.45rem, 4.2cqi, 2.05rem);
+  font-weight: 700;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: color-mix(in oklab, var(--wp-lcd-ink) 30%, var(--wp-lcd));
+  background: var(--wp-lcd);
+  box-shadow:
+    inset 0 2px 5px rgb(0 0 0 / 0.55),
+    inset 0 0 0 1px rgb(0 0 0 / 0.35);
+  transition:
+    color 260ms var(--ease-expo),
+    text-shadow 260ms var(--ease-expo);
+}
+
+.tipo[aria-checked="true"] .codigo {
+  color: var(--wp-lcd-ink);
+  text-shadow: 0 0 12px color-mix(in oklab, var(--wp-lcd-ink) 60%, transparent);
+}
+
+.signo {
+  position: absolute;
+  top: 3px;
+  right: 6px;
+  font-size: 0.7rem;
+  letter-spacing: 0;
+}
+
+.tipoTexto {
+  display: grid;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.tipoTexto strong {
+  font-size: 0.92rem;
+  letter-spacing: -0.01em;
+}
+
+.tipoTexto small {
+  overflow: hidden;
+  font-size: 0.72rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--wp-ink-3);
+}
+
+/* LED de la tecla: se prende con el tono de su nota. */
+.led {
+  position: absolute;
+  top: 9px;
+  right: 10px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--wp-ink-3) 40%, transparent);
+  box-shadow: inset 0 1px 1px rgb(0 0 0 / 0.4);
+  transition:
+    background-color 220ms var(--ease-quart),
+    box-shadow 220ms var(--ease-quart);
+}
+
+.tipo[data-tipo="nota_credito"] {
+  --led: var(--wp-ok);
+}
+
+.tipo[data-tipo="nota_debito"] {
+  --led: var(--wp-aviso);
+}
+
+.tipo[aria-checked="true"] .led {
+  background: var(--led);
+  box-shadow: 0 0 10px var(--led);
+}
+
+/* Factura relacionada: palanca de dos posiciones. */
+.relacion {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.palanca {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 3px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--wp-field);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.4);
+}
+
+.palanca button {
+  min-height: 34px;
+  padding: 0 0.9rem;
+  border: 0;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+  color: var(--wp-ink-3);
+  background: none;
+  cursor: pointer;
+  transition: color 160ms var(--ease-quart);
+}
+
+.palanca button:hover {
+  color: var(--wp-ink);
+}
+
+.palanca button[aria-checked="true"] {
+  color: var(--wp-ink);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 -2px 0 var(--tono),
+    0 0 0 1px rgb(0 0 0 / 0.3);
+}
+
+.palanca button:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 1px;
+}
+
+/* -------------------------------------------------------------------- mesa */
+
+.mesa {
+  min-height: 0;
+  overflow: hidden;
+}
+
+.conFactura {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+}
+
+.elegida {
+  display: flex;
+  padding: 0.3rem 0.7rem;
+  border-bottom: 1px solid var(--wp-line);
+}
+
+.buscador {
+  display: grid;
+  align-content: start;
+  gap: 0.7rem;
+  height: 100%;
+  overflow-y: auto;
+  padding: 1rem 1.2rem;
+  overscroll-behavior: contain;
+}
+
+.facturas {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: 10px;
+  background: var(--wp-panel);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.facturas li {
+  animation: entra 280ms var(--ease-expo) both;
+}
+
+.facturas li + li {
+  border-top: 1px solid var(--wp-line);
+}
+
+.facturas button {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas:
+    "numero saldo"
+    "cliente saldo";
+  align-items: center;
+  gap: 0.15rem 0.9rem;
+  width: 100%;
+  padding: 0.6rem 0.8rem;
+  border: 0;
+  font-family: inherit;
+  text-align: left;
+  color: var(--wp-ink);
+  background: none;
+  cursor: pointer;
+  transition: background-color 160ms var(--ease-quart);
+}
+
+@container (min-width: 620px) {
+  .facturas button {
+    grid-template-columns: 14rem minmax(0, 1fr) auto;
+    grid-template-areas: "numero cliente saldo";
+  }
+}
+
+.facturas button:hover:not(:disabled),
+.facturas button:focus-visible {
+  outline: none;
+  background: var(--wp-hover);
+}
+
+.facturas button:disabled {
+  opacity: 0.5;
+  cursor: progress;
+}
+
+.facturaNumero {
+  grid-area: numero;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.facturaCliente {
+  grid-area: cliente;
+  display: grid;
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.facturaCliente small {
+  font-size: 0.7rem;
+  color: var(--wp-ink-3);
+}
+
+.facturaSaldo {
+  grid-area: saldo;
+  display: grid;
+  justify-items: end;
+  font-family: var(--font-mono);
+  font-size: 0.84rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.facturaSaldo small {
+  font-size: 0.56rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.vacio {
+  margin: 0;
+  padding: 0.9rem 1rem;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  color: var(--wp-ink-2);
+  background: var(--wp-hover);
+}
+
+.conFactura .vacio {
+  margin: 1rem 1.2rem;
+}
+
+.cargando {
+  height: 160px;
+  border-radius: 10px;
+  background: linear-gradient(90deg, var(--wp-hover), color-mix(in oklab, var(--wp-hover) 40%, transparent), var(--wp-hover));
+  background-size: 200% 100%;
+  animation: brillo 1400ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@keyframes entra {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+}
+
+@keyframes brillo {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}
