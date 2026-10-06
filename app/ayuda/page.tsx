@@ -204,7 +204,8 @@ export default function Manual() {
                   <strong>Tu dock, a tu gusto</strong>: al final está la <strong>guantera</strong>. Ahí guardás los
                   módulos que no usás a diario (se abren de un toque desde ella) y, en <strong>Personalizar</strong>,
                   elegís qué va en el dock y el color de cada ícono: grafito, rojo, ámbar, verde, azul o marfil. También
-                  con clic derecho sobre un ícono. Es solo tuyo: cada persona tiene su dock y te sigue a cualquier
+                  con clic derecho sobre un ícono. Para cambiar el orden, <strong>arrastrá un ícono</strong> a su nuevo
+                  lugar (o, desde el clic derecho, «← Izquierda · Derecha →»); Inicio va siempre primero. Es solo tuyo: cada persona tiene su dock y te sigue a cualquier
                   computadora. Guardar un módulo no le quita el permiso a nadie.
                 </p>
               </div>

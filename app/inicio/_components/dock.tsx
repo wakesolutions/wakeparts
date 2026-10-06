@@ -7,19 +7,18 @@ import notif from "@/components/notificaciones/notificaciones.module.css";
 import ui from "@/components/ui/controles.module.css";
 import { useVentanas, type DefModulo } from "@/components/ventanas/contexto";
 import {
-  DOCK_VACIO,
+  dockDeFabrica,
   FIJOS_DOCK,
   normalizarDock,
+  ordenarDock,
   tonoDeFabrica,
   TONOS_ICONO,
   type PreferenciasDock,
   type TonoIcono,
 } from "@/lib/dock";
+import { useArrastre, useLupa, useReacomodo, volarA } from "./dock-movimiento";
 import { useSesion } from "./sesion-contexto";
 import styles from "./escritorio.module.css";
-
-/** Lo que tarda un ícono en «caer» a la guantera antes de salir del dock. */
-const CAIDA_MS = 260;
 
 export function Dock() {
   const { modulos, ventanas, enfocada, abrir, restaurar, enfocar, minimizarTodas } = useVentanas();
@@ -29,11 +28,15 @@ export function Dock() {
   // Menú del clic derecho: el módulo y dónde queda su ícono dentro del marco del dock.
   const [menu, setMenu] = useState<{ id: string; x: number } | null>(null);
   const marco = useRef<HTMLDivElement>(null);
-  // Íconos que se están yendo a la guantera (animación de caída).
-  const [cayendo, setCayendo] = useState<string[]>([]);
+  const lista = useRef<HTMLUListElement>(null);
   const botonGuantera = useRef<HTMLButtonElement>(null);
+  const { medir, volarDesde } = useReacomodo(lista);
+  useLupa(lista, guantera !== null || menu !== null);
 
-  const delDock = modulos.filter((m) => m.enDock !== false);
+  const delDock = ordenarDock(
+    modulos.filter((m) => m.enDock !== false),
+    prefs.orden,
+  );
   const abierta = (id: string) => ventanas.some((v) => v.id === id && v.estado !== "minimizada");
   const oculto = (id: string) => prefs.ocultos.includes(id);
   // Un módulo oculto con su ventana abierta se asoma en el dock mientras se usa, como en macOS.
@@ -50,20 +53,60 @@ export function Dock() {
     else enfocar(id);
   }
 
+  /** Rectángulo de un ícono dentro de la guantera (de ahí sale volando al dock). */
+  const enGuantera = (id: string) =>
+    marco.current?.querySelector(`[data-pastilla="${id}"]`)?.getBoundingClientRect() ??
+    botonGuantera.current?.getBoundingClientRect();
+  const liDe = (id: string) => lista.current?.querySelector<HTMLElement>(`:scope > li[data-id="${id}"]`) ?? null;
+
   function ocultar(id: string, ocultarlo: boolean) {
     if (FIJOS_DOCK.includes(id)) return;
-    const quitar = () =>
+    const aplicar = () => {
+      medir();
       cambiarPrefs((p) => ({
         ...p,
         ocultos: ocultarlo ? [...p.ocultos.filter((x) => x !== id), id] : p.ocultos.filter((x) => x !== id),
       }));
-    const visible = fijos.some((m) => m.id === id) && !abierta(id);
-    if (!ocultarlo || !visible || reducirMovimiento()) return quitar();
-    setCayendo((c) => [...c, id]);
-    setTimeout(() => {
-      quitar();
-      setCayendo((c) => c.filter((x) => x !== id));
-    }, CAIDA_MS);
+    };
+    if (!ocultarlo) {
+      // Sale de la guantera volando a su lugar (si no estaba ya asomado por tener la ventana abierta).
+      if (!abierta(id)) volarDesde(id, enGuantera(id));
+      return aplicar();
+    }
+    if (!fijos.some((m) => m.id === id) || abierta(id)) return aplicar();
+    volarA(liDe(id), botonGuantera.current?.getBoundingClientRect(), aplicar);
+  }
+
+  /** Guarda el nuevo orden de los íconos visibles sin perder el lugar de los guardados. */
+  function reordenar(visibles: string[], movido: string) {
+    cambiarPrefs((p) => {
+      const todos = ordenarDock(
+        modulos.filter((m) => m.enDock !== false && !FIJOS_DOCK.includes(m.id)),
+        p.orden,
+      ).map((m) => m.id);
+      const sin = todos.filter((id) => id !== movido);
+      const k = visibles.indexOf(movido);
+      const siguiente = visibles[k + 1];
+      const anterior = visibles[k - 1];
+      if (siguiente && sin.includes(siguiente)) sin.splice(sin.indexOf(siguiente), 0, movido);
+      else if (anterior && sin.includes(anterior)) sin.splice(sin.indexOf(anterior) + 1, 0, movido);
+      else sin.push(movido);
+      return { ...p, orden: sin };
+    });
+  }
+
+  const { empezar, anularClic } = useArrastre(lista, medir, reordenar);
+
+  /** Mover con el menú (o el teclado): un lugar a la izquierda (−1) o a la derecha (+1). */
+  function correr(id: string, paso: -1 | 1) {
+    const visibles = fijos.filter((m) => !FIJOS_DOCK.includes(m.id)).map((m) => m.id);
+    const i = visibles.indexOf(id);
+    const j = i + paso;
+    if (i < 0 || j < 0 || j >= visibles.length) return;
+    visibles.splice(i, 1);
+    visibles.splice(j, 0, id);
+    medir();
+    reordenar(visibles, id);
   }
 
   function pintar(id: string, tono: TonoIcono) {
@@ -104,12 +147,16 @@ export function Dock() {
             tonoDe={tonoDe}
             onModo={setGuantera}
             onAbrir={(id) => {
+              volarDesde(id, enGuantera(id));
               setGuantera(null);
               activar(id);
             }}
             onOcultar={ocultar}
             onPintar={pintar}
-            onRestablecer={() => cambiarPrefs(() => ({ ...DOCK_VACIO, tonos: {} }))}
+            onRestablecer={() => {
+              medir();
+              cambiarPrefs(() => dockDeFabrica());
+            }}
             onCerrar={cerrarGuantera}
             boton={botonGuantera}
           />
@@ -129,11 +176,19 @@ export function Dock() {
               setMenu(null);
               setGuantera("personalizar");
             }}
+            onCorrer={
+              FIJOS_DOCK.includes(menu.id)
+                ? undefined
+                : (paso) => {
+                    correr(menu.id, paso);
+                    setMenu(null);
+                  }
+            }
             onCerrar={() => setMenu(null)}
           />
         )}
 
-        <ul className={styles.dock} onScroll={() => setMenu(null)}>
+        <ul ref={lista} className={styles.dock} onScroll={() => setMenu(null)}>
           {fijos.map((m, i) => {
             const v = ventanas.find((x) => x.id === m.id);
             const esInicio = !m.componente;
@@ -143,8 +198,10 @@ export function Dock() {
               <li
                 key={m.id}
                 className={styles.dockItem}
-                data-cayendo={cayendo.includes(m.id) || undefined}
+                data-id={m.id}
+                data-arrastrable={FIJOS_DOCK.includes(m.id) ? undefined : ""}
                 data-visitante={oculto(m.id) || undefined}
+                onPointerDown={empezar}
               >
                 {i === 1 && <span className={styles.separador} aria-hidden="true" />}
                 <button
@@ -154,7 +211,8 @@ export function Dock() {
                   data-tono={tonoDe(m.id)}
                   aria-current={enfocada === m.id || (esInicio && enfocada === null) ? "page" : undefined}
                   aria-haspopup="menu"
-                  onClick={() => activar(m.id)}
+                  draggable={false}
+                  onClick={() => !anularClic() && activar(m.id)}
                   onContextMenu={(e) => {
                     e.preventDefault();
                     const r = e.currentTarget.getBoundingClientRect();
@@ -182,7 +240,7 @@ export function Dock() {
           {mosaicos.map((v, i) => {
             const modulo = moduloDe(v.id);
             return (
-              <li key={v.id} className={`${styles.dockItem} ${styles.mosaicoItem}`}>
+              <li key={v.id} className={`${styles.dockItem} ${styles.mosaicoItem}`} data-id={`ventana:${v.id}`}>
                 {i === 0 && <span className={styles.separador} aria-hidden="true" />}
                 <button
                   type="button"
@@ -202,7 +260,7 @@ export function Dock() {
             );
           })}
 
-          <li className={`${styles.dockItem} ${styles.guanteraItem}`}>
+          <li className={`${styles.dockItem} ${styles.guanteraItem}`} data-id="guantera">
             <span className={styles.separador} aria-hidden="true" />
             <button
               ref={botonGuantera}
@@ -253,7 +311,7 @@ function usePreferenciasDock() {
   const api = useApi("perfil");
   const clave = `wp:dock:${sesion.usuario.id}`;
   const deLaBase = sesion.usuario.dock;
-  const [prefs, setPrefs] = useState<PreferenciasDock>(() => deLaBase ?? { ...DOCK_VACIO, tonos: {} });
+  const [prefs, setPrefs] = useState<PreferenciasDock>(() => deLaBase ?? dockDeFabrica());
   const pendiente = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Sin dato de la base: la copia del navegador (después de montar, para no romper la hidratación).
@@ -287,9 +345,6 @@ function usePreferenciasDock() {
 
   return [prefs, cambiar] as const;
 }
-
-const reducirMovimiento = () =>
-  typeof window !== "undefined" && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 /** Cierra al tocar fuera o con Escape. */
 function useCerrarFuera(ref: React.RefObject<HTMLElement | null>, onCerrar: () => void, ignorar?: React.RefObject<HTMLElement | null>) {
@@ -350,7 +405,7 @@ function Guantera({
     ref.current?.querySelector<HTMLElement>("[data-primero]")?.focus();
   }, [modo]);
 
-  const personalizado = prefs.ocultos.length > 0 || Object.keys(prefs.tonos).length > 0;
+  const personalizado = prefs.ocultos.length > 0 || Object.keys(prefs.tonos).length > 0 || prefs.orden.length > 0;
 
   return (
     <div ref={ref} className={styles.guantera} role="dialog" aria-label="Guantera del dock" data-modo={modo}>
@@ -375,7 +430,9 @@ function Guantera({
                   data-primero={i === 0 || undefined}
                   onClick={() => onAbrir(m.id)}
                 >
-                  <Pastilla tono={tonoDe(m.id)}>{m.icono}</Pastilla>
+                  <Pastilla id={m.id} tono={tonoDe(m.id)}>
+                    {m.icono}
+                  </Pastilla>
                   <span>{m.nombre}</span>
                 </button>
               </li>
@@ -394,7 +451,9 @@ function Guantera({
             const enDock = !prefs.ocultos.includes(m.id);
             return (
               <li key={m.id} className={styles.guanteraFila} style={{ animationDelay: `${i * 22}ms` }}>
-                <Pastilla tono={tonoDe(m.id)}>{m.icono}</Pastilla>
+                <Pastilla id={m.id} tono={tonoDe(m.id)}>
+                  {m.icono}
+                </Pastilla>
                 <span className={styles.guanteraNombre}>{m.nombre}</span>
                 <Esmaltes
                   nombre={m.nombre}
@@ -445,7 +504,7 @@ function Guantera({
   );
 }
 
-/** Menú del clic derecho sobre un ícono: esmalte, quitar del dock o personalizar todo. */
+/** Menú del clic derecho sobre un ícono: esmalte, moverlo, guardarlo en la guantera o personalizar todo. */
 function MenuIcono({
   modulo,
   x,
@@ -453,6 +512,7 @@ function MenuIcono({
   onPintar,
   onOcultar,
   onPersonalizar,
+  onCorrer,
   onCerrar,
 }: {
   modulo: DefModulo;
@@ -462,6 +522,8 @@ function MenuIcono({
   onPintar: (t: TonoIcono) => void;
   onOcultar: () => void;
   onPersonalizar: () => void;
+  /** Mover un lugar (no existe para Inicio, que va siempre primero). */
+  onCorrer?: (paso: -1 | 1) => void;
   onCerrar: () => void;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -481,6 +543,16 @@ function MenuIcono({
       <span className={styles.guanteraEtiqueta}>{modulo.nombre}</span>
       <Esmaltes nombre={modulo.nombre} tono={tono} onPintar={onPintar} primero />
       <div className={styles.menuAcciones}>
+        {onCorrer && (
+          <div className={styles.menuMover}>
+            <button type="button" role="menuitem" onClick={() => onCorrer(-1)} aria-label="Mover a la izquierda">
+              ← Izquierda
+            </button>
+            <button type="button" role="menuitem" onClick={() => onCorrer(1)} aria-label="Mover a la derecha">
+              Derecha →
+            </button>
+          </div>
+        )}
         {!fijo && (
           <button type="button" role="menuitem" onClick={onOcultar}>
             Guardar en la guantera
@@ -527,9 +599,9 @@ function Esmaltes({
 }
 
 /** Ícono de módulo en miniatura con su esmalte. */
-function Pastilla({ tono, children }: { tono: TonoIcono; children: ReactNode }) {
+function Pastilla({ id, tono, children }: { id: string; tono: TonoIcono; children: ReactNode }) {
   return (
-    <span className={styles.pastilla} data-tono={tono} aria-hidden="true">
+    <span className={styles.pastilla} data-tono={tono} data-pastilla={id} aria-hidden="true">
       <span className={styles.icono}>{children}</span>
     </span>
   );

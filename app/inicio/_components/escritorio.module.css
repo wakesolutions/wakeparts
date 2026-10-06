@@ -317,8 +317,12 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  /* Lupa (dock-movimiento.ts): `--m` lo pone el cursor; 1 = tamaño normal. */
+  --m: 1;
 }
 
+/* El ícono crece hacia arriba según `--m`: el margen negativo deja la repisa
+   del mismo alto (como en macOS) y el dock solo se ensancha. */
 .app {
   position: relative;
   display: block;
@@ -326,21 +330,42 @@
   border: 0;
   background: none;
   cursor: pointer;
-  width: 50px;
-  height: 50px;
-  border-radius: 12px;
+  width: calc(50px * var(--m));
+  height: calc(50px * var(--m));
+  margin-top: calc(50px * (1 - var(--m)));
+  border-radius: 24%;
   transform-origin: 50% 100%;
-  transition: transform 280ms var(--ease-expo);
+  -webkit-user-drag: none;
+  user-select: none;
+  transition:
+    width 300ms var(--ease-expo),
+    height 300ms var(--ease-expo),
+    margin-top 300ms var(--ease-expo),
+    transform 200ms var(--ease-expo);
 }
 
-.app:hover,
+/* Mientras el cursor recorre el dock, la lupa sigue al instante (sin arrastrar la cola de la transición). */
+.dock[data-lupa] .app {
+  transition-duration: 70ms, 70ms, 70ms, 200ms;
+}
+
+/* Sin lupa (teclado, teléfono): el ícono enfocado se asoma. */
 .app:focus-visible {
-  transform: translate3d(0, -3px, 0) scale(1.08);
+  outline: none;
+  transform: translate3d(0, -4px, 0) scale(1.1);
 }
 
+.app:focus-visible .icono {
+  box-shadow:
+    0 0 0 2px var(--wp-panel),
+    0 0 0 4px var(--wp-accent),
+    0 6px 14px -6px var(--wp-bevel-dark);
+}
+
+/* Al presionar, el ícono se hunde como una tecla. */
 .app:active {
-  transform: scale(0.96);
-  transition-duration: 100ms;
+  transform: translate3d(0, 1px, 0) scale(0.94);
+  transition-duration: 300ms, 300ms, 300ms, 90ms;
 }
 
 .icono {
@@ -349,7 +374,7 @@
   inset: 0;
   display: grid;
   place-items: center;
-  border-radius: 12px;
+  border-radius: 24%;
   color: var(--wp-on-accent);
   background: linear-gradient(180deg, var(--wp-accent-hi), var(--wp-accent) 70%);
   box-shadow:
@@ -385,10 +410,53 @@
   pointer-events: none;
 }
 
+/* Colita de la etiqueta, apuntando al ícono. */
+.tooltip::after {
+  content: "";
+  position: absolute;
+  left: 50%;
+  bottom: -4px;
+  width: 8px;
+  height: 8px;
+  background: var(--wp-panel);
+  box-shadow: 1px 1px 0 var(--wp-line);
+  transform: translateX(-50%) rotate(45deg);
+}
+
 .app:hover .tooltip,
 .app:focus-visible .tooltip {
   opacity: 1;
   transform: translate3d(-50%, 0, 0);
+}
+
+/* Arrastrando: sin etiquetas ni lupa; los demás íconos se corren con suavidad. */
+.dock[data-arrastrando] .tooltip {
+  display: none;
+}
+
+.dock[data-arrastrando] > .dockItem:not([data-arrastrado]) {
+  transition: transform 240ms var(--ease-expo);
+}
+
+.dock[data-arrastrando] .app {
+  cursor: grabbing;
+}
+
+/* El ícono levantado: encima de todo, con sombra de pieza despegada de la repisa. */
+.dockItem[data-arrastrado] {
+  z-index: 3;
+}
+
+.dockItem[data-arrastrado] .icono {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.25),
+    0 0 0 0.5px rgb(0 0 0 / 0.2),
+    0 18px 26px -10px var(--wp-bevel-dark),
+    0 8px 12px -8px var(--wp-bevel-dark);
+}
+
+.dockItem[data-arrastrado] .indicador {
+  opacity: 0;
 }
 
 .indicador {
@@ -465,19 +533,6 @@
 
 [data-tono="marfil"] > .icono svg {
   --wp-accent-lo: color-mix(in oklab, var(--wp-esmalte-marfil) 40%, var(--wp-esmalte-tinta));
-}
-
-/* Un ícono que se va a la guantera: baja y se apaga hacia la derecha. */
-.dockItem[data-cayendo] {
-  animation: caerGuantera 260ms var(--ease-expo) forwards;
-  pointer-events: none;
-}
-
-@keyframes caerGuantera {
-  to {
-    opacity: 0;
-    transform: translate3d(14px, 22px, 0) scale(0.55);
-  }
 }
 
 /* Módulo guardado que se asoma mientras su ventana está abierta. */
@@ -1056,4 +1111,19 @@
 .menuAcciones button:focus-visible {
   outline: none;
   background: var(--wp-hover);
+}
+
+/* Mover un lugar: dos teclas lado a lado (la alternativa al arrastre con teclado). */
+.menuMover {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+}
+
+.menuMover button {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.06em;
+  color: var(--wp-ink-2);
 }

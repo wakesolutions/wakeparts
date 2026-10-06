@@ -2,6 +2,14 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-06 · Dock: lupa, reordenar arrastrando y vuelos (sin migración)
+
+- **Pedido del usuario**: reordenar los íconos arrastrándolos, que vuelen entre la guantera y el dock, y un efecto al pasar el mouse «como Apple».
+- **Lupa por tamaño, no por `transform`**: para que los vecinos se aparten de verdad (como en macOS) el ícono cambia `width`/`height`; son ~15 elementos y se calcula en un solo `requestAnimationFrame` por movimiento del mouse. Un margen negativo deja la repisa del mismo alto: el dock solo se ensancha.
+- **Arrastre con Pointer Events, no con el drag & drop del navegador**: el nativo muestra un fantasma semitransparente y no deja animar a los vecinos. Solo con mouse o lápiz: en el teléfono el dock se desliza de lado y un arrastre chocaría con el desplazamiento; ahí (y con teclado) se mueve desde el menú del ícono.
+- **Orden dentro del mismo `usuarios.dock`** (campo `orden`): no hizo falta migración. Inicio queda siempre primero. Los módulos guardados conservan su lugar al reordenar los visibles.
+- **Vuelos con la Web Animations API + FLIP** (medir antes, animar desde ahí después del render): todo es `transform`/`opacity`. El vuelo a la guantera tiene un respaldo con `setTimeout` por si la animación no llega a terminar (pestaña en segundo plano).
+
 ## 2026-10-06 · Dock personalizable y guantera (migración 0020)
 
 - **Pedido del usuario**: mostrar y ocultar módulos del dock, cambiar el color de algunos íconos y un botón en el dock que despliegue los ocultos «como un popover».
