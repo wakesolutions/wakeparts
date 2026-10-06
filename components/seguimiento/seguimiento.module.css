@@ -2,6 +2,10 @@
 
 .detalle {
   display: grid;
+  /* Filas a su alto natural: con altura fija, la grilla encogía la de .datos
+     (overflow: hidden → mínimo 0) y la cortaba cuando el contenido no cabía. */
+  grid-auto-rows: max-content;
+  align-content: start;
   gap: 1.1rem;
   height: 100%;
   overflow-y: auto;
