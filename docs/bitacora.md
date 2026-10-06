@@ -2,6 +2,15 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-06 · Dock personalizable y guantera (migración 0020)
+
+- **Pedido del usuario**: mostrar y ocultar módulos del dock, cambiar el color de algunos íconos y un botón en el dock que despliegue los ocultos «como un popover».
+- **Por usuario, no por empresa**: el dock es la herramienta de cada persona (el cajero no usa lo mismo que el dueño). Se guarda en `usuarios.dock` para que siga al usuario entre equipos (como las preferencias de tablas); el navegador guarda una copia que se usa sin la migración o en la demo. Los permisos no cambian: ocultar es solo de vista.
+- **«Guantera»** en vez de «cajón» o «más»: encaja en la cabina y dice lo que hace (lo que no va a la vista, pero está a mano). Dos modos en el mismo popover: los guardados (se abren de un toque) y Personalizar (interruptor «en el dock» + seis esmaltes por módulo). Clic derecho sobre un ícono para lo rápido.
+- **Seis esmaltes fijos**, no un selector de color libre: un color libre rompe la paleta (y la regla de solo tokens); seis esmaltes de tablero se ven bien en las dos paletas. Rojo sigue al acento de la empresa.
+- **Inicio no se oculta** (es el escritorio). Un módulo guardado con su ventana abierta aparece en el dock mientras se usa, como en macOS, para poder volver a él.
+- El recorrido guiado no cambia: si alguien guardó un módulo que el recorrido señala, la tarjeta sale centrada (el recorrido es para la primera vez, con el dock de fábrica).
+
 ## 2026-10-06 · Módulo Notas y notas sin factura (migración 0019)
 
 - **Pedido del usuario**: las notas de crédito/débito como módulo propio, y poder hacerlas **sin factura relacionada** «para otros gastos que ocurran». Desde Ventas › Documentos se siguen haciendo sobre la factura abierta.

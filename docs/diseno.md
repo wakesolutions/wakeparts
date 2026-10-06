@@ -93,6 +93,7 @@ Detalle técnico y API en [`componentes.md`](componentes.md). Lineamientos visua
 - **Formularios largos**: títulos de sección en mono con línea que se desvanece; campos calculados como lectura rayada de instrumento (verde si es positivo).
 
 - **Dock** (`app/inicio/_components/dock.tsx`): los módulos se agregan en el arreglo `MODULOS` (`href`, `nombre`, `icono` SVG propio). Ícono = squircle esmaltado con el gradiente de acento y glifo blanco. Punto bajo el ícono activo. Magnificación leve (×1.08) en hover/focus con `--ease-expo`. Barra y dock no se animan al cargar.
+- **Dock personalizable** (0020): cada usuario guarda módulos en la **guantera** (botón al final del dock, con contador LCD) y elige el **esmalte** de cada ícono: grafito (de fábrica), rojo (acento de la empresa; Inicio), ámbar, verde, azul o marfil. Los esmaltes son tokens `--wp-esmalte-*` iguales en todas las paletas (como las teclas de un tablero); cada uno redefine `--wp-accent`/`--wp-accent-lo` dentro del svg para que los detalles del glifo combinen. Clic derecho sobre un ícono: esmalte, «Guardar en la guantera», «Personalizar el dock…». Al guardarlo, el ícono «cae» hacia la guantera (260 ms); un módulo guardado con su ventana abierta se asoma en el dock con el punto ámbar.
 - **Barra de menú**: marca, perillas de paleta, reloj (hora de Honduras), usuario, botón **Salir** (cerrar sesión; discreto, rojo solo al pasar el mouse).
 - **Instrumento de arranque** (`app/_components/arranque.tsx`): tacómetro SVG generado (0–8 ×1000 rpm, zona roja desde 6.5) + botón con bisel cromado.
 

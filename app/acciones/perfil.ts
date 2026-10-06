@@ -1,5 +1,6 @@
 "use server";
 
+import { normalizarDock, type PreferenciasDock } from "@/lib/dock";
 import { CAMPOS_PERFIL } from "@/lib/perfil";
 import type { ResultadoGuardar, Valores } from "@/lib/recursos/tipos";
 import { validarValores } from "@/lib/recursos/validar";
@@ -68,6 +69,18 @@ export async function marcarRecorrido(visto: boolean) {
   const { error } = await supabase
     .from("usuarios")
     .update({ recorrido_visto_en: visto ? new Date().toISOString() : null })
+    .eq("id", sesion.usuario.id);
+  return { ok: !error };
+}
+
+/** Guarda el dock personalizado del usuario (0020): módulos ocultos y esmalte de los íconos. */
+export async function guardarDock(preferencias: PreferenciasDock) {
+  const sesion = await obtenerSesion();
+  if (!sesion) return { ok: false as const };
+  const supabase = await createClient();
+  const { error } = await supabase
+    .from("usuarios")
+    .update({ dock: normalizarDock(preferencias) })
     .eq("id", sesion.usuario.id);
   return { ok: !error };
 }

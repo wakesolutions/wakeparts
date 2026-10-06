@@ -1759,6 +1759,8 @@ const perfil: Apis["perfil"] = {
   },
   restablecerTablas: async () => ({ ok: true as const }),
   marcarRecorrido: async () => ({ ok: true as const }),
+  // El dock de la demo vive en el navegador (copia local que guarda el propio dock).
+  guardarDock: async () => ({ ok: true as const }),
 };
 
 const cobros: Apis["cobros"] = {

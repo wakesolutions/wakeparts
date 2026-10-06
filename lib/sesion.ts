@@ -1,6 +1,7 @@
 import "server-only";
 import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
+import { normalizarDock, type PreferenciasDock } from "@/lib/dock";
 import { identidadDeFila, type Identidad } from "@/lib/identidad";
 import { paletaValida, type PaletaId } from "@/lib/paletas";
 
@@ -13,6 +14,8 @@ export type Sesion = {
     nombre: string;
     avatar?: string;
     esAdminPlataforma: boolean;
+    /** Dock personalizado (0020). Sin la migración: undefined (el navegador guarda una copia). */
+    dock?: PreferenciasDock;
   };
   /** `identidad`: logo, fondo, color de marca y formato de documentos (0012). */
   empresa: { id: string; nombre: string; paleta: PaletaId; identidad: Identidad } | null;
@@ -63,7 +66,8 @@ export const obtenerSesion = cache(async (): Promise<Sesion | null> => {
   const [{ data: perfil }, { data: membresias }] = await Promise.all([
     supabase
       .from("usuarios")
-      .select("correo, nombre, avatar_url, id_empresa_activa, es_admin_plataforma")
+      // «*»: `dock` llega con la migración 0020; sin ella la consulta no falla.
+      .select("*")
       .eq("id", user.id)
       .maybeSingle(),
     supabase
@@ -90,6 +94,7 @@ export const obtenerSesion = cache(async (): Promise<Sesion | null> => {
         "Usuario",
       avatar: perfil?.avatar_url ?? (user.user_metadata?.avatar_url as string | undefined),
       esAdminPlataforma: Boolean(perfil?.es_admin_plataforma) && correoEsAdminPlataforma(perfil?.correo ?? user.email),
+      dock: perfil && "dock" in perfil ? normalizarDock(perfil.dock) : undefined,
     },
     empresa: activa
       ? {

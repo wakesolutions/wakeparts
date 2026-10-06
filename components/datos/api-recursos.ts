@@ -1,5 +1,5 @@
 import { actualizarEmpresa, cambiarPaletaEmpresa, cargarDatosDemo, leerEmpresa } from "@/app/acciones/empresa";
-import { actualizarPerfil, leerPerfil, marcarRecorrido, restablecerTablas } from "@/app/acciones/perfil";
+import { actualizarPerfil, guardarDock, leerPerfil, marcarRecorrido, restablecerTablas } from "@/app/acciones/perfil";
 import { guardarPreferenciasTabla, leerPreferenciasTabla } from "@/app/acciones/preferencias";
 import { accionConsultar, accionEliminar, accionGuardar, accionLeer, accionOpciones } from "@/app/acciones/recursos";
 
@@ -45,6 +45,7 @@ export type ApiPerfil = {
   actualizar: typeof actualizarPerfil;
   restablecerTablas: typeof restablecerTablas;
   marcarRecorrido: typeof marcarRecorrido;
+  guardarDock: typeof guardarDock;
 };
 
 export const apiPerfil: ApiPerfil = {
@@ -52,4 +53,5 @@ export const apiPerfil: ApiPerfil = {
   actualizar: actualizarPerfil,
   restablecerTablas,
   marcarRecorrido,
+  guardarDock,
 };

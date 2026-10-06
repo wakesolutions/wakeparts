@@ -200,6 +200,13 @@ export default function Manual() {
                   mosaicos a la derecha del dock; un clic las devuelve. <em>Inicio</em> minimiza todo y te deja ver el
                   escritorio.
                 </p>
+                <p>
+                  <strong>Tu dock, a tu gusto</strong>: al final está la <strong>guantera</strong>. Ahí guardás los
+                  módulos que no usás a diario (se abren de un toque desde ella) y, en <strong>Personalizar</strong>,
+                  elegís qué va en el dock y el color de cada ícono: grafito, rojo, ámbar, verde, azul o marfil. También
+                  con clic derecho sobre un ícono. Es solo tuyo: cada persona tiene su dock y te sigue a cualquier
+                  computadora. Guardar un módulo no le quita el permiso a nadie.
+                </p>
               </div>
               <div>
                 <h3 className={styles.subtitulo}>Ventanas</h3>

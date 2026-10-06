@@ -76,8 +76,9 @@ Perfil 1:1 con `auth.users`. Lo crea y actualiza el trigger `wp_sincronizar_usua
 | `id_empresa_activa` | uuid | sí | Empresa con la que trabaja; debe ser miembro |
 | `es_admin_plataforma` | bool | no | Puede editar datos globales. **Solo por SQL/migración.** |
 | `recorrido_visto_en` | timestamptz | sí | (0008) Cuándo terminó o saltó el recorrido guiado. Null = se le muestra al entrar |
+| `dock` | jsonb | no | (0020) Dock personalizado: `{ ocultos: [id de módulo], tonos: { módulo: metal·rojo·ambar·verde·azul·marfil } }`. `{}` = de fábrica. Check: objeto ≤ 4 KB. Lo limpia `normalizarDock()` (`lib/dock.ts`) |
 
-RLS: cada uno se ve a sí mismo y a quienes comparten empresa. Solo puede actualizar `id_empresa_activa`, `nombre`, `telefono` y `recorrido_visto_en` (privilegio por columna).
+RLS: cada uno se ve a sí mismo y a quienes comparten empresa. Solo puede actualizar `id_empresa_activa`, `nombre`, `telefono`, `recorrido_visto_en` y `dock` (privilegio por columna).
 
 Admin de plataforma actual: `miltonbarrientos2@gmail.com` (0010 desmarca a cualquier otro). La app exige además que el correo esté en `ADMINS_PLATAFORMA`. Para agregar otro admin: `update usuarios set es_admin_plataforma = true where correo = …` **y** sumarlo a la variable.
 

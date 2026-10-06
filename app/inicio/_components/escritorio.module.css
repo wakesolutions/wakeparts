@@ -403,10 +403,90 @@
   background: var(--wp-ink-2);
 }
 
-/* Ícono de módulo en metal grafito con glifo rojo */
-.app[data-tono="metal"] .icono {
+/* ------------------------------------------------- esmaltes de íconos ---- */
+/* Cada ícono puede ir en uno de seis esmaltes (0020). Los detalles del glifo
+   usan --wp-accent/-lo: cada esmalte los redefine en el svg para que combinen. */
+
+[data-tono="metal"] > .icono {
   color: var(--wp-accent-hi);
-  background: linear-gradient(180deg, #3a3534, #1d1a1a);
+  background: linear-gradient(180deg, var(--wp-esmalte-grafito-hi), var(--wp-esmalte-grafito-lo));
+}
+
+[data-tono="rojo"] > .icono svg {
+  --wp-accent: var(--wp-on-accent);
+}
+
+[data-tono="ambar"] > .icono {
+  color: var(--wp-esmalte-tinta);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--wp-esmalte-ambar) 72%, var(--wp-esmalte-luz)),
+    var(--wp-esmalte-ambar) 70%
+  );
+}
+
+[data-tono="ambar"] > .icono svg {
+  --wp-accent: var(--wp-esmalte-luz);
+  --wp-accent-lo: color-mix(in oklab, var(--wp-esmalte-ambar) 55%, var(--wp-esmalte-tinta));
+}
+
+[data-tono="verde"] > .icono {
+  color: var(--wp-esmalte-luz);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--wp-esmalte-verde) 78%, var(--wp-esmalte-luz)),
+    var(--wp-esmalte-verde) 70%
+  );
+}
+
+[data-tono="verde"] > .icono svg {
+  --wp-accent: var(--wp-esmalte-ambar);
+  --wp-accent-lo: color-mix(in oklab, var(--wp-esmalte-verde) 45%, var(--wp-esmalte-tinta));
+}
+
+[data-tono="azul"] > .icono {
+  color: var(--wp-esmalte-luz);
+  background: linear-gradient(
+    180deg,
+    color-mix(in oklab, var(--wp-esmalte-azul) 78%, var(--wp-esmalte-luz)),
+    var(--wp-esmalte-azul) 70%
+  );
+}
+
+[data-tono="azul"] > .icono svg {
+  --wp-accent: var(--wp-esmalte-ambar);
+  --wp-accent-lo: color-mix(in oklab, var(--wp-esmalte-azul) 45%, var(--wp-esmalte-tinta));
+}
+
+[data-tono="marfil"] > .icono {
+  color: var(--wp-esmalte-tinta);
+  background: linear-gradient(180deg, var(--wp-esmalte-luz), var(--wp-esmalte-marfil) 70%);
+}
+
+[data-tono="marfil"] > .icono svg {
+  --wp-accent-lo: color-mix(in oklab, var(--wp-esmalte-marfil) 40%, var(--wp-esmalte-tinta));
+}
+
+/* Un ícono que se va a la guantera: baja y se apaga hacia la derecha. */
+.dockItem[data-cayendo] {
+  animation: caerGuantera 260ms var(--ease-expo) forwards;
+  pointer-events: none;
+}
+
+@keyframes caerGuantera {
+  to {
+    opacity: 0;
+    transform: translate3d(14px, 22px, 0) scale(0.55);
+  }
+}
+
+/* Módulo guardado que se asoma mientras su ventana está abierta. */
+.dockItem[data-visitante] .app {
+  opacity: 0.78;
+}
+
+.dockItem[data-visitante] .indicador[data-activo] {
+  background: var(--wp-aviso);
 }
 
 .separador {
@@ -467,4 +547,513 @@
     opacity: 1;
     transform: none;
   }
+}
+
+/* ---------------------------------------------------------------- guantera */
+/* Popover del dock con los módulos guardados y el modo Personalizar (0020).
+   Momento firma: la tapa del ícono bascula al abrirse y los íconos que se
+   guardan «caen» hacia ella. */
+
+.dockMarco {
+  position: relative;
+  pointer-events: auto;
+  max-width: 100%;
+}
+
+.icono {
+  transition:
+    background 320ms var(--ease-expo),
+    color 320ms var(--ease-expo);
+}
+
+.guanteraBoton .icono {
+  color: var(--wp-ink-2);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 -2px 0 var(--wp-bevel-dark),
+    0 0 0 1px var(--wp-line);
+}
+
+.guanteraBoton[aria-expanded="true"] .icono {
+  color: var(--wp-ink);
+}
+
+.guanteraTapa {
+  transform-box: view-box;
+  transform-origin: 24px 32px;
+  transition: transform 340ms var(--ease-expo);
+}
+
+/* Al abrir, la tapa de la guantera bascula hacia abajo. */
+[data-abierta] .guanteraTapa {
+  transform: perspective(60px) rotateX(-38deg);
+}
+
+.guanteraCuenta {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  display: grid;
+  place-items: center;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  border-radius: 9px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 700;
+  color: var(--wp-lcd-ink);
+  background: var(--wp-lcd);
+  box-shadow:
+    0 0 0 1.5px var(--wp-panel),
+    inset 0 1px 2px rgb(0 0 0 / 0.5);
+  text-shadow: 0 0 6px var(--wp-lcd-ink);
+  animation: latido 420ms var(--ease-expo);
+}
+
+@keyframes latido {
+  from {
+    transform: scale(1.45);
+  }
+}
+
+.guantera {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 12px);
+  z-index: 2;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: min(440px, calc(100vw - 16px));
+  max-height: min(560px, calc(100dvh - 120px));
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--wp-panel-2), var(--wp-panel));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px var(--wp-line),
+    var(--wp-sombra-ventana);
+  transform-origin: calc(100% - 28px) calc(100% + 12px);
+  animation: abrirGuantera 340ms var(--ease-expo) both;
+}
+
+/* Pestaña que une la guantera con su botón. */
+.guantera::after {
+  content: "";
+  position: absolute;
+  right: 22px;
+  bottom: -6px;
+  width: 12px;
+  height: 12px;
+  background: var(--wp-panel);
+  box-shadow: 1px 1px 0 var(--wp-line);
+  transform: rotate(45deg);
+}
+
+@keyframes abrirGuantera {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.94);
+  }
+}
+
+@media (max-width: 819px) {
+  .guantera {
+    right: 50%;
+    translate: 50% 0;
+    transform-origin: 50% calc(100% + 12px);
+  }
+
+  .guantera::after {
+    display: none;
+  }
+}
+
+.guanteraCabeza {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1rem 1.1rem 0.75rem;
+  border-bottom: 1px solid var(--wp-line);
+}
+
+.guanteraEtiqueta {
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.guanteraTitulo {
+  margin: 0.1rem 0 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--wp-ink);
+}
+
+/* Contador en LCD, como el odómetro parcial del tablero. */
+.guanteraContador {
+  padding: 0.15rem 0.5rem;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 1.6rem;
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.04em;
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-lcd-ink);
+  background: var(--wp-lcd);
+  box-shadow: inset 0 2px 5px rgb(0 0 0 / 0.55);
+  text-shadow: 0 0 10px color-mix(in oklab, var(--wp-lcd-ink) 60%, transparent);
+}
+
+.guanteraRejilla {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(88px, 1fr));
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0.8rem;
+  overflow-y: auto;
+  list-style: none;
+  overscroll-behavior: contain;
+}
+
+.guanteraRejilla li,
+.guanteraFila {
+  animation: entraFila 300ms var(--ease-expo) both;
+}
+
+@keyframes entraFila {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+}
+
+.guanteraModulo {
+  display: grid;
+  justify-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  padding: 0.7rem 0.3rem 0.6rem;
+  border: 0;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-align: center;
+  color: var(--wp-ink-2);
+  background: none;
+  cursor: pointer;
+  transition:
+    background-color 160ms var(--ease-quart),
+    color 160ms var(--ease-quart);
+}
+
+.guanteraModulo:hover,
+.guanteraModulo:focus-visible {
+  outline: none;
+  color: var(--wp-ink);
+  background: var(--wp-hover);
+}
+
+.guanteraModulo:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--wp-accent);
+}
+
+.guanteraModulo .pastilla {
+  transition: transform 260ms var(--ease-expo);
+}
+
+.guanteraModulo:hover .pastilla {
+  transform: translate3d(0, -2px, 0) scale(1.06);
+}
+
+.pastilla {
+  position: relative;
+  display: block;
+  flex: none;
+  width: 42px;
+  height: 42px;
+}
+
+.pastilla .icono {
+  border-radius: 10px;
+}
+
+.guanteraVacia {
+  margin: 0;
+  padding: 1.2rem 1.1rem;
+  font-size: 0.84rem;
+  line-height: 1.55;
+  color: var(--wp-ink-2);
+}
+
+.guanteraLista {
+  margin: 0;
+  padding: 0.35rem 0;
+  overflow-y: auto;
+  list-style: none;
+  overscroll-behavior: contain;
+}
+
+.guanteraFila {
+  display: grid;
+  grid-template-columns: 32px minmax(0, 1fr) auto auto;
+  grid-template-areas: "icono nombre esmaltes interruptor";
+  align-items: center;
+  gap: 0.4rem 0.7rem;
+  padding: 0.45rem 1.1rem;
+}
+
+.guanteraFila + .guanteraFila {
+  border-top: 1px solid var(--wp-line);
+}
+
+.guanteraFila .pastilla {
+  grid-area: icono;
+  width: 32px;
+  height: 32px;
+}
+
+.guanteraFila .pastilla .icono {
+  border-radius: 8px;
+}
+
+.guanteraFila .esmaltes {
+  grid-area: esmaltes;
+}
+
+.guanteraFila .interruptor {
+  grid-area: interruptor;
+}
+
+.guanteraNombre {
+  grid-area: nombre;
+  overflow: hidden;
+  font-size: 0.84rem;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--wp-ink);
+}
+
+@media (max-width: 480px) {
+  .guanteraFila {
+    grid-template-columns: 32px minmax(0, 1fr) auto;
+    grid-template-areas:
+      "icono nombre interruptor"
+      "icono esmaltes esmaltes";
+  }
+}
+
+.guanteraPie {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.4rem;
+  padding: 0.7rem 0.9rem;
+  border-top: 1px solid var(--wp-line);
+}
+
+/* Esmaltes: seis perillas pintadas. */
+.esmaltes {
+  display: flex;
+  gap: 5px;
+}
+
+.esmalte {
+  position: relative;
+  width: 20px;
+  height: 20px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  cursor: pointer;
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px var(--wp-line),
+    0 1px 3px var(--wp-bevel-dark);
+  transition:
+    transform 200ms var(--ease-expo),
+    box-shadow 200ms var(--ease-quart);
+}
+
+.esmalte:hover {
+  transform: scale(1.12);
+}
+
+.esmalte[data-tono="metal"] {
+  background: linear-gradient(180deg, var(--wp-esmalte-grafito-hi), var(--wp-esmalte-grafito-lo));
+  /* Sobre un panel oscuro, el grafito necesita un borde para verse. */
+  outline: 1px solid var(--wp-ink-3);
+  outline-offset: -1px;
+}
+
+/* En pantallas táctiles, perillas al tamaño del dedo. */
+@media (pointer: coarse) {
+  .esmaltes {
+    gap: 8px;
+  }
+
+  .esmalte {
+    width: 26px;
+    height: 26px;
+  }
+
+  .esmalte[aria-checked="true"]::after {
+    inset: 9px;
+  }
+}
+
+.esmalte[data-tono="rojo"] {
+  background: linear-gradient(180deg, var(--wp-accent-hi), var(--wp-accent));
+}
+
+.esmalte[data-tono="ambar"] {
+  background: var(--wp-esmalte-ambar);
+}
+
+.esmalte[data-tono="verde"] {
+  background: var(--wp-esmalte-verde);
+}
+
+.esmalte[data-tono="azul"] {
+  background: var(--wp-esmalte-azul);
+}
+
+.esmalte[data-tono="marfil"] {
+  background: var(--wp-esmalte-marfil);
+}
+
+/* El elegido lleva un aro y un LED al centro. */
+.esmalte[aria-checked="true"] {
+  box-shadow:
+    0 0 0 2px var(--wp-panel),
+    0 0 0 3.5px var(--wp-ink-2);
+}
+
+.esmalte[aria-checked="true"]::after {
+  content: "";
+  position: absolute;
+  inset: 7px;
+  border-radius: 50%;
+  background: var(--wp-esmalte-luz);
+  box-shadow: 0 0 6px var(--wp-esmalte-luz);
+}
+
+.esmalte[data-tono="marfil"][aria-checked="true"]::after {
+  background: var(--wp-esmalte-tinta);
+  box-shadow: none;
+}
+
+.esmalte:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 3px;
+}
+
+/* Interruptor basculante «en el dock», con LED verde encendido. */
+.interruptor {
+  position: relative;
+  flex: none;
+  width: 40px;
+  height: 22px;
+  padding: 0;
+  border: 0;
+  border-radius: 11px;
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 1px 3px var(--wp-bevel-dark),
+    inset 0 0 0 1px var(--wp-line);
+  cursor: pointer;
+  transition: background-color 220ms var(--ease-quart);
+}
+
+.interruptor[aria-checked="true"] {
+  background: color-mix(in oklab, var(--wp-ok) 30%, var(--wp-field));
+}
+
+.interruptorPalanca {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 1px 3px var(--wp-bevel-dark);
+  transition: transform 260ms var(--ease-expo);
+}
+
+.interruptor[aria-checked="true"] .interruptorPalanca {
+  transform: translate3d(18px, 0, 0);
+}
+
+.interruptor[aria-checked="true"] .interruptorPalanca::after {
+  content: "";
+  position: absolute;
+  inset: 5px;
+  border-radius: 50%;
+  background: var(--wp-ok);
+  box-shadow: 0 0 6px var(--wp-ok);
+}
+
+.interruptor:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.interruptor:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 2px;
+}
+
+/* Menú del clic derecho, anclado al ícono. */
+.menuIcono {
+  position: absolute;
+  left: clamp(110px, var(--x), calc(100% - 110px));
+  bottom: calc(100% + 12px);
+  z-index: 2;
+  display: grid;
+  gap: 0.55rem;
+  width: 220px;
+  padding: 0.75rem 0.75rem 0.5rem;
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--wp-panel-2), var(--wp-panel));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px var(--wp-line),
+    var(--wp-sombra-ventana);
+  translate: -50% 0;
+  transform-origin: 50% 100%;
+  animation: abrirGuantera 260ms var(--ease-expo) both;
+}
+
+.menuAcciones {
+  display: grid;
+  margin: 0 -0.35rem;
+  padding-top: 0.35rem;
+  border-top: 1px solid var(--wp-line);
+}
+
+.menuAcciones button {
+  padding: 0.45rem 0.5rem;
+  border: 0;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  text-align: left;
+  color: var(--wp-ink);
+  background: none;
+  cursor: pointer;
+}
+
+.menuAcciones button:hover,
+.menuAcciones button:focus-visible {
+  outline: none;
+  background: var(--wp-hover);
 }

@@ -106,6 +106,18 @@
   --wp-papel-tinta: #1b1614;
   --wp-papel-tinta-2: #6b625c;
   --wp-papel-linea: rgb(40 30 25 / 0.14);
+
+  /* Esmaltes de los íconos del dock (0020): iguales en todas las paletas, como
+     las teclas de un tablero. El rojo sigue al acento de la empresa. */
+  --wp-esmalte-grafito-hi: #3a3534;
+  --wp-esmalte-grafito-lo: #1d1a1a;
+  --wp-esmalte-ambar: #e8a23a;
+  --wp-esmalte-verde: #2f9d62;
+  --wp-esmalte-azul: #2d6cb0;
+  --wp-esmalte-marfil: #efe8dc;
+  /* Tinta oscura para glifos sobre esmaltes claros. */
+  --wp-esmalte-tinta: #1d1512;
+  --wp-esmalte-luz: #fff8ef;
 }
 
 @theme inline {
