@@ -1,0 +1,885 @@
+/* Contabilidad (0022). Momento firma: el nivel de burbuja que se centra (y se
+   enciende) cuando el debe y el haber cuadran. El libro diario se ve como
+   uno de papel: el debe a la izquierda y el haber sangrado. */
+
+.etiqueta {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.ayuda {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--wp-ink-3);
+}
+
+.ayuda[data-mal] {
+  color: var(--wp-accent-hi);
+}
+
+.error {
+  margin: 0;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: var(--wp-ink);
+  background: var(--wp-sel);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-accent-hi) 45%, transparent);
+}
+
+.vacio {
+  margin: 1.2rem;
+  padding: 1rem 1.1rem;
+  border-radius: 12px;
+  font-size: 0.84rem;
+  color: var(--wp-ink-2);
+  background: var(--wp-hover);
+}
+
+.cargando {
+  height: 200px;
+  margin: 1.2rem;
+  border-radius: 12px;
+  background: linear-gradient(90deg, var(--wp-hover), color-mix(in oklab, var(--wp-hover) 40%, transparent), var(--wp-hover));
+  background-size: 200% 100%;
+  animation: brillo 1400ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+.campo {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.monto {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+/* ------------------------------------------------------------------ nivel */
+
+.nivel {
+  display: grid;
+  grid-template-columns: auto minmax(6rem, 1fr) auto;
+  grid-template-areas:
+    "debe tubo haber"
+    "lectura lectura lectura";
+  align-items: center;
+  gap: 0.35rem 1rem;
+  padding: 0.75rem 1rem 0.6rem;
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--wp-panel-2), var(--wp-panel));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 0 0 1px var(--wp-line);
+}
+
+.nivel[data-compacto] {
+  padding: 0.5rem 0.8rem 0.4rem;
+}
+
+.nivelLado {
+  display: grid;
+  gap: 0.1rem;
+  grid-area: debe;
+}
+
+.nivelLado[data-lado="haber"] {
+  grid-area: haber;
+  text-align: right;
+}
+
+.nivelLado strong {
+  font-family: var(--font-mono);
+  font-size: 1.05rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  color: var(--wp-ink);
+}
+
+.nivelLado .etiqueta {
+  white-space: nowrap;
+}
+
+/* El tubo de vidrio con líquido verde-ámbar y la burbuja de aire. */
+.tubo {
+  grid-area: tubo;
+  position: relative;
+  height: 26px;
+  border-radius: 13px;
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--wp-aviso) 30%, transparent), color-mix(in oklab, var(--wp-aviso) 12%, transparent)),
+    var(--wp-field);
+  box-shadow:
+    inset 0 2px 4px var(--wp-bevel-dark),
+    inset 0 -1px 0 var(--wp-bevel-light),
+    0 0 0 1px var(--wp-line);
+  transition: background 400ms var(--ease-expo);
+}
+
+.nivel[data-cuadra] .tubo {
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--wp-ok) 34%, transparent), color-mix(in oklab, var(--wp-ok) 14%, transparent)),
+    var(--wp-field);
+}
+
+.marcaIzq,
+.marcaDer {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  width: 2px;
+  border-radius: 1px;
+  background: var(--wp-ink-3);
+  z-index: 2;
+}
+
+.marcaIzq {
+  left: calc(50% - 22px);
+}
+
+.marcaDer {
+  left: calc(50% + 20px);
+}
+
+.burbuja {
+  position: absolute;
+  top: 4px;
+  left: calc(50% - 17px);
+  width: 34px;
+  height: 18px;
+  border-radius: 9px;
+  background: radial-gradient(ellipse at 40% 30%, var(--wp-esmalte-luz), color-mix(in oklab, var(--wp-esmalte-luz) 50%, transparent) 70%);
+  box-shadow: inset 0 -2px 4px color-mix(in oklab, var(--wp-aviso) 40%, transparent);
+  /* Se corre medio tubo como máximo (el tubo es su contenedor). */
+  transform: translate3d(calc(var(--corrimiento) * (50cqw - 20px)), 0, 0);
+  transition: transform 700ms var(--ease-expo);
+}
+
+.tubo {
+  container-type: inline-size;
+}
+
+/* Sin movimientos: vidrio neutro, sin brillo. */
+.nivel[data-vacio] .tubo {
+  background: var(--wp-field);
+}
+
+.nivel[data-vacio] .burbuja {
+  opacity: 0.55;
+  box-shadow: none !important;
+}
+
+.nivel[data-cuadra] .burbuja {
+  box-shadow:
+    inset 0 -2px 4px color-mix(in oklab, var(--wp-ok) 40%, transparent),
+    0 0 12px color-mix(in oklab, var(--wp-ok) 70%, transparent);
+}
+
+.nivelLectura {
+  grid-area: lectura;
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.18em;
+  text-align: center;
+  text-transform: uppercase;
+  color: var(--wp-aviso);
+}
+
+.nivel[data-cuadra] .nivelLectura {
+  color: var(--wp-ok);
+}
+
+.nivel[data-vacio] .nivelLectura {
+  color: var(--wp-ink-3);
+}
+
+/* -------------------------------------------------------------- libro día */
+
+.dia {
+  container-type: inline-size;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  font-size: 0.86rem;
+  background: var(--wp-bg-deep);
+}
+
+.diaCabecera {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: grid;
+  gap: 0.7rem;
+  padding: 1rem 1.2rem;
+  border-bottom: 1px solid var(--wp-line);
+  background: linear-gradient(180deg, var(--wp-panel), var(--wp-panel-2));
+  box-shadow: inset 0 1px 0 var(--wp-bevel-light);
+}
+
+@container (min-width: 820px) {
+  .diaCabecera {
+    grid-template-columns: auto minmax(0, 1fr) minmax(24rem, auto);
+    align-items: center;
+  }
+}
+
+.calendario {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.4rem;
+}
+
+.calendario label {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.fechaLarga {
+  margin: 0;
+  font-size: 1.05rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--wp-ink);
+}
+
+.fechaLarga::first-letter {
+  text-transform: uppercase;
+}
+
+.cerrado {
+  margin-left: 0.6rem;
+  padding: 0.05rem 0.5rem;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  color: var(--wp-aviso);
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+
+.libro {
+  display: grid;
+  align-content: start;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 1rem 1.2rem 1.4rem;
+  list-style: none;
+}
+
+.libro li {
+  animation: entra 300ms var(--ease-expo) both;
+}
+
+.asiento {
+  display: grid;
+  gap: 0.45rem;
+  width: 100%;
+  padding: 0.75rem 0.9rem;
+  border: 0;
+  border-radius: 12px;
+  font: inherit;
+  text-align: left;
+  color: var(--wp-ink);
+  background: var(--wp-panel);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  cursor: pointer;
+  transition:
+    box-shadow 180ms var(--ease-quart),
+    transform 180ms var(--ease-expo);
+}
+
+.asiento:not([data-estatico]):hover {
+  box-shadow:
+    inset 0 0 0 1px color-mix(in oklab, var(--wp-accent) 45%, var(--wp-line)),
+    0 6px 16px -10px var(--wp-bevel-dark);
+  transform: translate3d(0, -1px, 0);
+}
+
+.asiento:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 2px;
+}
+
+.asiento[data-estatico] {
+  cursor: default;
+}
+
+.asiento[data-revertido] {
+  opacity: 0.6;
+}
+
+.asientoCabeza {
+  display: flex;
+  align-items: baseline;
+  gap: 0.6rem;
+  min-width: 0;
+}
+
+.asientoNumero {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--wp-ink-3);
+}
+
+.asientoConcepto {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  font-weight: 600;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.origen {
+  flex: none;
+  padding: 0.05rem 0.45rem;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.56rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--wp-ink-2);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.origen[data-origen="manual"] {
+  color: var(--wp-aviso);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-aviso) 50%, transparent);
+}
+
+.partidas {
+  display: grid;
+  gap: 0.15rem;
+  padding: 0.35rem 0;
+  border-top: 1px dashed var(--wp-line);
+  border-bottom: 1px dashed var(--wp-line);
+}
+
+.partida {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 7.5rem 7.5rem;
+  gap: 0.8rem;
+  font-size: 0.8rem;
+}
+
+/* El haber va sangrado, como en el libro de papel. */
+.partida[data-lado="haber"] .partidaCuenta {
+  padding-left: 1.6rem;
+  color: var(--wp-ink-2);
+}
+
+.partidaCuenta {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.partidaCuenta b {
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--wp-ink-3);
+}
+
+.partidaCuenta small {
+  color: var(--wp-ink-3);
+}
+
+.asientoPie {
+  display: flex;
+  justify-content: space-between;
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  color: var(--wp-ink-3);
+}
+
+@container (max-width: 520px) {
+  .partida {
+    grid-template-columns: minmax(0, 1fr) 6rem;
+  }
+
+  .partida[data-lado="debe"] .monto:last-child,
+  .partida[data-lado="haber"] .monto:nth-child(2) {
+    display: none;
+  }
+}
+
+.vista {
+  display: grid;
+  align-content: start;
+  gap: 0.8rem;
+  height: 100%;
+  overflow-y: auto;
+  padding: 1rem 1.2rem 1.4rem;
+  font-size: 0.86rem;
+  container-type: inline-size;
+}
+
+.revertir {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.4rem;
+}
+
+/* ----------------------------------------------------------------- editor */
+
+.editor {
+  container-type: inline-size;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  height: 100%;
+  min-height: 0;
+  font-size: 0.86rem;
+  background: var(--wp-bg-deep);
+}
+
+.editorCabecera {
+  display: grid;
+  grid-template-columns: 11rem minmax(0, 1fr);
+  gap: 0.8rem;
+  padding: 1rem 1.2rem 0.9rem;
+  border-bottom: 1px solid var(--wp-line);
+  background: linear-gradient(180deg, var(--wp-panel), var(--wp-panel-2));
+}
+
+.editorCuerpo {
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.8rem 1.2rem 1rem;
+}
+
+.renglonTitulos,
+.renglones li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 8rem 8rem 2.2rem;
+  gap: 0.45rem;
+  align-items: center;
+}
+
+.renglonTitulos {
+  padding: 0 0 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.renglonTitulos span:nth-child(2),
+.renglonTitulos span:nth-child(3) {
+  text-align: right;
+}
+
+.renglones {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: 12px;
+  background: var(--wp-panel);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.renglones li {
+  padding: 0.55rem 0.6rem;
+  animation: entra 240ms var(--ease-expo) both;
+}
+
+.renglones li + li {
+  border-top: 1px solid var(--wp-line);
+}
+
+.detalle {
+  grid-column: 1 / -2;
+  height: 30px;
+  font-size: 0.78rem;
+}
+
+.importe {
+  text-align: right;
+}
+
+.renglonAcciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  padding-top: 0.6rem;
+}
+
+.otraLinea {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.1rem 0;
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+  background: none;
+  cursor: pointer;
+}
+
+.otraLinea:hover:not(:disabled) {
+  color: var(--wp-accent-hi);
+}
+
+.editorPie {
+  display: grid;
+  gap: 0.6rem;
+  padding: 0.9rem 1.2rem 1.1rem;
+  border-top: 1px solid var(--wp-line);
+  background: linear-gradient(180deg, var(--wp-panel-2), var(--wp-panel));
+}
+
+.editorPie > button {
+  justify-self: end;
+  min-width: 12rem;
+}
+
+.elegirCuenta {
+  position: relative;
+  min-width: 0;
+}
+
+.cuentaElegida {
+  display: block;
+  width: 100%;
+  min-height: 36px;
+  padding: 0 0.7rem;
+  overflow: hidden;
+  border: 0;
+  border-radius: 9px;
+  font: inherit;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--wp-ink);
+  background: var(--wp-hover);
+  cursor: pointer;
+}
+
+.cuentaElegida b {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--wp-ink-3);
+}
+
+.cuentaElegida:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 1px;
+}
+
+.cuentasLista {
+  position: absolute;
+  inset: calc(100% + 4px) 0 auto;
+  z-index: 5;
+  display: grid;
+  max-height: 280px;
+  margin: 0;
+  padding: 4px;
+  overflow-y: auto;
+  list-style: none;
+  border-radius: 12px;
+  background: var(--wp-panel);
+  box-shadow:
+    0 0 0 1px var(--wp-line),
+    var(--wp-sombra-ventana);
+}
+
+.cuentasLista button {
+  display: grid;
+  grid-template-columns: 4.5rem minmax(0, 1fr) auto;
+  gap: 0.6rem;
+  width: 100%;
+  padding: 0.4rem 0.5rem;
+  border: 0;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 0.8rem;
+  text-align: left;
+  color: var(--wp-ink);
+  background: none;
+  cursor: pointer;
+}
+
+.cuentasLista button[aria-selected="true"] {
+  background: var(--wp-hover);
+}
+
+.cuentasLista b {
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--wp-ink-3);
+}
+
+.cuentasLista small {
+  font-size: 0.66rem;
+  color: var(--wp-ink-3);
+}
+
+/* --------------------------------------------------------------- reportes */
+
+.reporte {
+  container-type: inline-size;
+  display: grid;
+  align-content: start;
+  gap: 0.9rem;
+  height: 100%;
+  overflow-y: auto;
+  padding: 1rem 1.2rem 1.4rem;
+  font-size: 0.86rem;
+}
+
+.reporteCabecera {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.periodo {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.periodo .campo:first-child {
+  min-width: 11rem;
+}
+
+.conCero {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.78rem;
+  color: var(--wp-ink-2);
+}
+
+.tablaScroll {
+  overflow-x: auto;
+  border-radius: 12px;
+  background: var(--wp-panel);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+}
+
+.tabla th,
+.tabla td {
+  padding: 0.42rem 0.6rem;
+  border-bottom: 1px solid var(--wp-line);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tabla thead th {
+  position: sticky;
+  top: 0;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+  background: var(--wp-panel);
+}
+
+.tabla tbody th {
+  font-weight: 400;
+}
+
+.tabla th b {
+  margin-right: 0.35rem;
+  font-family: var(--font-mono);
+  font-weight: 500;
+  color: var(--wp-ink-3);
+}
+
+.tabla [data-num] {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.tabla [data-negativo] {
+  color: var(--wp-accent-hi);
+}
+
+.tabla tr[data-grupo] th,
+.tabla tr[data-grupo] td {
+  font-weight: 700;
+  color: var(--wp-ink);
+}
+
+.tabla tr[data-nivel="0"] th,
+.tabla tr[data-nivel="0"] td {
+  background: var(--wp-hover);
+}
+
+.tabla tfoot th,
+.tabla tfoot td {
+  font-weight: 700;
+  border-bottom: 0;
+}
+
+.estado {
+  display: grid;
+  gap: 0.7rem;
+  max-width: 34rem;
+}
+
+.estado dl {
+  display: grid;
+  margin: 0;
+  padding: 0.6rem 1rem;
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--wp-panel-2), var(--wp-panel));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 0 0 1px var(--wp-line);
+}
+
+.estado dl div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.5rem 0;
+  color: var(--wp-ink-2);
+}
+
+.estado dl div + div {
+  border-top: 1px solid var(--wp-line);
+}
+
+.estado dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ink);
+}
+
+.estado [data-tono="total"] {
+  font-weight: 700;
+  color: var(--wp-ink);
+}
+
+.estado [data-tono="total"] dd {
+  font-size: 1.05rem;
+}
+
+.estado [data-negativo] {
+  color: var(--wp-accent-hi);
+}
+
+/* ----------------------------------------------------------------- cierre */
+
+.meses {
+  display: grid;
+  margin: 0.4rem 0 0.6rem;
+  padding: 0;
+  list-style: none;
+  border-radius: 12px;
+  background: var(--wp-panel);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.meses li {
+  display: grid;
+  grid-template-columns: 1.2rem minmax(9rem, 1fr) minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.7rem;
+  min-height: 46px;
+  padding: 0.35rem 0.8rem;
+}
+
+.meses li + li {
+  border-top: 1px solid var(--wp-line);
+}
+
+.mesNombre {
+  font-weight: 600;
+}
+
+.mesNombre::first-letter {
+  text-transform: uppercase;
+}
+
+/* Candado: un LED que se enciende ámbar en los meses cerrados. */
+.candado {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--wp-ink-3) 40%, transparent);
+  box-shadow: inset 0 1px 1px var(--wp-bevel-dark);
+}
+
+.meses li[data-cerrado] .candado {
+  background: var(--wp-aviso);
+  box-shadow: 0 0 8px var(--wp-aviso);
+}
+
+.herramientas {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.herramientas > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem 1rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: 12px;
+  background: var(--wp-hover);
+}
+
+.herramientas p {
+  flex: 1 1 22rem;
+  margin: 0;
+  font-size: 0.82rem;
+  color: var(--wp-ink-2);
+}
+
+.herramientas strong {
+  color: var(--wp-ink);
+}
+
+@keyframes entra {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+}
+
+@keyframes brillo {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}

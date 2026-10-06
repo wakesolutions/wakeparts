@@ -1,5 +1,7 @@
 import * as caja from "./caja";
 import * as catalogo from "./catalogo";
+import * as compras from "./compras";
+import * as contabilidad from "./contabilidad";
 import * as equipo from "./equipo";
 import * as inventario from "./inventario";
 import * as plataforma from "./plataforma";
@@ -35,6 +37,12 @@ export const RECURSOS: Record<string, DefRecurso> = Object.fromEntries(
     ventas.cuentasClientes,
     ventas.pagos,
     caja.cajasTurnos,
+    compras.proveedores,
+    compras.compras,
+    compras.cuentasProveedores,
+    compras.pagosProveedores,
+    contabilidad.cuentasContables,
+    contabilidad.asientos,
     registro.actividad,
     registro.actividadPlataforma,
     plataforma.seguimiento,

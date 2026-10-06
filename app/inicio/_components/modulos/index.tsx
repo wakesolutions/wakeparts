@@ -5,6 +5,8 @@ import type { Sesion } from "@/lib/sesion";
 import {
   IconoActividad,
   IconoCaja,
+  IconoCompras,
+  IconoContabilidad,
   IconoEquipo,
   IconoInicio,
   IconoInventario,
@@ -20,6 +22,8 @@ import {
 } from "./iconos-modulos";
 import { ModuloActividad } from "./actividad";
 import { ModuloCaja } from "./caja";
+import { ModuloCompras } from "./compras";
+import { ModuloContabilidad } from "./contabilidad";
 import { ModuloCotizar } from "./cotizar";
 import { ModuloInventario } from "./inventario";
 import { ModuloMiUsuario } from "./mi-usuario";
@@ -66,6 +70,15 @@ export const MODULOS: ModuloEscritorio[] = [
     tamano: { w: 1240, h: 760 },
   },
   {
+    // Facturas de proveedores, gastos y cuentas por pagar (0021). Solo dueño/admin.
+    id: "compras",
+    nombre: "Compras",
+    icono: <IconoCompras />,
+    componente: ModuloCompras,
+    tamano: { w: 1240, h: 800 },
+    visible: administra,
+  },
+  {
     // Alta de productos desde el teléfono (foto + lo mínimo), para cargar el inventario inicial.
     id: "toma",
     nombre: "Toma rápida",
@@ -88,6 +101,15 @@ export const MODULOS: ModuloEscritorio[] = [
     icono: <IconoNotas />,
     componente: ModuloNotas,
     tamano: { w: 1120, h: 800 },
+    visible: administra,
+  },
+  {
+    // Libro diario, asientos, balanza, mayor, catálogo y cierre de mes (0022). Solo dueño/admin.
+    id: "contabilidad",
+    nombre: "Contabilidad",
+    icono: <IconoContabilidad />,
+    componente: ModuloContabilidad,
+    tamano: { w: 1240, h: 820 },
     visible: administra,
   },
   {

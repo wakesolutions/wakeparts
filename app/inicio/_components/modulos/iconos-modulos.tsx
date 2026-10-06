@@ -206,3 +206,28 @@ export function IconoNotas() {
     </svg>
   );
 }
+
+export function IconoCompras() {
+  // Caja de cartón entrando con una flecha: mercadería que se recibe
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <path d="M10 18 24 11l14 7v17l-14 7-14-7z" fill="currentColor" />
+      <path d="M10 18l14 7 14-7M24 25v17" fill="none" stroke="var(--wp-accent-lo)" strokeWidth="2" strokeLinejoin="round" />
+      <path d="m17 14.5 14 7v5" fill="none" stroke="var(--wp-accent-lo)" strokeWidth="1.8" strokeLinejoin="round" opacity="0.7" />
+      <path d="M33 34h9m0 0-3.5-3.5M42 34l-3.5 3.5" fill="none" stroke="var(--wp-accent)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
+    </svg>
+  );
+}
+
+export function IconoContabilidad() {
+  // Libro mayor abierto con un nivel de burbuja: debe y haber en equilibrio
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <path d="M24 12c-4-2.6-9.5-3.2-15-2.4V36c5.5-.8 11 0 15 2.4 4-2.4 9.5-3.2 15-2.4V9.6c-5.5-.8-11-.2-15 2.4z" fill="currentColor" />
+      <path d="M24 12v26.4" stroke="var(--wp-accent-lo)" strokeWidth="1.8" />
+      <path d="M13 17h6M13 21h7M29 17h6M28 21h7" stroke="var(--wp-accent-lo)" strokeWidth="1.8" strokeLinecap="round" />
+      <rect x="13" y="27" width="22" height="6" rx="3" fill="var(--wp-accent-lo)" />
+      <rect x="21.5" y="28.4" width="5" height="3.2" rx="1.6" fill="var(--wp-accent)" />
+    </svg>
+  );
+}

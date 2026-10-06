@@ -353,6 +353,37 @@ Totales: `bruto = cantidad·precio`; `neto = bruto·(1 − desc. línea)·(1 −
 | `v_cajas_turnos` | Turnos con punto, quién abrió/cerró, esperado (vivo si está abierta), cobrado, ventas, `propio`, `descuadre`. |
 | `v_caja_movimientos` | Todo lo del turno en orden: ventas, ventas al crédito, devoluciones, cargos, abonos, entradas y salidas; `monto` con signo y `en_caja`. |
 
+## Compras y proveedores (0021)
+
+| Tabla / función | Qué es |
+|---|---|
+| `proveedores` | Por empresa: `nombre` (MAYÚSCULAS), `rtn` (14 dígitos, único por empresa), `telefono`, `correo`, `direccion`, `contacto`, `dias_credito` (0–365), `notas`, `activo`. Lectura miembros; escritura dueño/admin. `v_proveedores` + `compras`, `ultima_compra`, `saldo`. |
+| `compras` | `numero` `COMP-000001` (correlativo `compra`), `tipo` (`inventario` · `gasto`), proveedor (copia de nombre y RTN), `documento` (factura del proveedor, única por proveedor entre las vigentes), `cai_proveedor`, `fecha` (date), `condicion` (crédito ⇔ `vence`; contado ⇔ `forma_pago`), `referencia_pago`, `subtotal`, `importe_exento`, `importe_gravado`, `isv`, `total`, `notas`, `estado` y anulación, `id_turno` (solo efectivo desde la caja). Solo lectura (dueño/admin; el cajero ve las de su turno). |
+| `compras_lineas` | `id_producto` (null en gastos), `codigo`, `descripcion`, `cantidad`, `costo` (sin ISV), `exento`, `total`. |
+| `pagos_proveedores` + `pagos_proveedores_aplicaciones` | Pago `PAG-000001` (correlativo `pago_proveedor`) y su reparto entre compras. `id_turno` si salió de la caja. |
+| `registrar_compra(empresa, compra jsonb)` | Dueño/admin. Inventario: existencias + costo promedio (kardex «compra»). ISV dado ≤ 18 % de lo gravado. |
+| `anular_compra(compra, motivo)` | Sin pagos vigentes; saca existencias (kardex «anulacion»). |
+| `registrar_pago_proveedor(proveedor, monto, forma, referencia?, notas?, aplicaciones?, de_caja?)` / `anular_pago_proveedor` | Dueño/admin; reparto elegido o por vencimiento; no más de lo pendiente. |
+| `v_cuentas_pagar`, `v_cuentas_proveedores`, `v_compras`, `v_pagos_proveedores`, `v_pagos_proveedores_aplicaciones` | Por compra (pendiente, días vencida, estado), por proveedor, listados. |
+| `resumen_turno`, `v_caja_movimientos` | `formas[].pagos` y `pagos` (cantidad): compras y pagos desde la caja restan del neto; movimientos `compra` y `pago_proveedor`. |
+
+## Contabilidad (0022)
+
+| Tabla / función | Qué es |
+|---|---|
+| `cuentas_contables` | Por empresa: `codigo` (solo dígitos, único), `nombre`, `tipo` (`activo` · `pasivo` · `patrimonio` · `ingreso` · `costo` · `gasto`), `naturaleza` (`deudora` · `acreedora`; por defecto según el tipo), `id_padre` (árbol, sin ciclos), `clave` (cuenta del sistema, única por empresa), `activo`. Dueño/admin. `v_cuentas_contables` + `padre`, `es_grupo`, `etiqueta`, `saldo`. |
+| `asientos` | `numero` (correlativo `asiento`), `fecha`, `concepto`, `origen` (`manual` · `factura` · `nota_credito` · `nota_debito` · `abono` · `compra` · `pago_proveedor` · `caja_entrada` · `caja_salida` · `cierre_caja` · `apertura_inventario`), `id_origen` (único por origen entre los no-reversa), `referencia`, `id_revierte` / `revertido_por`. Solo lectura (dueño/admin). |
+| `asientos_lineas` | `id_cuenta`, `debe` o `haber` (uno solo > 0), `descripcion`, `orden`. Trigger diferido `zz_cuadre`: cada asiento cuadra y tiene ≥ 2 líneas. |
+| `periodos_cerrados` | `(id_empresa, mes)`; trigger `a_periodo_abierto` en `asientos`. |
+| Triggers `zz_contabilizar` (diferidos) | En `documentos`, `pagos`, `compras`, `pagos_proveedores` (insert y anulación), `cajas_movimientos` (insert) y `cajas_turnos` (cierre). `zz_catalogo_contable` en `empresas` precarga el catálogo. |
+| `crear_catalogo_base(empresa)` | (interna) Agrega el catálogo estándar que falte y pone las claves. |
+| `asentar(…)`, `revertir_origen(…)`, `cuenta_por_clave(…)`, `contabilizar_*` | (internas) Arman los asientos automáticos. |
+| `crear_asiento(empresa, fecha, concepto, lineas)` / `revertir_asiento(asiento, motivo)` | Dueño/admin; manual cuadrado en cuentas de detalle; reversa solo de manuales. |
+| `cerrar_periodo(empresa, mes)` / `reabrir_periodo` | Meses terminados; reabre solo el dueño. |
+| `contabilizar_pendientes(empresa)` / `asiento_apertura_inventario(empresa, fecha)` | Arranque: lo anterior a 0022 y el inventario inicial contra Capital. |
+| `balanza(empresa, desde, hasta)` / `mayor(empresa, cuenta, desde, hasta)` | Saldos por cuenta (inicial, debe, haber, final según naturaleza) y movimientos con saldo corrido. |
+| `v_asientos`, `v_asientos_lineas` | Listado (total, líneas, reversa/revertido) y líneas con código y nombre de cuenta. |
+
 ## Notas sin factura (0019)
 
 | Cambio | Qué es |

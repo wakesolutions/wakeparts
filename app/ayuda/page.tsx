@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   IconoCaja,
+  IconoCompras,
+  IconoContabilidad,
   IconoActividad,
   IconoEquipo,
   IconoInicio,
@@ -33,7 +35,7 @@ const CAPITULOS: EntradaIndice[] = [
   { id: "mostrador", numero: "03", titulo: "Cotizar y facturar" },
   { id: "inventario", numero: "04", titulo: "Inventario" },
   { id: "tablas", numero: "05", titulo: "Tablas y formularios" },
-  { id: "ventas", numero: "06", titulo: "Ventas, caja y CAI" },
+  { id: "ventas", numero: "06", titulo: "Ventas, compras y contabilidad" },
   { id: "taller", numero: "07", titulo: "Taller, sitio web y Mi usuario" },
   { id: "equipo", numero: "08", titulo: "Usuarios y roles" },
   { id: "mantenimiento", numero: "09", titulo: "Mantenimiento" },
@@ -58,6 +60,9 @@ const PERMISOS: [string, boolean, boolean, boolean][] = [
   ["Abrir caja, registrar entradas y salidas", true, true, true],
   ["Cerrar la caja que abrió otra persona", true, true, false],
   ["Exigir la caja abierta para facturar", true, true, false],
+  ["Registrar compras, proveedores y pagos a proveedores", true, true, false],
+  ["Ver la contabilidad, hacer asientos y cerrar meses", true, true, false],
+  ["Reabrir un mes cerrado", true, false, false],
   ["Exportar todos los datos de la empresa", true, true, false],
   ["Registrar CAI y puntos de emisión", true, true, false],
   ["Editar el taller, su apariencia y el formato de factura", true, true, false],
@@ -177,7 +182,9 @@ export default function Manual() {
               <IconoDock icono={<IconoMostrador />} nombre="Cotizar" />
               <IconoDock icono={<IconoCaja />} nombre="Caja" />
               <IconoDock icono={<IconoInventario />} nombre="Inventario" />
+              <IconoDock icono={<IconoCompras />} nombre="Compras" />
               <IconoDock icono={<IconoVentas />} nombre="Ventas" />
+              <IconoDock icono={<IconoContabilidad />} nombre="Contab." />
               <IconoDock icono={<IconoNotas />} nombre="Notas" />
               <IconoDock icono={<IconoSitio />} nombre="Sitio web" />
               <IconoDock icono={<IconoLlave />} nombre="Mantenim." />
@@ -536,8 +543,8 @@ export default function Manual() {
           <Capitulo
             id="ventas"
             numero="06"
-            titulo="Ventas, caja y CAI"
-            bajada="Documentos emitidos, devoluciones, clientes exonerados, el reporte de ventas y la numeración autorizada por el SAR."
+            titulo="Ventas, compras, caja y contabilidad"
+            bajada="Documentos emitidos, devoluciones, crédito, caja, compras a proveedores, la contabilidad y la numeración autorizada por el SAR."
           >
             <div className={styles.dosColumnas}>
               <div>
@@ -704,9 +711,72 @@ export default function Manual() {
                 </p>
               </div>
             </div>
+            <div className={styles.dosColumnas}>
+              <div>
+                <h3 className={styles.subtitulo}>Compras</h3>
+                <p>
+                  En el módulo <strong>Compras</strong> (dueño o administrador) registrás la factura de cada proveedor tal
+                  como llegó: el proveedor (o lo creás ahí mismo), su número de factura y la fecha.
+                </p>
+                <ul className={styles.lista}>
+                  <li>
+                    <strong>Productos</strong>: buscás o escaneás lo que llegó, con cantidad y costo sin ISV. Suben las
+                    existencias y el costo pasa a ser el <strong>promedio</strong> (lo que había y lo nuevo).
+                  </li>
+                  <li>
+                    <strong>Gasto</strong>: luz, alquiler, flete, papelería… sin pasar por inventario.
+                  </li>
+                  <li>
+                    El ISV se calcula al 15 %; si la factura del proveedor trae otro (18 %), tocá <em>ajustar</em> y
+                    escribilo. La misma factura de un proveedor no se puede registrar dos veces.
+                  </li>
+                  <li>
+                    <strong>Contado</strong> con su forma de pago (en efectivo podés marcar que <em>sale de la caja</em>{" "}
+                    abierta) o <strong>crédito</strong> con su vencimiento según el plazo del proveedor.
+                  </li>
+                  <li>
+                    <em>Por pagar</em> muestra lo que le debés a cada proveedor y lo vencido; abrí uno para registrar un
+                    pago (a las compras que vencen primero o a las que marques).
+                  </li>
+                  <li>Anular una compra de productos vuelve a sacar las piezas. Con pagos, primero se anulan los pagos.</li>
+                </ul>
+              </div>
+              <div>
+                <h3 className={styles.subtitulo}>Contabilidad</h3>
+                <p>
+                  El módulo <strong>Contabilidad</strong> (dueño o administrador) lleva la partida doble sola: cada venta,
+                  nota, abono, compra, pago a proveedor, entrada o salida de caja y faltante o sobrante del cierre deja su{" "}
+                  <strong>asiento</strong>. Si anulás el documento, sale su asiento de reversa.
+                </p>
+                <ul className={styles.lista}>
+                  <li>
+                    <strong>Libro del día</strong>: los asientos de una fecha y un <strong>nivel de burbuja</strong> que
+                    se centra en verde cuando el debe y el haber cuadran.
+                  </li>
+                  <li>
+                    <strong>Nuevo asiento</strong>: lo que no pasa por el sistema (sueldos, depreciación, préstamos,
+                    aportes). Solo se guarda si cuadra. Un asiento manual equivocado se <em>revierte</em>, no se borra.
+                  </li>
+                  <li>
+                    <strong>Balanza</strong> de comprobación por mes o rango, estado de <strong>resultados</strong> y{" "}
+                    <strong>balance general</strong>; <strong>libro mayor</strong> de cada cuenta.
+                  </li>
+                  <li>
+                    <strong>Catálogo</strong> precargado (NIIF para PYMES, simplificado) que podés ampliar; la columna{" "}
+                    <em>La usa el sistema para</em> dice qué cuenta toman los asientos automáticos.
+                  </li>
+                  <li>
+                    <strong>Cierre de mes</strong>: un mes cerrado no acepta asientos (ni compras o ventas fechadas en él).
+                    Al empezar, usá <em>Contabilizar lo anterior</em> y <em>Registrar apertura</em> del inventario; el
+                    fondo de caja y los bancos iniciales van en un asiento manual.
+                  </li>
+                </ul>
+              </div>
+            </div>
             <Nota tono="aviso" titulo="Reglas fiscales a confirmar con tu contador">
               Precios capturados sin ISV (15 % sumado en la factura), leyendas impresas, vigencia de cotizaciones y
-              qué datos de exoneración exige tu caso (orden de compra exenta, constancia o registro SAG).
+              qué datos de exoneración exige tu caso (orden de compra exenta, constancia o registro SAG). En la
+              contabilidad: el catálogo, qué cuenta usa cada asiento automático y el costo de ventas por promedio.
             </Nota>
           </Capitulo>
 

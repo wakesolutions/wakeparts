@@ -176,7 +176,7 @@ function TurnoAbierto({ estado, onCambio, onCerrar }: { estado: EstadoCaja; onCa
   const t = estado.turno!;
   const r = t.resumen;
   const efectivo = r.formas.find((f) => f.forma === "efectivo")!;
-  const conMovimiento = r.formas.filter((f) => f.forma === "efectivo" || f.ventas || f.abonos || f.devoluciones || f.cargos);
+  const conMovimiento = r.formas.filter((f) => f.forma === "efectivo" || f.ventas || f.abonos || f.devoluciones || f.cargos || f.pagos);
 
   return (
     <>
@@ -228,6 +228,12 @@ function TurnoAbierto({ estado, onCambio, onCerrar }: { estado: EstadoCaja; onCa
               <dt>− Devoluciones</dt>
               <dd>{moneda(efectivo.devoluciones)}</dd>
             </div>
+            {efectivo.pagos > 0 && (
+              <div data-tono="resta">
+                <dt>− Compras y pagos a proveedores</dt>
+                <dd>{moneda(efectivo.pagos)}</dd>
+              </div>
+            )}
             <div>
               <dt>+ Entradas</dt>
               <dd>{moneda(r.entradas)}</dd>
@@ -253,7 +259,7 @@ function TurnoAbierto({ estado, onCambio, onCerrar }: { estado: EstadoCaja; onCa
                   Abonos
                 </th>
                 <th scope="col" data-num="">
-                  Devol.
+                  Salidas
                 </th>
                 <th scope="col" data-num="">
                   Neto
@@ -266,8 +272,12 @@ function TurnoAbierto({ estado, onCambio, onCerrar }: { estado: EstadoCaja; onCa
                   <th scope="row">{etiquetaForma(f.forma)}</th>
                   <td data-num="">{moneda(f.ventas + f.cargos)}</td>
                   <td data-num="">{moneda(f.abonos)}</td>
-                  <td data-num="" data-tono={f.devoluciones ? "resta" : undefined}>
-                    {f.devoluciones ? `− ${moneda(f.devoluciones)}` : "—"}
+                  <td
+                    data-num=""
+                    data-tono={f.devoluciones + f.pagos ? "resta" : undefined}
+                    title={f.pagos ? `Devoluciones ${moneda(f.devoluciones)} · compras y pagos ${moneda(f.pagos)}` : undefined}
+                  >
+                    {f.devoluciones + f.pagos ? `− ${moneda(f.devoluciones + f.pagos)}` : "—"}
                   </td>
                   <td data-num="">
                     <strong>{moneda(f.neto)}</strong>
@@ -288,6 +298,7 @@ function TurnoAbierto({ estado, onCambio, onCerrar }: { estado: EstadoCaja; onCa
           </table>
           <p className={styles.nota}>
             {r.facturas} {r.facturas === 1 ? "venta" : "ventas"} de contado · {r.abonos} {r.abonos === 1 ? "abono" : "abonos"}
+            {r.pagos > 0 && <> · {r.pagos} {r.pagos === 1 ? "pago" : "pagos"} a proveedores</>}
             {r.credito > 0 && <> · al crédito {moneda(r.credito)} (no entra a la caja)</>}
           </p>
         </section>

@@ -9,6 +9,8 @@ export type ResumenForma = {
   abonos: number;
   devoluciones: number;
   cargos: number;
+  /** Compras de contado y pagos a proveedores hechos desde la caja (0021). */
+  pagos: number;
   neto: number;
 };
 
@@ -23,12 +25,23 @@ export type ResumenTurno = {
   facturas: number;
   abonos: number;
   notas: number;
+  /** Compras y pagos a proveedores que salieron del turno (0021). */
+  pagos: number;
   movimientos: number;
   credito: number;
   anuladas: number;
 };
 
-export type TipoMovimientoCaja = "venta" | "venta_credito" | "devolucion" | "cargo" | "abono" | "entrada" | "salida";
+export type TipoMovimientoCaja =
+  | "venta"
+  | "venta_credito"
+  | "devolucion"
+  | "cargo"
+  | "abono"
+  | "entrada"
+  | "salida"
+  | "compra"
+  | "pago_proveedor";
 
 export type MovimientoCaja = {
   id: string;
@@ -103,6 +116,8 @@ export const ETIQUETA_MOVIMIENTO: Record<TipoMovimientoCaja, string> = {
   abono: "Abono",
   entrada: "Entrada",
   salida: "Salida",
+  compra: "Compra",
+  pago_proveedor: "Pago a proveedor",
 };
 
 /**
@@ -119,7 +134,8 @@ export function resumirTurno(fondo: number, movimientos: MovimientoCaja[]): Resu
     const abonos = de(forma, "abono");
     const devoluciones = de(forma, "devolucion");
     const cargos = de(forma, "cargo");
-    return { forma, ventas, abonos, devoluciones, cargos, neto: centavos(ventas + abonos + cargos - devoluciones) };
+    const pagos = centavos(de(forma, "compra") + de(forma, "pago_proveedor"));
+    return { forma, ventas, abonos, devoluciones, cargos, pagos, neto: centavos(ventas + abonos + cargos - devoluciones - pagos) };
   });
   const entradas = centavos(vivos.filter((m) => m.tipo === "entrada").reduce((s, m) => s + m.monto, 0));
   const salidas = centavos(vivos.filter((m) => m.tipo === "salida").reduce((s, m) => s + Math.abs(m.monto), 0));
@@ -133,6 +149,7 @@ export function resumirTurno(fondo: number, movimientos: MovimientoCaja[]): Resu
     facturas: vivos.filter((m) => m.tipo === "venta").length,
     abonos: vivos.filter((m) => m.tipo === "abono").length,
     notas: vivos.filter((m) => (m.tipo === "devolucion" || m.tipo === "cargo") && m.en_caja).length,
+    pagos: vivos.filter((m) => m.tipo === "compra" || m.tipo === "pago_proveedor").length,
     movimientos: vivos.filter((m) => m.tipo === "entrada" || m.tipo === "salida").length,
     credito: centavos(vivos.filter((m) => m.tipo === "venta_credito").reduce((s, m) => s + m.monto, 0)),
     anuladas: movimientos.filter((m) => m.estado === "anulado").length,

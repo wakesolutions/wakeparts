@@ -2,6 +2,20 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-06 · Compras (0021) y contabilidad (0022)
+
+- **Pedido del usuario**: módulo de compras para cargar productos al inventario y un módulo contable «lo mínimo necesario» (asiento de cada día, cuadrar, crear asientos), antes de duplicar el proyecto para tiendas de compra-venta. Decisiones confirmadas por el usuario: catálogo estándar precargado, asientos automáticos + manuales, costo de ventas en cada venta, compras al crédito con pagos y gastos sin inventario. Quedaron para después: órdenes de compra y libro de compras.
+- **Compras como documento propio** (no una extensión de «Entrada de inventario»): la entrada sigue para conteos y ajustes; la compra guarda proveedor, factura, ISV y condición, que necesitan las cuentas por pagar y la contabilidad.
+- **Cuentas por pagar en espejo de las por cobrar**: mismas reglas (reparto a lo que vence primero, no más de lo pendiente, anulación protegida) y el mismo tablero de antigüedad (se exportó `Tablero` con textos propios) para que el usuario no aprenda dos cosas.
+- **«Sale de la caja» opcional**: muchas compras se pagan con otro dinero (el dueño, el banco); descontar siempre el efectivo del turno descuadraría la caja.
+- **Asientos automáticos por triggers diferidos** (al confirmar la transacción) en vez de tocar las funciones de emisión: los documentos se insertan y después se les ponen totales y líneas; el trigger diferido lee el documento ya completo. Así no se duplicaron `emitir_documento`, `emitir_nota`, etc. Un error contable (mes cerrado) revierte la operación entera: nada queda sin asiento.
+- **Cuadre revisado por la base** (constraint trigger diferido por asiento), no solo en la pantalla.
+- **Claves del sistema en el catálogo** (`caja`, `ventas`, `isv_debito`…) en vez de códigos fijos: el contador puede reorganizar el catálogo y pasar la clave a otra cuenta sin que se rompan los asientos automáticos.
+- **Correcciones por reversa**, nunca borrado ni edición de asientos: es lo que exige una contabilidad auditable y encaja con «un documento emitido no se borra».
+- **Sin asientos de cierre de ejercicio** por ahora: el balance general muestra el resultado acumulado aparte. El cierre anual (pasar el resultado a utilidades acumuladas) queda para cuando el contador lo pida.
+- **Demo**: la contabilidad de `/demo` calcula los asientos en memoria con las mismas reglas a partir de lo que pasó en la demo, en vez de guardar asientos: no hay forma de que se desfasen.
+- **Momento firma**: el **nivel de burbuja** (debe ↔ haber) que se centra en verde al cuadrar; el libro del día se ve como el de papel (haber sangrado). En Compras, el sello «Recibido».
+
 ## 2026-10-06 · Dock: lupa, reordenar arrastrando y vuelos (sin migración)
 
 - **Pedido del usuario**: reordenar los íconos arrastrándolos, que vuelen entre la guantera y el dock, y un efecto al pasar el mouse «como Apple».

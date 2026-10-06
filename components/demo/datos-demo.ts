@@ -13,8 +13,18 @@ import type { ImagenProducto } from "@/components/imagenes/api";
 import type { EstadoSitio, PedidoWeb } from "@/components/sitio-web/api";
 import { armarBandeja } from "@/lib/notificaciones";
 import type { CreditoCliente, CuentaFactura, EstadoCuenta, Recibo } from "@/lib/cobros";
+import {
+
+  sumarDiasIso,
+  totalesCompra,
+  type Compra,
+  type CuentaCompra,
+  type PagoProveedor,
+  type ProveedorBreve,
+} from "@/lib/compras";
 import { aplanar, FUENTES_EXPORTACION } from "@/lib/exportacion";
 import { resumirTurno, totalArqueo, type Arqueo, type MovimientoCaja, type Turno } from "@/lib/caja";
+import type { Asiento, CuentaBreve, FilaBalanza, Naturaleza, OrigenAsiento, TipoCuenta } from "@/lib/contabilidad";
 import { normalizarSitio } from "@/lib/sitio-web";
 import { centavos } from "@/lib/formato";
 import type { ResultadoImportacion } from "@/lib/inventario";
@@ -341,6 +351,36 @@ function movimientosTurnoDemo(t: TurnoDemo): MovimientoCaja[] {
       estado: p.estado,
       usuario: p.cobro,
     }));
+  const salidasCompras: MovimientoCaja[] = [
+    ...comprasDemo
+      .filter((c) => c.id_turno === t.id)
+      .map((c) => ({
+        id: c.id,
+        fecha: c.creado_en,
+        tipo: "compra" as const,
+        referencia: c.numero,
+        detalle: c.proveedor_nombre,
+        forma_pago: c.forma_pago,
+        monto: -c.total,
+        en_caja: true,
+        estado: c.estado,
+        usuario: "Demo Sandbox",
+      })),
+    ...pagosProvDemo
+      .filter((x) => x.id_turno === t.id)
+      .map((x) => ({
+        id: x.id,
+        fecha: x.fecha,
+        tipo: "pago_proveedor" as const,
+        referencia: x.numero,
+        detalle: x.proveedor_nombre,
+        forma_pago: x.forma_pago,
+        monto: -x.monto,
+        en_caja: true,
+        estado: x.estado,
+        usuario: "Demo Sandbox",
+      })),
+  ];
   const manuales: MovimientoCaja[] = t.manuales.map((m) => ({
     id: String(m.id),
     fecha: m.fecha,
@@ -353,7 +393,7 @@ function movimientosTurnoDemo(t: TurnoDemo): MovimientoCaja[] {
     estado: "emitido",
     usuario: "Demo Sandbox",
   }));
-  return [...docs, ...abonos, ...manuales].sort((a, b) => b.fecha.localeCompare(a.fecha));
+  return [...docs, ...abonos, ...salidasCompras, ...manuales].sort((a, b) => b.fecha.localeCompare(a.fecha));
 }
 
 function turnoCompletoDemo(t: TurnoDemo): Turno {
@@ -1928,12 +1968,818 @@ const exportacion: Apis["exportacion"] = {
   },
 };
 
+// ---------------------------------------------------------- compras (demo) --
+
+type CompraDemo = Omit<Compra, "pendiente" | "pagos" | "de_caja" | "registro"> & { id_turno: string | null; creado_en: string };
+type PagoProvDemo = Omit<PagoProveedor, "aplicaciones" | "de_caja" | "pago"> & {
+  id_turno: string | null;
+  aplicaciones: { id_compra: string; monto: number }[];
+};
+
+const proveedoresDemo: (ProveedorBreve & { contacto: string | null })[] = [
+  { id: 1, nombre: "DISTRIBUIDORA DE REPUESTOS DEL NORTE", rtn: "05019005123456", telefono: "2550-1100", dias_credito: 30, contacto: "Karla Mejía" },
+  { id: 2, nombre: "LUBRICANTES Y FILTROS S.A.", rtn: "08019011987654", telefono: "2238-4400", dias_credito: 15, contacto: null },
+  { id: 3, nombre: "ENEE", rtn: null, telefono: null, dias_credito: 0, contacto: null },
+];
+const comprasDemo: CompraDemo[] = [];
+const pagosProvDemo: PagoProvDemo[] = [];
+let correlativoCompra = 1;
+let correlativoPagoProv = 1;
+
+/** Proveedores de la demo: los sembrados y los que el visitante crea desde la tabla. */
+const proveedoresVivos = (): (ProveedorBreve & { activo: boolean })[] =>
+  (filasDemo("proveedores") ?? []).map((f) => ({
+    id: Number(f.id),
+    nombre: String(f.nombre),
+    rtn: (f.rtn as string) ?? null,
+    telefono: (f.telefono as string) ?? null,
+    dias_credito: Number(f.dias_credito ?? 0),
+    activo: f.activo !== false,
+  }));
+
+const pagadoDemo = (id: string) =>
+  centavos(
+    pagosProvDemo
+      .filter((x) => x.estado === "emitido")
+      .flatMap((x) => x.aplicaciones)
+      .filter((a) => a.id_compra === id)
+      .reduce((s, a) => s + a.monto, 0),
+  );
+
+/** Igual que v_cuentas_pagar. */
+function cuentasPagarDemo(): CuentaCompra[] {
+  const hoy = hoyIso();
+  return comprasDemo
+    .filter((c) => c.condicion === "credito" && c.estado === "emitido")
+    .map((c) => {
+      const pagado = pagadoDemo(c.id);
+      const pendiente = centavos(c.total - pagado);
+      const vence = c.vence!;
+      const dias = Math.max(diasEntreFechas(hoy, vence), 0);
+      const estado: CuentaCompra["estado"] =
+        pendiente <= 0 ? "pagada" : hoy > vence ? "vencida" : diasEntreFechas(vence, hoy) <= 7 ? "por_vencer" : "al_dia";
+      return {
+        id: c.id,
+        numero: c.numero,
+        documento: c.documento,
+        fecha: c.fecha,
+        vence,
+        id_proveedor: c.id_proveedor,
+        proveedor_nombre: c.proveedor_nombre,
+        total: c.total,
+        pagado,
+        pendiente,
+        dias_vencida: dias,
+        estado,
+      };
+    });
+}
+
+function nuevaCompraDemo(d: Omit<CompraDemo, "id" | "numero" | "creado_en" | "estado" | "motivo_anulacion">): CompraDemo {
+  const c: CompraDemo = {
+    ...d,
+    id: crypto.randomUUID(),
+    numero: `COMP-${String(correlativoCompra++).padStart(6, "0")}`,
+    creado_en: new Date().toISOString(),
+    estado: "emitido",
+    motivo_anulacion: null,
+  };
+  comprasDemo.push(c);
+  return c;
+}
+
+// Una compra al crédito de hace 12 días para ver Por pagar con algo.
+(function sembrarCompras() {
+  const lineas = PRODUCTOS.filter((x) => x.controla_inventario).slice(0, 3).map((x, i) => ({
+    id: i + 1,
+    codigo: x.codigo,
+    descripcion: x.nombre,
+    cantidad: 10,
+    costo: Number(x.costo ?? 100),
+    exento: false,
+    total: centavos(10 * Number(x.costo ?? 100)),
+  }));
+  const t = totalesCompra(lineas.map((l) => ({ neto: l.total, exento: false })), null);
+  const fecha = haceDias(12).slice(0, 10);
+  nuevaCompraDemo({
+    tipo: "inventario",
+    fecha,
+    id_proveedor: 1,
+    proveedor_nombre: proveedoresDemo[0].nombre,
+    proveedor_rtn: proveedoresDemo[0].rtn,
+    documento: "001-001-01-00004512",
+    cai_proveedor: null,
+    condicion: "credito",
+    vence: sumarDiasIso(fecha, 30),
+    forma_pago: null,
+    referencia_pago: null,
+    subtotal: t.subtotal,
+    importe_exento: t.exento,
+    importe_gravado: t.gravado,
+    isv: t.isv,
+    total: t.total,
+    notas: null,
+    id_turno: null,
+    lineas,
+  });
+})();
+
+const compras: Apis["compras"] = {
+  proveedores: async (texto) => {
+    const q = normal(texto.trim());
+    return espera(
+      proveedoresVivos()
+        .filter((x) => x.activo && (!q || normal(x.nombre).includes(q) || (x.rtn ?? "").includes(q.replace(/\D/g, "") || "~")))
+        .slice(0, 8),
+    );
+  },
+  crearProveedor: async (d) => {
+    const nombre = d.nombre.trim().toUpperCase();
+    if (!nombre) return { ok: false as const, error: "Escribí el nombre del proveedor." };
+    const rtn = d.rtn ? d.rtn.replace(/\D/g, "") : null;
+    if (rtn && rtn.length !== 14) return { ok: false as const, error: "El RTN son 14 dígitos." };
+    const p = { id: siguienteId++, nombre, rtn, telefono: null, dias_credito: Number(d.dias_credito ?? 0), contacto: null };
+    proveedoresDemo.push(p);
+    return espera({ ok: true as const, proveedor: p }, 250);
+  },
+  registrar: async (n) => {
+    const prov = proveedoresVivos().find((x) => x.id === n.id_proveedor);
+    if (!prov) return { ok: false as const, error: "Elegí el proveedor." };
+    const documento = n.documento?.trim().toUpperCase() || null;
+    if (documento && comprasDemo.some((c) => c.id_proveedor === prov.id && c.documento === documento && c.estado === "emitido")) {
+      return { ok: false as const, error: `La factura ${documento} de ${prov.nombre} ya está registrada.` };
+    }
+    const turno = n.de_caja && n.forma_pago === "efectivo" ? turnoAbiertoDemo() : null;
+    if (n.de_caja && n.condicion === "contado" && n.forma_pago === "efectivo" && !turno) {
+      return { ok: false as const, error: "No hay caja abierta en tu punto: abrila o desmarcá «Sale de la caja»." };
+    }
+    const lineas: CompraDemo["lineas"] = [];
+    for (const [i, l] of n.lineas.entries()) {
+      if ("id_producto" in l) {
+        const p = PRODUCTOS.find((x) => x.id === l.id_producto);
+        if (!p || !p.controla_inventario) return { ok: false as const, error: `Línea ${i + 1}: el producto no lleva inventario.` };
+        const existencia = Number(p.existencia ?? 0);
+        const costo = Number(p.costo ?? 0);
+        p.costo = existencia <= 0 ? l.costo : centavos((existencia * costo + l.cantidad * l.costo) / (existencia + l.cantidad));
+        p.existencia = existencia + l.cantidad;
+        p.disponible = p.existencia > 0;
+        lineas.push({ id: i + 1, codigo: p.codigo, descripcion: p.nombre, cantidad: l.cantidad, costo: l.costo, exento: l.exento, total: centavos(l.cantidad * l.costo) });
+      } else {
+        lineas.push({ id: i + 1, codigo: null, descripcion: l.descripcion, cantidad: 1, costo: l.monto, exento: l.exento, total: centavos(l.monto) });
+      }
+    }
+    const t = totalesCompra(lineas.map((l) => ({ neto: l.total, exento: l.exento })), n.isv);
+    if (!t.isvValido) return { ok: false as const, error: "El ISV no cuadra con lo gravado." };
+    const c = nuevaCompraDemo({
+      tipo: n.tipo,
+      fecha: n.fecha,
+      id_proveedor: prov.id,
+      proveedor_nombre: prov.nombre,
+      proveedor_rtn: prov.rtn,
+      documento,
+      cai_proveedor: n.cai?.toUpperCase() || null,
+      condicion: n.condicion,
+      vence: n.condicion === "credito" ? n.vence || sumarDiasIso(n.fecha, prov.dias_credito) : null,
+      forma_pago: n.condicion === "contado" ? n.forma_pago : null,
+      referencia_pago: n.condicion === "contado" ? n.referencia : null,
+      subtotal: t.subtotal,
+      importe_exento: t.exento,
+      importe_gravado: t.gravado,
+      isv: t.isv,
+      total: t.total,
+      notas: n.notas,
+      id_turno: n.condicion === "contado" ? (turno?.id ?? null) : null,
+      lineas,
+    });
+    return espera({ ok: true as const, id: c.id, numero: c.numero }, 450);
+  },
+  compra: async (id) => {
+    const c = comprasDemo.find((x) => x.id === id);
+    if (!c) return espera(null);
+    const { id_turno, creado_en: _creado, ...resto } = c;
+    void _creado;
+    return espera({
+      ...resto,
+      de_caja: id_turno !== null,
+      registro: "Demo Sandbox",
+      pendiente: cuentasPagarDemo().find((x) => x.id === id)?.pendiente ?? null,
+      pagos: pagosProvDemo.flatMap((x) =>
+        x.aplicaciones.filter((a) => a.id_compra === id).map((a) => ({ id: x.id, numero: x.numero, fecha: x.fecha, monto: a.monto, estado: x.estado })),
+      ),
+    });
+  },
+  anular: async (id, motivo) => {
+    const c = comprasDemo.find((x) => x.id === id);
+    if (!c || c.estado === "anulado") return { ok: false as const, error: "La compra no se puede anular." };
+    if (!motivo.trim()) return { ok: false as const, error: "Escribí el motivo de la anulación." };
+    if (pagadoDemo(id) > 0) return { ok: false as const, error: "Esta compra tiene pagos: anulá primero los pagos al proveedor." };
+    c.estado = "anulado";
+    c.motivo_anulacion = motivo.trim();
+    if (c.tipo === "inventario") {
+      for (const l of c.lineas) {
+        const p = PRODUCTOS.find((x) => x.codigo === l.codigo);
+        if (p) {
+          p.existencia = Number(p.existencia ?? 0) - l.cantidad;
+          p.disponible = p.existencia > 0;
+        }
+      }
+    }
+    return espera({ ok: true as const });
+  },
+  cartera: async () => espera(cuentasPagarDemo().filter((c) => c.pendiente > 0)),
+  estadoProveedor: async (idProveedor) => {
+    const prov = proveedoresVivos().find((x) => x.id === idProveedor);
+    if (!prov) return espera(null);
+    const lista = cuentasPagarDemo().filter((c) => c.id_proveedor === idProveedor && c.pendiente > 0);
+    return espera({
+      proveedor: {
+        id: prov.id,
+        nombre: prov.nombre,
+        rtn: prov.rtn,
+        telefono: prov.telefono,
+        dias_credito: prov.dias_credito,
+        pendiente: centavos(lista.reduce((s, c) => s + c.pendiente, 0)),
+        vencido: centavos(lista.filter((c) => c.estado === "vencida").reduce((s, c) => s + c.pendiente, 0)),
+      },
+      compras: lista,
+      pagos: pagosProvDemo
+        .filter((x) => x.id_proveedor === idProveedor)
+        .slice()
+        .reverse()
+        .map((x) => ({ id: x.id, numero: x.numero, fecha: x.fecha, monto: x.monto, forma_pago: x.forma_pago, estado: x.estado })),
+    });
+  },
+  pagar: async (n) => {
+    const prov = proveedoresVivos().find((x) => x.id === n.id_proveedor);
+    if (!prov) return { ok: false as const, error: "El proveedor no existe." };
+    const pendientes = cuentasPagarDemo().filter((c) => c.id_proveedor === prov.id && c.pendiente > 0);
+    const total = centavos(pendientes.reduce((s, c) => s + c.pendiente, 0));
+    if (n.monto > total) return { ok: false as const, error: `El pago supera lo que se le debe al proveedor (L ${total.toFixed(2)}).` };
+    const turno = n.de_caja && n.forma_pago === "efectivo" ? turnoAbiertoDemo() : null;
+    if (n.de_caja && n.forma_pago === "efectivo" && !turno) {
+      return { ok: false as const, error: "No hay caja abierta en tu punto: abrila o desmarcá «Sale de la caja»." };
+    }
+    const pago: PagoProvDemo = {
+      id: crypto.randomUUID(),
+      numero: `PAG-${String(correlativoPagoProv++).padStart(6, "0")}`,
+      fecha: new Date().toISOString(),
+      id_proveedor: prov.id,
+      proveedor_nombre: prov.nombre,
+      monto: centavos(n.monto),
+      forma_pago: n.forma_pago,
+      referencia: n.referencia ?? null,
+      notas: n.notas ?? null,
+      estado: "emitido",
+      motivo_anulacion: null,
+      id_turno: turno?.id ?? null,
+      aplicaciones: n.aplicaciones,
+    };
+    pagosProvDemo.push(pago);
+    return espera({ ok: true as const, id: pago.id, numero: pago.numero }, 350);
+  },
+  pago: async (id) => {
+    const x = pagosProvDemo.find((y) => y.id === id);
+    if (!x) return espera(null);
+    const { id_turno, aplicaciones, ...resto } = x;
+    return espera({
+      ...resto,
+      de_caja: id_turno !== null,
+      pago: "Demo Sandbox",
+      aplicaciones: aplicaciones.map((a) => {
+        const c = comprasDemo.find((y) => y.id === a.id_compra);
+        return { id_compra: a.id_compra, numero: c?.numero ?? "", documento: c?.documento ?? null, total: c?.total ?? 0, monto: a.monto };
+      }),
+    });
+  },
+  anularPago: async (id, motivo) => {
+    const x = pagosProvDemo.find((y) => y.id === id);
+    if (!x || x.estado === "anulado") return { ok: false as const, error: "El pago no se puede anular." };
+    if (!motivo.trim()) return { ok: false as const, error: "Escribí el motivo de la anulación." };
+    x.estado = "anulado";
+    x.motivo_anulacion = motivo.trim();
+    return espera({ ok: true as const });
+  },
+  cajaAbierta: async () => {
+    const t = turnoAbiertoDemo();
+    return espera(t ? { punto: PUNTO_DEMO.nombre, turno: t.numero } : null);
+  },
+};
+
+BASES.proveedores = () =>
+  proveedoresDemo.map((x) => {
+    const propias = comprasDemo.filter((c) => c.id_proveedor === x.id && c.estado === "emitido");
+    return {
+      id: x.id,
+      nombre: x.nombre,
+      rtn: x.rtn,
+      telefono: x.telefono,
+      correo: null,
+      direccion: null,
+      contacto: x.contacto,
+      dias_credito: x.dias_credito,
+      notas: null,
+      activo: true,
+      compras: propias.length,
+      ultima_compra: propias.at(-1)?.fecha ?? null,
+      saldo: centavos(cuentasPagarDemo().filter((c) => c.id_proveedor === x.id).reduce((s, c) => s + c.pendiente, 0)),
+      creado_en: haceDias(60),
+    };
+  });
+BASES.compras = () =>
+  comprasDemo.map((c) => ({
+    id: c.id,
+    numero: c.numero,
+    tipo: c.tipo,
+    fecha: c.fecha,
+    id_proveedor: c.id_proveedor,
+    proveedor_nombre: c.proveedor_nombre,
+    proveedor_rtn: c.proveedor_rtn,
+    documento: c.documento,
+    condicion: c.condicion,
+    vence: c.vence,
+    forma_pago: c.forma_pago,
+    subtotal: c.subtotal,
+    isv: c.isv,
+    total: c.total,
+    estado: c.estado,
+    pendiente: cuentasPagarDemo().find((x) => x.id === c.id)?.pendiente ?? null,
+    lineas: c.lineas.length,
+    registro: "Demo Sandbox",
+    creado_en: c.creado_en,
+  }));
+BASES.cuentas_proveedores = () => {
+  const cuentas = cuentasPagarDemo().filter((c) => c.pendiente > 0);
+  return proveedoresVivos()
+    .map((x) => {
+      const suyas = cuentas.filter((c) => c.id_proveedor === x.id);
+      if (!suyas.length) return null;
+      const vencido = centavos(suyas.filter((c) => c.estado === "vencida").reduce((s, c) => s + c.pendiente, 0));
+      return {
+        id: x.id,
+        nombre: x.nombre,
+        rtn: x.rtn,
+        telefono: x.telefono,
+        dias_credito: x.dias_credito,
+        pendiente: centavos(suyas.reduce((s, c) => s + c.pendiente, 0)),
+        vencido,
+        compras: suyas.length,
+        dias_mora: Math.max(...suyas.map((c) => c.dias_vencida)),
+        proximo_vence: suyas.map((c) => c.vence).sort()[0],
+        ultimo_pago: pagosProvDemo.filter((p) => p.id_proveedor === x.id && p.estado === "emitido").at(-1)?.fecha ?? null,
+        estado: vencido > 0 ? "vencida" : "al_dia",
+        en_mora: vencido > 0,
+      };
+    })
+    .filter(Boolean) as Fila[];
+};
+BASES.pagos_proveedores = () =>
+  pagosProvDemo.map((x) => ({
+    id: x.id,
+    numero: x.numero,
+    fecha: x.fecha,
+    id_proveedor: x.id_proveedor,
+    proveedor_nombre: x.proveedor_nombre,
+    monto: x.monto,
+    forma_pago: x.forma_pago,
+    referencia: x.referencia,
+    estado: x.estado,
+    de_caja: x.id_turno !== null,
+    compras: x.aplicaciones.map((a) => comprasDemo.find((c) => c.id === a.id_compra)?.numero).join(", "),
+    pago: "Demo Sandbox",
+  }));
+
+// ------------------------------------------------------ contabilidad (demo) --
+// Los asientos se calculan cada vez a partir de lo que pasó en la demo (las
+// mismas reglas que los triggers de 0022) más los manuales del visitante.
+
+const CATALOGO_DEMO: [string, string, TipoCuenta, Naturaleza, string | null, string | null][] = [
+  ["1", "ACTIVO", "activo", "deudora", null, null],
+  ["11", "Activo corriente", "activo", "deudora", "1", null],
+  ["1101", "Efectivo y equivalentes", "activo", "deudora", "11", null],
+  ["110101", "Caja general", "activo", "deudora", "1101", "caja"],
+  ["110102", "Caja chica", "activo", "deudora", "1101", null],
+  ["110103", "Bancos", "activo", "deudora", "1101", "bancos"],
+  ["1102", "Cuentas por cobrar", "activo", "deudora", "11", null],
+  ["110201", "Clientes", "activo", "deudora", "1102", "clientes"],
+  ["1103", "Inventarios", "activo", "deudora", "11", null],
+  ["110301", "Inventario de mercadería", "activo", "deudora", "1103", "inventario"],
+  ["1104", "Impuestos por recuperar", "activo", "deudora", "11", null],
+  ["110401", "ISV crédito fiscal (compras)", "activo", "deudora", "1104", "isv_credito"],
+  ["12", "Activo no corriente", "activo", "deudora", "1", null],
+  ["1201", "Propiedad, planta y equipo", "activo", "deudora", "12", null],
+  ["120101", "Mobiliario y equipo", "activo", "deudora", "1201", null],
+  ["120104", "Depreciación acumulada", "activo", "acreedora", "1201", null],
+  ["2", "PASIVO", "pasivo", "acreedora", null, null],
+  ["21", "Pasivo corriente", "pasivo", "acreedora", "2", null],
+  ["2101", "Proveedores", "pasivo", "acreedora", "21", "proveedores"],
+  ["2102", "Impuestos por pagar", "pasivo", "acreedora", "21", null],
+  ["210201", "ISV por pagar (ventas)", "pasivo", "acreedora", "2102", "isv_debito"],
+  ["2103", "Sueldos y prestaciones por pagar", "pasivo", "acreedora", "21", null],
+  ["3", "PATRIMONIO", "patrimonio", "acreedora", null, null],
+  ["3101", "Capital", "patrimonio", "acreedora", "3", "capital"],
+  ["3102", "Utilidades acumuladas", "patrimonio", "acreedora", "3", null],
+  ["4", "INGRESOS", "ingreso", "acreedora", null, null],
+  ["4101", "Ventas de mercadería", "ingreso", "acreedora", "4", "ventas"],
+  ["4102", "Devoluciones y rebajas sobre ventas", "ingreso", "deudora", "4", "devoluciones_ventas"],
+  ["4201", "Otros ingresos", "ingreso", "acreedora", "4", "otros_ingresos"],
+  ["4202", "Sobrantes de caja", "ingreso", "acreedora", "4", "sobrantes_caja"],
+  ["5", "COSTOS", "costo", "deudora", null, null],
+  ["5101", "Costo de ventas", "costo", "deudora", "5", "costo_ventas"],
+  ["6", "GASTOS", "gasto", "deudora", null, null],
+  ["6101", "Sueldos y salarios", "gasto", "deudora", "6", null],
+  ["6102", "Alquiler", "gasto", "deudora", "6", null],
+  ["6103", "Energía eléctrica, agua y teléfono", "gasto", "deudora", "6", null],
+  ["6105", "Gastos generales", "gasto", "deudora", "6", "gastos_generales"],
+  ["6106", "Faltantes de caja", "gasto", "deudora", "6", "faltantes_caja"],
+  ["6107", "Depreciación", "gasto", "deudora", "6", null],
+];
+
+type CuentaDemo = { id: number; codigo: string; nombre: string; tipo: TipoCuenta; naturaleza: Naturaleza; id_padre: number | null; clave: string | null; activo: boolean };
+
+/** El catálogo de la demo: el de fábrica más lo que el visitante crea o cambia en la tabla. */
+function catalogoDemo(): CuentaDemo[] {
+  const filas = filasDemo("cuentas_contables") ?? [];
+  return filas.map((f) => ({
+    id: Number(f.id),
+    codigo: String(f.codigo),
+    nombre: String(f.nombre),
+    tipo: f.tipo as TipoCuenta,
+    naturaleza: ((f.naturaleza as string) || (["activo", "costo", "gasto"].includes(String(f.tipo)) ? "deudora" : "acreedora")) as Naturaleza,
+    id_padre: f.id_padre === null || f.id_padre === undefined || f.id_padre === "" ? null : Number(f.id_padre),
+    clave: (f.clave as string) || null,
+    activo: f.activo !== false,
+  }));
+}
+
+const idCuentaDemo = (clave: string) => catalogoDemo().find((c) => c.clave === clave)?.id ?? 0;
+
+type LineaCruda = { cuenta: string | number; debe?: number; haber?: number; descripcion?: string };
+type AsientoCrudo = { clave: string; fecha: string; concepto: string; origen: OrigenAsiento; referencia: string | null; lineas: LineaCruda[]; orden: string };
+type ManualDemo = AsientoCrudo & { revertidoPor?: string; revierte?: string };
+
+const manualesDemo: ManualDemo[] = [];
+const cerradosDemo = new Set<string>();
+const formaCuenta = (f: string | null | undefined) => (!f || f === "efectivo" ? "caja" : "bancos");
+const diaHn = (iso: string) => new Date(iso).toLocaleDateString("en-CA", { timeZone: "America/Tegucigalpa" });
+
+/** Todos los asientos de la demo, numerados por fecha. */
+function asientosDemo(): Asiento[] {
+  const crudos: (AsientoCrudo & { reversaDe?: string })[] = [];
+  const conReversa = (a: AsientoCrudo, anulado: boolean) => {
+    crudos.push(a);
+    if (anulado) {
+      crudos.push({
+        ...a,
+        clave: `${a.clave}:rev`,
+        concepto: `Anulación · ${a.concepto}`,
+        orden: `${a.orden}~`,
+        lineas: a.lineas.map((l) => ({ ...l, debe: l.haber, haber: l.debe })),
+        reversaDe: a.clave,
+      });
+    }
+  };
+  for (const d of documentos) {
+    if (d.tipo === "cotizacion") continue;
+    const neto = centavos(d.total - d.isv);
+    const costo = centavos(
+      d.lineas.reduce((s, l) => {
+        const p = PRODUCTOS.find((x) => x.codigo === l.codigo);
+        return s + (p?.controla_inventario ? l.cantidad * Number(p.costo ?? 0) : 0);
+      }, 0),
+    );
+    const f = d.id_factura ? documentos.find((x) => x.id === d.id_factura) : undefined;
+    const cobro =
+      d.tipo === "factura"
+        ? d.condicion === "credito" ? "clientes" : formaCuenta(d.forma_pago)
+        : f ? (f.condicion === "credito" ? "clientes" : formaCuenta(f.forma_pago)) : d.forma_pago ? formaCuenta(d.forma_pago) : "clientes";
+    const lineas: LineaCruda[] =
+      d.tipo === "factura"
+        ? [
+            { cuenta: cobro, debe: d.total },
+            { cuenta: "ventas", haber: neto },
+            { cuenta: "isv_debito", haber: d.isv },
+            { cuenta: "costo_ventas", debe: costo, descripcion: "Costo de lo vendido" },
+            { cuenta: "inventario", haber: costo, descripcion: "Salida de inventario" },
+          ]
+        : d.tipo === "nota_credito"
+          ? [
+              { cuenta: "devoluciones_ventas", debe: neto },
+              { cuenta: "isv_debito", debe: d.isv },
+              { cuenta: cobro, haber: d.total },
+              { cuenta: "inventario", debe: d.reintegra_inventario ? costo : 0 },
+              { cuenta: "costo_ventas", haber: d.reintegra_inventario ? costo : 0 },
+            ]
+          : [
+              { cuenta: cobro, debe: d.total },
+              { cuenta: "otros_ingresos", haber: neto },
+              { cuenta: "isv_debito", haber: d.isv },
+            ];
+    const nombre = d.tipo === "factura" ? "Venta" : d.tipo === "nota_credito" ? "Nota de crédito" : "Nota de débito";
+    conReversa(
+      { clave: `doc:${d.id}`, fecha: diaHn(d.fecha), concepto: `${nombre} ${d.numero} · ${d.cliente_nombre}`, origen: d.tipo, referencia: d.numero, lineas, orden: d.fecha },
+      d.estado === "anulado",
+    );
+  }
+  for (const p of pagosDemo) {
+    conReversa(
+      {
+        clave: `abono:${p.id}`,
+        fecha: diaHn(p.fecha),
+        concepto: `Abono ${p.numero} · ${p.cliente_nombre}`,
+        origen: "abono",
+        referencia: p.numero,
+        lineas: [{ cuenta: formaCuenta(p.forma_pago), debe: p.monto }, { cuenta: "clientes", haber: p.monto }],
+        orden: p.fecha,
+      },
+      p.estado === "anulado",
+    );
+  }
+  for (const c of comprasDemo) {
+    conReversa(
+      {
+        clave: `compra:${c.id}`,
+        fecha: c.fecha,
+        concepto: `Compra ${c.numero}${c.documento ? ` (${c.documento})` : ""} · ${c.proveedor_nombre}`,
+        origen: "compra",
+        referencia: c.documento ?? c.numero,
+        lineas: [
+          { cuenta: c.tipo === "inventario" ? "inventario" : "gastos_generales", debe: c.subtotal },
+          { cuenta: "isv_credito", debe: c.isv },
+          { cuenta: c.condicion === "credito" ? "proveedores" : formaCuenta(c.forma_pago), haber: c.total },
+        ],
+        orden: c.creado_en,
+      },
+      c.estado === "anulado",
+    );
+  }
+  for (const x of pagosProvDemo) {
+    conReversa(
+      {
+        clave: `pagoprov:${x.id}`,
+        fecha: diaHn(x.fecha),
+        concepto: `Pago ${x.numero} · ${x.proveedor_nombre}`,
+        origen: "pago_proveedor",
+        referencia: x.numero,
+        lineas: [{ cuenta: "proveedores", debe: x.monto }, { cuenta: formaCuenta(x.forma_pago), haber: x.monto }],
+        orden: x.fecha,
+      },
+      x.estado === "anulado",
+    );
+  }
+  for (const t of turnosDemo) {
+    for (const m of t.manuales) {
+      crudos.push({
+        clave: `caja:${t.id}:${m.id}`,
+        fecha: diaHn(m.fecha),
+        concepto: `${m.tipo === "entrada" ? "Entrada" : "Salida"} de caja · ${m.concepto}`,
+        origen: m.tipo === "entrada" ? "caja_entrada" : "caja_salida",
+        referencia: null,
+        lineas: m.tipo === "entrada" ? [{ cuenta: "caja", debe: m.monto }, { cuenta: "bancos", haber: m.monto }] : [{ cuenta: "gastos_generales", debe: m.monto }, { cuenta: "caja", haber: m.monto }],
+        orden: m.fecha,
+      });
+    }
+    if (t.estado === "cerrada" && t.contado !== null && t.cerrada_en) {
+      const dif = centavos(t.contado - turnoCompletoDemo({ ...t, estado: "abierta" }).resumen.esperado_efectivo);
+      if (dif !== 0) {
+        crudos.push({
+          clave: `cierre:${t.id}`,
+          fecha: diaHn(t.cerrada_en),
+          concepto: `${dif < 0 ? "Faltante" : "Sobrante"} en el cierre del turno ${t.numero}`,
+          origen: "cierre_caja",
+          referencia: `Turno ${t.numero}`,
+          lineas: dif < 0 ? [{ cuenta: "faltantes_caja", debe: -dif }, { cuenta: "caja", haber: -dif }] : [{ cuenta: "caja", debe: dif }, { cuenta: "sobrantes_caja", haber: dif }],
+          orden: t.cerrada_en,
+        });
+      }
+    }
+  }
+  crudos.push(...manualesDemo);
+
+  const cuentas = catalogoDemo();
+  const porId = new Map(cuentas.map((c) => [c.id, c]));
+  const ordenados = crudos
+    .map((a) => ({ ...a, lineas: a.lineas.filter((l) => (l.debe ?? 0) > 0 || (l.haber ?? 0) > 0) }))
+    .filter((a) => a.lineas.length >= 2)
+    .sort((a, b) => a.fecha.localeCompare(b.fecha) || a.orden.localeCompare(b.orden));
+  const numeros = new Map(ordenados.map((a, i) => [a.clave, i + 1]));
+  const revertidos = new Set([
+    ...ordenados.filter((a) => a.reversaDe).map((a) => a.reversaDe!),
+    ...manualesDemo.filter((m) => m.revertidoPor).map((m) => m.clave),
+  ]);
+  return ordenados.map((a) => ({
+    id: a.clave,
+    numero: numeros.get(a.clave)!,
+    fecha: a.fecha,
+    concepto: a.concepto,
+    origen: a.origen,
+    referencia: a.referencia,
+    es_reversa: Boolean(a.reversaDe) || Boolean((a as ManualDemo).revierte),
+    revertido: revertidos.has(a.clave),
+    registro: "Demo Sandbox",
+    lineas: a.lineas.map((l, i) => {
+      const id = typeof l.cuenta === "number" ? l.cuenta : idCuentaDemo(l.cuenta);
+      const c = porId.get(id);
+      return { id: i + 1, id_cuenta: id, codigo: c?.codigo ?? "?", cuenta: c?.nombre ?? "?", debe: centavos(l.debe ?? 0), haber: centavos(l.haber ?? 0), descripcion: l.descripcion ?? null };
+    }),
+  }));
+}
+
+function balanzaDemo(desde: string, hasta: string): FilaBalanza[] {
+  const asientos = asientosDemo().filter((a) => a.fecha <= hasta);
+  return catalogoDemo()
+    .sort((a, b) => a.codigo.localeCompare(b.codigo))
+    .map((c) => {
+      let antes = 0;
+      let debe = 0;
+      let haber = 0;
+      for (const a of asientos) {
+        for (const l of a.lineas) {
+          if (l.id_cuenta !== c.id) continue;
+          if (a.fecha < desde) antes += l.debe - l.haber;
+          else {
+            debe += l.debe;
+            haber += l.haber;
+          }
+        }
+      }
+      const s = c.naturaleza === "deudora" ? 1 : -1;
+      return {
+        id: c.id,
+        codigo: c.codigo,
+        nombre: c.nombre,
+        tipo: c.tipo,
+        naturaleza: c.naturaleza,
+        id_padre: c.id_padre,
+        activo: c.activo,
+        saldo_inicial: centavos(antes * s),
+        debe: centavos(debe),
+        haber: centavos(haber),
+        saldo_final: centavos((antes + debe - haber) * s),
+      };
+    });
+}
+
+const contabilidad: Apis["contabilidad"] = {
+  diario: async (fecha) => {
+    const asientos = asientosDemo().filter((a) => a.fecha === fecha);
+    const lineas = asientos.flatMap((a) => a.lineas);
+    return espera({
+      fecha,
+      asientos,
+      debe: centavos(lineas.reduce((s, l) => s + l.debe, 0)),
+      haber: centavos(lineas.reduce((s, l) => s + l.haber, 0)),
+      cerrado: cerradosDemo.has(fecha.slice(0, 7)),
+    });
+  },
+  asiento: async (id) => espera(asientosDemo().find((a) => a.id === id) ?? null),
+  cuentas: async () => {
+    const cs = catalogoDemo();
+    const padres = new Set(cs.map((c) => c.id_padre));
+    return espera(cs.filter((c) => c.activo && !padres.has(c.id)).sort((a, b) => a.codigo.localeCompare(b.codigo)).map(({ id, codigo, nombre, tipo }) => ({ id, codigo, nombre, tipo }) as CuentaBreve));
+  },
+  crearAsiento: async (a) => {
+    if (cerradosDemo.has(a.fecha.slice(0, 7))) return { ok: false as const, error: `El mes de ${a.fecha.slice(5, 7)}/${a.fecha.slice(0, 4)} está cerrado.` };
+    const debe = centavos(a.lineas.reduce((s, l) => s + l.debe, 0));
+    const haber = centavos(a.lineas.reduce((s, l) => s + l.haber, 0));
+    if (debe !== haber || debe <= 0) return { ok: false as const, error: `No cuadra: debe L ${debe.toFixed(2)} y haber L ${haber.toFixed(2)}.` };
+    const clave = `manual:${crypto.randomUUID()}`;
+    manualesDemo.push({
+      clave,
+      fecha: a.fecha,
+      concepto: a.concepto.trim(),
+      origen: "manual",
+      referencia: null,
+      orden: new Date().toISOString(),
+      lineas: a.lineas.map((l) => ({ cuenta: l.id_cuenta, debe: l.debe, haber: l.haber, descripcion: l.descripcion ?? undefined })),
+    });
+    const numero = asientosDemo().find((x) => x.id === clave)?.numero ?? 0;
+    return espera({ ok: true as const, id: clave, numero }, 300);
+  },
+  revertir: async (id, motivo) => {
+    const m = manualesDemo.find((x) => x.clave === id);
+    if (!m) return { ok: false as const, error: "Este asiento lo generó un documento: anulá el documento y su reversa sale sola." };
+    if (m.revertidoPor || m.revierte) return { ok: false as const, error: "Este asiento ya fue revertido." };
+    const clave = `manual:${crypto.randomUUID()}`;
+    m.revertidoPor = clave;
+    manualesDemo.push({
+      ...m,
+      clave,
+      revierte: m.clave,
+      revertidoPor: undefined,
+      fecha: hoyIso(),
+      concepto: `Reversa: ${motivo.trim()}`,
+      orden: new Date().toISOString(),
+      lineas: m.lineas.map((l) => ({ ...l, debe: l.haber, haber: l.debe })),
+    });
+    return espera({ ok: true as const });
+  },
+  balanza: async (desde, hasta) => espera(balanzaDemo(desde, hasta), 200),
+  mayor: async (idCuenta, desde, hasta) => {
+    const c = catalogoDemo().find((x) => x.id === idCuenta);
+    if (!c) return espera(null);
+    const s = c.naturaleza === "deudora" ? 1 : -1;
+    const asientos = asientosDemo();
+    let saldo = centavos(
+      asientos.filter((a) => a.fecha < desde).flatMap((a) => a.lineas).filter((l) => l.id_cuenta === idCuenta).reduce((t, l) => t + (l.debe - l.haber) * s, 0),
+    );
+    const inicial = saldo;
+    const movimientos = asientos
+      .filter((a) => a.fecha >= desde && a.fecha <= hasta)
+      .flatMap((a) =>
+        a.lineas
+          .filter((l) => l.id_cuenta === idCuenta)
+          .map((l) => {
+            saldo = centavos(saldo + (l.debe - l.haber) * s);
+            return { id_asiento: a.id, numero: a.numero, fecha: a.fecha, concepto: a.concepto, referencia: a.referencia, descripcion: l.descripcion, debe: l.debe, haber: l.haber, saldo };
+          }),
+      );
+    return espera({ saldo_inicial: inicial, movimientos });
+  },
+  periodos: async () => {
+    const asientos = asientosDemo();
+    const hoy = hoyIso();
+    return espera(
+      Array.from({ length: 13 }, (_, i) => {
+        const d = new Date(`${hoy.slice(0, 7)}-15T12:00:00Z`);
+        d.setUTCMonth(d.getUTCMonth() - i);
+        const mes = d.toISOString().slice(0, 7);
+        const del = asientos.filter((a) => a.fecha.startsWith(mes));
+        return { mes, asientos: del.length, debe: centavos(del.flatMap((a) => a.lineas).reduce((s, l) => s + l.debe, 0)), cerrado: cerradosDemo.has(mes) };
+      }),
+    );
+  },
+  cerrarPeriodo: async (mes) => {
+    if (mes >= hoyIso().slice(0, 7)) return { ok: false as const, error: "Solo se cierran meses que ya terminaron." };
+    cerradosDemo.add(mes);
+    return espera({ ok: true as const });
+  },
+  reabrirPeriodo: async (mes) => {
+    cerradosDemo.delete(mes);
+    return espera({ ok: true as const });
+  },
+  contabilizarPendientes: async () => espera({ ok: true as const, asientos: 0 }),
+  aperturaInventario: async (fecha) => {
+    if (manualesDemo.some((m) => m.origen === "apertura_inventario" && !m.revertidoPor)) {
+      return { ok: false as const, error: "La apertura del inventario ya está registrada (revertila para hacerla de nuevo)." };
+    }
+    const valor = centavos(PRODUCTOS.filter((x) => x.controla_inventario).reduce((s, x) => s + Math.max(Number(x.existencia ?? 0), 0) * Number(x.costo ?? 0), 0));
+    const clave = `manual:${crypto.randomUUID()}`;
+    manualesDemo.push({
+      clave,
+      fecha,
+      concepto: "Apertura: inventario inicial a costo",
+      origen: "apertura_inventario",
+      referencia: null,
+      orden: "0",
+      lineas: [{ cuenta: "inventario", debe: valor }, { cuenta: "capital", haber: valor }],
+    });
+    return espera({ ok: true as const, id: clave });
+  },
+};
+
+BASES.cuentas_contables = () => {
+  const porCodigo = new Map<string, number>();
+  CATALOGO_DEMO.forEach(([codigo], i) => porCodigo.set(codigo, i + 1));
+  return CATALOGO_DEMO.map(([codigo, nombre, tipo, naturaleza, padre, clave], i) => ({
+    id: i + 1,
+    codigo,
+    nombre,
+    tipo,
+    naturaleza,
+    id_padre: padre ? porCodigo.get(padre)! : null,
+    padre: padre ? `${padre} · ${CATALOGO_DEMO.find((c) => c[0] === padre)![1]}` : null,
+    clave,
+    activo: true,
+    es_grupo: CATALOGO_DEMO.some((c) => c[4] === codigo),
+    nivel: codigo.length,
+    etiqueta: `${codigo} · ${nombre}`,
+    saldo: null,
+    creado_en: haceDias(120),
+  }));
+};
+BASES.asientos = () =>
+  asientosDemo().map((a) => ({
+    id: a.id,
+    numero: a.numero,
+    fecha: a.fecha,
+    concepto: a.concepto,
+    origen: a.origen,
+    referencia: a.referencia,
+    total: centavos(a.lineas.reduce((s, l) => s + l.debe, 0)),
+    lineas: a.lineas.length,
+    es_reversa: a.es_reversa,
+    revertido: a.revertido,
+    registro: a.registro,
+  }));
+
 export const APIS_DEMO: Partial<Apis> = {
   recursos,
   empresa,
   perfil,
   ventas,
   cobros,
+  compras,
+  contabilidad,
   caja,
   exportacion,
   compatibilidad,

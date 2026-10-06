@@ -155,6 +155,45 @@ Muchos negocios hacen ambas cosas; el modelo de datos debe soportar las dos form
 - **Cierre con arqueo**: conteo por denominación del lempira (billetes de 500 a 1, monedas de 50 a 5 centavos) o total escrito. Diferencia = contado − esperado; **si no cuadra, la nota es obligatoria**. El resumen se congela y queda el **corte de caja** imprimible (sin valor fiscal).
 - **Caja obligatoria** (opción del dueño/admin): sin turno abierto no se factura de contado ni se registran abonos. Por defecto está apagada: quien no usa caja sigue igual.
 - **Reporte de ventas**: desde 0018 resta las notas de crédito y suma las de débito (ventas, utilidad, serie y rankings) y muestra «Devoluciones».
+- **Pagos desde la caja** (0021): una compra de contado o un pago a proveedor en efectivo marcado «Sale de la caja» resta del efectivo esperado del turno (columna «Salidas» y «− Compras y pagos a proveedores»).
+
+### 3.10 Compras, proveedores y cuentas por pagar (Implementado · 0021)
+
+- **Solo dueño/admin** registran compras y pagos; los proveedores los ven todos (para el kardex), los editan dueño/admin.
+- **Compra** = la factura del proveedor tal como llegó: proveedor, número de su factura (opcional pero recomendado), CAI del proveedor (opcional), fecha (no futura). Número interno `COMP-000001`.
+- **De productos**: cantidad y costo unitario **sin ISV** por producto; suben las existencias (kardex «compra», referencia `COMP-… · factura`) y el costo pasa al **promedio ponderado** (si no había existencia, el costo nuevo). **De gasto**: descripción y monto, sin inventario.
+- **ISV**: 15 % sobre lo gravado (cada línea puede ir exenta); se puede escribir el de la factura del proveedor hasta el 18 % de lo gravado (**a verificar** con el contador los productos al 18 %). Es crédito fiscal (cuenta ISV de compras).
+- **La misma factura** (proveedor + número) no se registra dos veces; anulada sí se puede volver a registrar.
+- **Contado** con forma de pago; en efectivo, «Sale de la caja» la descuenta del turno abierto del punto (si no hay caja abierta, no se descuenta de ninguna). **Crédito**: vence en fecha + plazo del proveedor (editable).
+- **Cuentas por pagar**: pendiente = total − pagos vigentes; estados al día · por vencer (≤ 7 días) · vencida · pagada; tablero con antigüedad de saldos (el mismo de la cartera de clientes).
+- **Pagos a proveedores** (`PAG-000001`): a las compras que vencen primero o a las marcadas; no más de lo que se debe; en efectivo pueden salir de la caja.
+- **Anular**: una compra con pagos vigentes no se anula (primero sus pagos). Anular una compra de productos saca las existencias (kardex «anulación»); el costo promedio no se recalcula (supuesto).
+- **No incluido todavía** (pedido para después): órdenes de compra, libro de compras para la declaración del ISV, cuenta contable por gasto.
+
+### 3.11 Contabilidad (Implementado · 0022)
+
+- **Catálogo por empresa** precargado (NIIF para PYMES, simplificado: 1 Activo · 2 Pasivo · 3 Patrimonio · 4 Ingresos · 5 Costos · 6 Gastos). Árbol por «pertenece a»; una cuenta con subcuentas es de **grupo** y no recibe asientos manuales. Naturaleza por tipo (deudora: activo, costo, gasto), cambiable para contracuentas (depreciación acumulada, devoluciones sobre ventas).
+- **Asientos automáticos** (al confirmar cada operación; si se anula el documento, asiento de **reversa** con fecha de hoy):
+
+| Operación | Debe | Haber |
+|---|---|---|
+| Factura | Caja / Bancos / Clientes (total) · Costo de ventas (costo) | Ventas (sin ISV) · ISV por pagar · Inventario (costo) |
+| Nota de crédito | Devoluciones y rebajas · ISV por pagar · (Inventario si reintegra) | Caja / Bancos / Clientes · (Costo de ventas si reintegra) |
+| Nota de débito | Caja / Bancos / Clientes | Otros ingresos · ISV por pagar |
+| Abono | Caja / Bancos | Clientes |
+| Compra | Inventario o Gastos generales · ISV de compras | Proveedores (crédito) o Caja / Bancos |
+| Pago a proveedor | Proveedores | Caja / Bancos |
+| Entrada de caja | Caja | Bancos |
+| Salida de caja | Gastos generales | Caja |
+| Cierre de caja | Faltantes de caja (o Caja) | Caja (o Sobrantes de caja) |
+
+- Forma de pago → cuenta: **efectivo = Caja; todo lo demás = Bancos**. Las notas usan la condición/forma de su factura; sin factura, la suya («sin dinero» = Clientes).
+- **Costo de ventas perpetuo**: costo promedio guardado en cada línea vendida × cantidad (solo productos con inventario).
+- **Asientos manuales** (dueño/admin): cuentas de detalle activas; tienen que cuadrar (también lo revisa la base al confirmar). Se corrigen con **reversa**, no se borran. Los automáticos se corrigen anulando su documento.
+- **Cierre de mes**: solo meses ya terminados; un mes cerrado no acepta asientos de ninguna fecha suya (tampoco compras o ventas fechadas ahí). Reabre solo el dueño.
+- **Arranque**: «Contabilizar lo anterior» asienta lo vigente emitido antes de 0022; «Apertura del inventario» = existencia × costo contra Capital (una vez). Fondo de caja, bancos, deudas y activos fijos iniciales: asiento manual.
+- **Reportes**: libro del día con cuadre, asientos, balanza de comprobación (árbol con saldos inicial y final), estado de resultados del período, balance general acumulado (sin asientos de cierre de ejercicio: el resultado se muestra aparte) y libro mayor.
+- **A verificar con el contador**: el catálogo, el mapeo de cada asiento automático (tarjeta/transferencia a Bancos; entradas de caja contra Bancos; salidas de caja a Gastos generales; notas de débito a Otros ingresos), el costo promedio y el cierre anual.
 
 ## 4. Reglas transversales
 

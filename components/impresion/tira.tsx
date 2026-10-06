@@ -254,7 +254,7 @@ export function TiraRecibo({ recibo, identidad }: { recibo: Recibo; identidad?: 
 export function TiraCorte({ turno, identidad }: { turno: Turno; identidad?: Identidad }) {
   const f = identidad?.formato ?? FORMATO_POR_DEFECTO;
   const r = turno.resumen;
-  const formas = r.formas.filter((x) => x.forma === "efectivo" || x.neto || x.ventas || x.abonos || x.devoluciones);
+  const formas = r.formas.filter((x) => x.forma === "efectivo" || x.neto || x.ventas || x.abonos || x.devoluciones || x.pagos);
   const manuales = turno.movimientos.filter((m) => m.tipo === "entrada" || m.tipo === "salida");
   const arqueo = turno.arqueo ? DENOMINACIONES.filter((d) => (turno.arqueo?.[d.clave] ?? 0) > 0) : [];
   const dif = turno.diferencia ?? 0;
@@ -282,6 +282,7 @@ export function TiraCorte({ turno, identidad }: { turno: Turno; identidad?: Iden
         )}
         <p>
           {r.facturas} ventas · {r.abonos} abonos · {r.notas} notas
+          {r.pagos ? ` · ${r.pagos} pagos a proveedores` : ""}
         </p>
       </section>
       <Linea />

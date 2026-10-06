@@ -63,30 +63,49 @@ export function CuentasPorCobrar() {
   );
 }
 
+/** Textos del tablero: lo mismo sirve para lo que te deben y para lo que debés. */
+export type TextosTablero = {
+  total: string;
+  vacio: string;
+  documento: [string, string];
+  persona: [string, string];
+  semana: string;
+};
+
+const TEXTOS_COBRAR: TextosTablero = {
+  total: "Por cobrar",
+  vacio: "Nadie te debe.",
+  documento: ["factura", "facturas"],
+  persona: ["cliente", "clientes"],
+  semana: "Para llamar esta semana",
+};
+
 /** Momento firma: la antigüedad de saldos como una banda de tablero, de verde (al día) a rojo (+90 días). */
-function Tablero({ resumen }: { resumen: ResumenCartera | null }) {
+export function Tablero({ resumen, textos = TEXTOS_COBRAR }: { resumen: ResumenCartera | null; textos?: TextosTablero }) {
   if (!resumen) return <div className={styles.tableroCargando} aria-label="Cargando cartera" />;
   const { total, vencido, por_vencer, clientes, facturas, bandas } = resumen;
   const vacio = total <= 0;
   return (
     <section className={styles.tablero} aria-label="Resumen de la cartera">
       <div className={styles.lcd}>
-        <span className={styles.etiqueta}>Por cobrar</span>
-        <Odometro valor={total} etiqueta="Total por cobrar" />
+        <span className={styles.etiqueta}>{textos.total}</span>
+        <Odometro valor={total} etiqueta={`Total ${textos.total.toLowerCase()}`} />
         <p className={styles.lcdPie}>
-          {vacio ? "Nadie te debe." : `${facturas} ${facturas === 1 ? "factura" : "facturas"} · ${clientes} ${clientes === 1 ? "cliente" : "clientes"}`}
+          {vacio
+            ? textos.vacio
+            : `${facturas} ${textos.documento[facturas === 1 ? 0 : 1]} · ${clientes} ${textos.persona[clientes === 1 ? 0 : 1]}`}
         </p>
       </div>
       <div className={styles.indicadores}>
         <div data-tono={vencido > 0 ? "mal" : undefined}>
           <span className={styles.etiqueta}>Vencido</span>
           <strong>{moneda(vencido)}</strong>
-          <small>{total > 0 ? `${Math.round((vencido / total) * 100)} % de la cartera` : "—"}</small>
+          <small>{total > 0 ? `${Math.round((vencido / total) * 100)} % del total` : "—"}</small>
         </div>
         <div data-tono={por_vencer > 0 ? "aviso" : undefined}>
           <span className={styles.etiqueta}>Vence en 7 días</span>
           <strong>{moneda(por_vencer)}</strong>
-          <small>Para llamar esta semana</small>
+          <small>{textos.semana}</small>
         </div>
       </div>
       <div className={styles.antiguedad}>

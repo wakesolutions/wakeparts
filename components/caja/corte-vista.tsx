@@ -14,7 +14,7 @@ import styles from "./corte-vista.module.css";
 export function CorteVista({ turno, identidad }: { turno: Turno; identidad?: Pick<Identidad, "acento"> }) {
   const r = turno.resumen;
   const efectivo = r.formas.find((f) => f.forma === "efectivo");
-  const formas = r.formas.filter((f) => f.forma === "efectivo" || f.neto || f.ventas || f.abonos || f.devoluciones);
+  const formas = r.formas.filter((f) => f.forma === "efectivo" || f.neto || f.ventas || f.abonos || f.devoluciones || f.pagos);
   const manuales = turno.movimientos.filter((m) => m.tipo === "entrada" || m.tipo === "salida");
   const arqueo = turno.arqueo ? DENOMINACIONES.filter((d) => (turno.arqueo?.[d.clave] ?? 0) > 0) : [];
   const abierta = turno.estado === "abierta";
@@ -51,6 +51,7 @@ export function CorteVista({ turno, identidad }: { turno: Turno; identidad?: Pic
           <span className={doc.etiqueta}>Documentos</span>
           <p>
             {r.facturas} ventas · {r.abonos} abonos · {r.notas} notas
+            {r.pagos ? ` · ${r.pagos} pagos a proveedores` : ""}
             {r.anuladas ? ` · ${r.anuladas} anulados` : ""}
           </p>
         </div>
@@ -67,7 +68,7 @@ export function CorteVista({ turno, identidad }: { turno: Turno; identidad?: Pic
               Abonos
             </th>
             <th scope="col" data-num="">
-              Devoluciones
+              Devoluciones y pagos
             </th>
             <th scope="col" data-num="">
               Neto
@@ -80,7 +81,7 @@ export function CorteVista({ turno, identidad }: { turno: Turno; identidad?: Pic
               <td>{etiquetaForma(f.forma)}</td>
               <td data-num="">{monto(f.ventas + f.cargos)}</td>
               <td data-num="">{monto(f.abonos)}</td>
-              <td data-num="">{f.devoluciones ? `− ${monto(f.devoluciones)}` : "—"}</td>
+              <td data-num="">{f.devoluciones + f.pagos ? `− ${monto(f.devoluciones + f.pagos)}` : "—"}</td>
               <td data-num="">{monto(f.neto)}</td>
             </tr>
           ))}

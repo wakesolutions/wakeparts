@@ -1,0 +1,687 @@
+/* Compras (0021): la factura del proveedor como una hoja de recepción.
+   Arriba quién y qué documento; al centro lo que llegó; abajo cómo se pagó y
+   el total en el odómetro. Momento firma: el sello «Recibido» de la compra. */
+
+.etiqueta {
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.ayuda {
+  margin: 0;
+  font-size: 0.74rem;
+  color: var(--wp-ink-3);
+}
+
+.error {
+  margin: 0;
+  padding: 0.5rem 0.7rem;
+  border-radius: 8px;
+  font-size: 0.8rem;
+  color: var(--wp-ink);
+  background: var(--wp-sel);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--wp-accent-hi) 45%, transparent);
+}
+
+.enlace {
+  margin-left: 0.4rem;
+  padding: 0;
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--wp-accent-hi);
+  background: none;
+  cursor: pointer;
+}
+
+.enlace:hover {
+  text-decoration: underline;
+}
+
+.enlace:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 2px;
+  border-radius: 3px;
+}
+
+.botones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.campo {
+  position: relative;
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+/* ----------------------------------------------------------- nueva compra */
+
+.compra {
+  container-type: inline-size;
+  display: grid;
+  grid-template-rows: auto auto minmax(160px, 1fr) auto;
+  height: 100%;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  font-size: 0.88rem;
+  background: var(--wp-bg-deep);
+}
+
+.cabecera {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.8rem;
+  padding: 1rem 1.2rem 0.9rem;
+  border-bottom: 1px solid var(--wp-line);
+  background: linear-gradient(180deg, var(--wp-panel), var(--wp-panel-2));
+  box-shadow: inset 0 1px 0 var(--wp-bevel-light);
+}
+
+@container (min-width: 760px) {
+  .cabecera {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr) minmax(0, 1fr) 10rem;
+    align-items: start;
+  }
+}
+
+.proveedor {
+  z-index: 4;
+}
+
+.proveedorElegido {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.6rem;
+  min-height: 36px;
+}
+
+.proveedorElegido strong {
+  font-size: 1.05rem;
+  letter-spacing: -0.01em;
+  color: var(--wp-ink);
+}
+
+.proveedorElegido span {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--wp-ink-3);
+}
+
+.sugerencias {
+  position: absolute;
+  inset: calc(100% + 4px) 0 auto;
+  display: grid;
+  gap: 2px;
+  padding: 4px;
+  border-radius: 12px;
+  background: var(--wp-panel);
+  box-shadow:
+    0 0 0 1px var(--wp-line),
+    var(--wp-sombra-ventana);
+  animation: entra 200ms var(--ease-expo) both;
+}
+
+.sugerencias ul {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.sugerencias li button {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.8rem;
+  width: 100%;
+  padding: 0.5rem 0.6rem;
+  border: 0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.84rem;
+  text-align: left;
+  color: var(--wp-ink);
+  background: none;
+  cursor: pointer;
+}
+
+.sugerencias li button:hover,
+.sugerencias li button:focus-visible {
+  outline: none;
+  background: var(--wp-hover);
+}
+
+.sugerencias small {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--wp-ink-3);
+}
+
+.nuevoProveedor {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 0.6rem;
+  border: 0;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-align: left;
+  color: var(--wp-accent-hi);
+  background: none;
+  cursor: pointer;
+}
+
+.nuevoProveedor:hover {
+  background: var(--wp-hover);
+}
+
+.altaProveedor {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.5rem;
+  border-top: 1px solid var(--wp-line);
+}
+
+.dias {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--wp-ink-2);
+}
+
+.dias input {
+  width: 4.5rem;
+  text-align: right;
+}
+
+.tipoBarra {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem 1rem;
+  padding: 0.8rem 1.2rem 0;
+}
+
+.tipoBarra > div {
+  min-width: 15rem;
+}
+
+.cuerpo {
+  display: grid;
+  align-content: start;
+  gap: 0.8rem;
+  min-height: 0;
+  padding: 0.8rem 1.2rem 1rem;
+}
+
+.costoAntes {
+  display: block;
+  margin-top: 0.15rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--wp-aviso);
+}
+
+/* Gastos: renglones de descripción y monto. */
+.gastos {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border-radius: 12px;
+  background: var(--wp-panel);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+}
+
+.gastos li {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 7.5rem;
+  gap: 0.45rem;
+  align-items: center;
+  padding: 0.6rem 0.7rem;
+  animation: entra 260ms var(--ease-expo) both;
+}
+
+.gastos li + li {
+  border-top: 1px solid var(--wp-line);
+}
+
+@container (min-width: 620px) {
+  .gastos li {
+    grid-template-columns: minmax(0, 1fr) 9rem auto auto;
+  }
+}
+
+.exento {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.78rem;
+  color: var(--wp-ink-2);
+  cursor: pointer;
+}
+
+.otraLineaFila {
+  display: block !important;
+}
+
+.otraLinea {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.1rem 0;
+  border: 0;
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+  background: none;
+  cursor: pointer;
+}
+
+.otraLinea:hover {
+  color: var(--wp-accent-hi);
+}
+
+/* Pie: pago a la izquierda, totales a la derecha. */
+.pie {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+  padding: 1rem 1.2rem 1.2rem;
+  border-top: 1px solid var(--wp-line);
+  background: linear-gradient(180deg, var(--wp-panel-2), var(--wp-panel));
+}
+
+@container (min-width: 760px) {
+  .pie {
+    grid-template-columns: minmax(0, 1.1fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
+.pago {
+  display: grid;
+  align-content: start;
+  gap: 0.55rem;
+}
+
+.formas {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 3px;
+  padding: 3px;
+  border-radius: 10px;
+  background: var(--wp-field);
+  box-shadow: inset 0 1px 3px rgb(0 0 0 / 0.4);
+}
+
+.formas button {
+  min-height: 30px;
+  padding: 0 0.3rem;
+  border: 0;
+  border-radius: 7px;
+  font-family: inherit;
+  font-size: 0.74rem;
+  font-weight: 600;
+  color: var(--wp-ink-3);
+  background: none;
+  cursor: pointer;
+  transition: color 160ms var(--ease-quart);
+}
+
+.formas button:hover {
+  color: var(--wp-ink);
+}
+
+.formas button[aria-checked="true"] {
+  color: var(--wp-ink);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 -2px 0 var(--wp-accent),
+    0 0 0 1px rgb(0 0 0 / 0.3);
+}
+
+.formas button:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 1px;
+}
+
+.deCaja {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.55rem 0.75rem;
+  border-radius: 10px;
+  font-size: 0.82rem;
+  color: var(--wp-ink);
+  background: var(--wp-hover);
+  cursor: pointer;
+}
+
+.deCaja span {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.deCaja small {
+  font-size: 0.72rem;
+  color: var(--wp-ink-3);
+}
+
+.totales {
+  display: grid;
+  gap: 0.55rem;
+}
+
+.totales dl {
+  display: grid;
+  gap: 0.2rem;
+  margin: 0;
+}
+
+.totales dl > div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 26px;
+  font-size: 0.78rem;
+  color: var(--wp-ink-2);
+}
+
+.totales dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  color: var(--wp-ink);
+}
+
+.isv {
+  width: 7rem;
+  height: 28px;
+  text-align: right;
+}
+
+.confirmar {
+  display: grid;
+  gap: 0.45rem;
+  padding: 0.75rem 0.85rem;
+  border-radius: 10px;
+  background: var(--wp-hover);
+  box-shadow: inset 0 0 0 1px var(--wp-line);
+  animation: entra 240ms var(--ease-expo) both;
+}
+
+.confirmar p {
+  margin: 0;
+  font-size: 0.84rem;
+}
+
+.registrar {
+  justify-self: end;
+  min-width: 12rem;
+}
+
+/* -------------------------------------------------------------- recibida */
+
+/* Sello «Recibido»: tinta que se estampa sobre la compra recién registrada. */
+.recibida {
+  display: grid;
+  justify-items: center;
+  gap: 0.8rem;
+  padding: 2.4rem 1.2rem;
+  text-align: center;
+}
+
+.sello {
+  display: grid;
+  justify-items: center;
+  gap: 0.15rem;
+  padding: 0.8rem 1.6rem;
+  border-radius: 12px;
+  color: var(--wp-ok);
+  box-shadow:
+    inset 0 0 0 2px color-mix(in oklab, var(--wp-ok) 70%, transparent),
+    inset 0 0 0 5px var(--wp-bg-deep),
+    inset 0 0 0 6px color-mix(in oklab, var(--wp-ok) 45%, transparent);
+  transform: rotate(-3deg);
+  animation: estampar 520ms var(--ease-expo) both;
+}
+
+.sello strong {
+  font-family: var(--font-mono);
+  font-size: clamp(1.6rem, 6cqi, 2.4rem);
+  letter-spacing: 0.04em;
+}
+
+.sello span {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.3em;
+  text-transform: uppercase;
+}
+
+@keyframes estampar {
+  from {
+    opacity: 0;
+    transform: rotate(-3deg) scale(1.4);
+  }
+  60% {
+    opacity: 1;
+    transform: rotate(-3deg) scale(0.97);
+  }
+  to {
+    transform: rotate(-3deg) scale(1);
+  }
+}
+
+/* ----------------------------------------------------------- vista compra */
+
+.vista {
+  container-type: inline-size;
+  display: grid;
+  align-content: start;
+  gap: 1rem;
+  height: 100%;
+  overflow-y: auto;
+  padding: 1rem 1.2rem 1.4rem;
+  font-size: 0.86rem;
+}
+
+.vistaBarra {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.anular {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 0.4rem;
+}
+
+.ficha {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem 1.1rem;
+  border-radius: 14px;
+  background: linear-gradient(180deg, var(--wp-panel-2), var(--wp-panel));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    inset 0 0 0 1px var(--wp-line);
+}
+
+.fichaCabeza {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.8rem;
+}
+
+.fichaCabeza h2 {
+  margin: 0.1rem 0 0;
+  font-size: 1.2rem;
+  letter-spacing: -0.01em;
+}
+
+.numero {
+  font-family: var(--font-mono);
+  font-size: 1.3rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.anulada {
+  display: inline-block;
+  margin-top: 0.2rem;
+  padding: 0.05rem 0.5rem;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--wp-accent-hi);
+  box-shadow: inset 0 0 0 1px currentColor;
+}
+
+.datos {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(11rem, 1fr));
+  gap: 0.6rem 1rem;
+  margin: 0;
+}
+
+.datos div {
+  display: grid;
+  gap: 0.15rem;
+}
+
+.datos dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--wp-ink);
+}
+
+.tabla {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.82rem;
+}
+
+.tabla th {
+  padding: 0.4rem 0.5rem;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-align: left;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+  border-bottom: 1px solid var(--wp-line);
+}
+
+.tabla td {
+  padding: 0.45rem 0.5rem;
+  border-bottom: 1px solid var(--wp-line);
+}
+
+.tabla [data-num] {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.sumas {
+  display: grid;
+  justify-self: end;
+  gap: 0.2rem;
+  min-width: 16rem;
+  margin: 0;
+}
+
+.sumas div {
+  display: flex;
+  justify-content: space-between;
+  gap: 1.5rem;
+  font-size: 0.8rem;
+  color: var(--wp-ink-2);
+}
+
+.sumas dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  color: var(--wp-ink);
+}
+
+.sumas div:last-child {
+  padding-top: 0.3rem;
+  border-top: 1px solid var(--wp-line);
+  font-weight: 700;
+  color: var(--wp-ink);
+}
+
+.pagosLista {
+  display: grid;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.pagosLista li {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.35rem 0;
+  font-family: var(--font-mono);
+  font-size: 0.78rem;
+  border-bottom: 1px solid var(--wp-line);
+}
+
+.pagosLista li[data-anulado] {
+  opacity: 0.5;
+  text-decoration: line-through;
+}
+
+.cargando {
+  height: 200px;
+  margin: 1.2rem;
+  border-radius: 12px;
+  background: linear-gradient(90deg, var(--wp-hover), color-mix(in oklab, var(--wp-hover) 40%, transparent), var(--wp-hover));
+  background-size: 200% 100%;
+  animation: brillo 1400ms cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+@keyframes entra {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 6px, 0);
+  }
+}
+
+@keyframes brillo {
+  from {
+    background-position: 100% 0;
+  }
+  to {
+    background-position: -100% 0;
+  }
+}

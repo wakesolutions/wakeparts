@@ -9,6 +9,8 @@ import {
 } from "@/components/compatibilidad/api";
 import { apiCaja, type ApiCaja } from "@/components/caja/api";
 import { apiCobros, type ApiCobros } from "@/components/cobros/api";
+import { apiCompras, type ApiCompras } from "@/components/compras/api";
+import { apiContabilidad, type ApiContabilidad } from "@/components/contabilidad/api";
 import { apiExportacion, type ApiExportacion } from "@/components/exportacion/api";
 import { apiIdentidad, type ApiIdentidad } from "@/components/identidad/api";
 import { apiImagenes, type ApiImagenes } from "@/components/imagenes/api";
@@ -39,6 +41,8 @@ export type Apis = {
   imagenes: ApiImagenes;
   ventas: ApiVentas;
   cobros: ApiCobros;
+  compras: ApiCompras;
+  contabilidad: ApiContabilidad;
   caja: ApiCaja;
   exportacion: ApiExportacion;
   inventario: ApiInventario;
@@ -57,6 +61,8 @@ const REALES: Apis = {
   imagenes: apiImagenes,
   ventas: apiVentas,
   cobros: apiCobros,
+  compras: apiCompras,
+  contabilidad: apiContabilidad,
   caja: apiCaja,
   exportacion: apiExportacion,
   inventario: apiInventario,
