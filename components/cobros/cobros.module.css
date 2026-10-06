@@ -530,6 +530,12 @@
   padding: 0.5rem 0.8rem;
 }
 
+/* Número y fechas traen el área con nombre de la lista de facturas: aquí van en fila. */
+.listaRecibos .facturaNumero,
+.listaRecibos .facturaFechas {
+  grid-area: auto;
+}
+
 .listaRecibos li[data-anulado] {
   opacity: 0.5;
 }
