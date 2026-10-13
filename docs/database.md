@@ -80,7 +80,7 @@ Perfil 1:1 con `auth.users`. Lo crea y actualiza el trigger `wp_sincronizar_usua
 
 RLS: cada uno se ve a sí mismo y a quienes comparten empresa. Solo puede actualizar `id_empresa_activa`, `nombre`, `telefono`, `recorrido_visto_en` y `dock` (privilegio por columna).
 
-Admin de plataforma actual: `miltonbarrientos2@gmail.com` (0010 desmarca a cualquier otro). La app exige además que el correo esté en `ADMINS_PLATAFORMA`. Para agregar otro admin: `update usuarios set es_admin_plataforma = true where correo = …` **y** sumarlo a la variable.
+Admins de plataforma: los correos de la variable `ADMINS_PLATAFORMA` (separados por coma). Desde 0023 la variable manda: al cargar la sesión, `obtenerSesion()` (`lib/sesion.ts`) pone o quita `es_admin_plataforma` con la llave secreta si no coincide con la variable. Para agregar o quitar un admin basta editar la variable y volver a desplegar; el flag se ajusta cuando esa persona entra.
 
 ### `roles`
 
@@ -434,6 +434,16 @@ Avisos de la campanita. `id_empresa`, `id_usuario` (null = para todos los miembr
 - `seguimiento_empresas()` (security definer; vacía si no sos admin de plataforma) → una fila por empresa activa: `empresa`, `registrada_en`, `dias_registrada`, dueño (`dueno`, `correo`, `telefono` de `usuarios`), `telefono_empresa`, `miembros`, `productos`, `cotizaciones`, `facturas`, `ultimo_documento`, `ultimo_acceso` (`auth.users.last_sign_in_at` de sus miembros), `dias_sin_entrar`, `sitio_publicado`, `pedidos_web`, `etapa` (`sin_productos` · `sin_cotizar` · `cotizando` · `facturando`) y la nota de contacto. `v_seguimiento_empresas` la expone para TablaMaestra.
 - `seguimiento_contactos` (`id_empresa` PK, `contactado_en`, `nota` ≤ 1000, `actualizado_*`): lo anota el admin desde el módulo Seguimiento. RLS: solo `es_admin_plataforma()`.
 - Nada se manda solo: el módulo arma el mensaje y el admin lo manda. WhatsApp se abre en el teléfono/navegador; el **correo se envía desde el sistema** (`enviarCorreoSeguimiento`, SMTP de `ventas@wake.solutions`) al correo del dueño leído en el servidor, con confirmación, y marca `contactado_en`. Cada envío queda en `registros` (`seguimiento.correo` / `seguimiento.correo_error`).
+
+## Planes y permisos por rol (0023, solo admin de plataforma)
+
+- `planes` (`codigo` PK `^[a-z0-9_]{2,30}$`, `nombre`, `descripcion`, `precio_mensual` referencial, `orden`, `modulos text[]`, `limites jsonb`, `predeterminado` (único), `activo`). Semilla: `basico` (gratis), `avanzado`, `business` (todo, sin límites, predeterminado). La semilla no pisa lo que edite el admin. RLS: solo `es_admin_plataforma()` (los talleres no leen la tabla).
+- Claves de `limites` (número; sin clave o null = sin límite): `productos`, `clientes`, `proveedores`, `puntos_emision` (filas `activo`), `usuarios` (miembros activos; al invitar suma invitaciones pendientes), `fotos_por_producto`, `facturas_mes`, `cotizaciones_mes` (mes calendario en hora de Honduras). Lista en `LIMITES` de `lib/permisos.ts`.
+- `empresas_planes` (`id_empresa` PK, `plan` → `planes`, `nota`, `asignado_*`). Las empresas existentes al aplicar 0023 quedaron en `business`; el trigger `asignar_plan_predeterminado` (after insert en `empresas`) asigna el predeterminado a las nuevas. RLS: solo admin de plataforma.
+- `permisos_roles` (`rol` PK → `roles`, `permisos text[]`): módulos (`modulo:<id>`) y capacidades (`ver_margen`) de `admin` y `vendedor`. Sin fila = lo de fábrica (`PERMISOS_POR_DEFECTO`). El dueño no se configura (check). Lectura: autenticados; escritura: admin de plataforma.
+- Funciones: `plan_de_empresa(empresa)`, `limite_plan(empresa, clave)`, `mi_plan(empresa)` (módulos y límites para sus miembros, sin el nombre del plan), `verificar_limite_plan()` (P0001 «Llegaste al límite de … de tu cuenta (N). Escribinos para ampliarlo.», hint `limite_plan:<clave>`), `uso_planes_empresas()` (plan + consumo por empresa; vacía si no sos admin de plataforma).
+- Triggers `limite_plan` (before insert, y `update of activo` donde aplica) en `productos`, `clientes`, `proveedores`, `puntos_emision`, `productos_imagenes`, `documentos`, `invitaciones` y `empresas_usuarios`.
+- Los módulos del plan y del rol solo controlan el escritorio (`veModulo()` en `lib/permisos.ts`); RLS sigue exigiendo dueño/admin para escribir en lo administrativo.
 
 ## Funciones
 

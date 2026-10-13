@@ -2,6 +2,16 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-13 · Planes, límites y permisos por rol (0023)
+
+- **Pedido del usuario**: permisos flexibles por rol que controle un admin, empresas fragmentadas en planes Básico (gratis), Avanzado y Business con límites configurables, sin pasarela de pagos y **sin que el taller se entere** (solo para que el admin gestione y pruebe); varios admins por variable de entorno.
+- **Quién configura**: los admins de plataforma (correos de `ADMINS_PLATAFORMA`), desde el módulo **Planes** (Planes y límites · Empresas · Roles · Administradores). Los permisos por rol son globales (valen para todas las empresas); el dueño siempre tiene todo lo del plan para que nadie quede fuera de su propia empresa.
+- **La variable manda sobre el flag**: antes había que hacer un `update` a mano además de la variable. Ahora `obtenerSesion()` corrige `usuarios.es_admin_plataforma` con la llave secreta cuando no coincide (y lo quita si el correo sale de la variable). RLS sigue usando el flag.
+- **Límites en la base** (triggers P0001), no en la app: valen para cualquier camino (mostrador, importación de Excel, toma rápida, REST). El mensaje no menciona el plan («Llegaste al límite de productos de tu cuenta… Escribinos para ampliarlo.»).
+- **Nadie pierde nada**: las empresas existentes quedan en Business y Business es el predeterminado para las nuevas hasta que el admin elija otro («Usar para empresas nuevas»). La semilla de planes no pisa ediciones.
+- **Módulos por plan/rol controlan el escritorio**, no RLS: darle Compras a un vendedor se lo muestra, pero la base solo deja escribir a dueño/admin (se marca con ◆ en la matriz). Unificar RLS con permisos configurables queda para después si hace falta.
+- El módulo Planes llama Server Actions directo (como Seguimiento): es solo de plataforma y no existe en la demo pública.
+
 ## 2026-10-06 · Compras (0021) y contabilidad (0022)
 
 - **Pedido del usuario**: módulo de compras para cargar productos al inventario y un módulo contable «lo mínimo necesario» (asiento de cada día, cuadrar, crear asientos), antes de duplicar el proyecto para tiendas de compra-venta. Decisiones confirmadas por el usuario: catálogo estándar precargado, asientos automáticos + manuales, costo de ventas en cada venta, compras al crédito con pagos y gastos sin inventario. Quedaron para después: órdenes de compra y libro de compras.

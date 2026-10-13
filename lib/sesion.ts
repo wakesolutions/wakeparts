@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { normalizarDock, type PreferenciasDock } from "@/lib/dock";
 import { identidadDeFila, type Identidad } from "@/lib/identidad";
 import { paletaValida, type PaletaId } from "@/lib/paletas";
+import { normalizarModulosPlan, normalizarPermisos, permisosEfectivos, type Permiso } from "@/lib/permisos";
 
 export type Rol = "dueno" | "admin" | "vendedor";
 
@@ -20,6 +21,11 @@ export type Sesion = {
   /** `identidad`: logo, fondo, color de marca y formato de documentos (0012). */
   empresa: { id: string; nombre: string; paleta: PaletaId; identidad: Identidad } | null;
   rol: Rol | null;
+  /**
+   * Módulos (`modulo:<id>`) y capacidades del usuario: su rol recortado al plan
+   * de la empresa (0023). undefined = sin la migración (se usa lo de siempre por rol).
+   */
+  permisos?: Permiso[];
   empresas: { id: string; nombre: string; rol: Rol }[];
   /** Demo pública (/demo): datos en memoria, sin cuenta. Cambia «Salir» y muestra la franja de la demo. */
   demo?: boolean;
@@ -55,6 +61,51 @@ export function correoEsAdminPlataforma(correo: string | null | undefined) {
   return !!correo && ADMINS_PLATAFORMA.includes(correo.trim().toLowerCase());
 }
 
+/** Lista de correos admin de plataforma (para mostrarla en el módulo Planes). */
+export function adminsPlataforma(): readonly string[] {
+  return ADMINS_PLATAFORMA;
+}
+
+/**
+ * La variable ADMINS_PLATAFORMA manda: si el flag de la base no coincide con
+ * ella, se corrige con la llave secreta (solo servidor). Así agregar o quitar un
+ * admin es solo editar la variable; el flag (que usa RLS) se pone solo al entrar.
+ */
+async function sincronizarFlagAdmin(id: string, debeSer: boolean) {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const llave = process.env.SUPABASE_SECRET_KEY;
+  if (!url || !llave) return false;
+  try {
+    const r = await fetch(`${url}/rest/v1/usuarios?id=eq.${encodeURIComponent(id)}`, {
+      method: "PATCH",
+      headers: { apikey: llave, Authorization: `Bearer ${llave}`, "Content-Type": "application/json", Prefer: "return=minimal" },
+      body: JSON.stringify({ es_admin_plataforma: debeSer }),
+      cache: "no-store",
+      signal: AbortSignal.timeout(4000),
+    });
+    if (!r.ok) console.warn(`[sesion] no se pudo sincronizar el admin de plataforma: ${r.status}`);
+    return r.ok;
+  } catch {
+    return false;
+  }
+}
+
+/** Permisos del rol dentro del plan de la empresa (0023). undefined si falta la migración. */
+async function cargarPermisos(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  idEmpresa: string,
+  rol: Rol,
+): Promise<Permiso[] | undefined> {
+  const [plan, delRol] = await Promise.all([
+    supabase.rpc("mi_plan", { p_empresa: idEmpresa }).maybeSingle(),
+    supabase.from("permisos_roles").select("permisos").eq("rol", rol).maybeSingle(),
+  ]);
+  if (plan.error || delRol.error) return undefined;
+  const modulos = plan.data ? normalizarModulosPlan((plan.data as { modulos: unknown }).modulos) : null;
+  const configurados = delRol.data ? normalizarPermisos((delRol.data as { permisos: unknown }).permisos) : null;
+  return permisosEfectivos(rol, configurados, modulos);
+}
+
 /** Usuario autenticado + perfil + empresa activa. null si no hay sesión. */
 export const obtenerSesion = cache(async (): Promise<Sesion | null> => {
   const supabase = await createClient();
@@ -83,17 +134,24 @@ export const obtenerSesion = cache(async (): Promise<Sesion | null> => {
   const activa =
     lista.find((m) => m.empresas!.id === perfil?.id_empresa_activa) ?? lista[0] ?? null;
 
+  const correo = perfil?.correo ?? user.email ?? "";
+  const esAdmin = correoEsAdminPlataforma(correo);
+  let flagAdmin = Boolean(perfil?.es_admin_plataforma);
+  if (perfil && flagAdmin !== esAdmin && (await sincronizarFlagAdmin(user.id, esAdmin))) flagAdmin = esAdmin;
+
+  const permisos = activa ? await cargarPermisos(supabase, activa.empresas!.id, activa.rol) : undefined;
+
   return {
     usuario: {
       id: user.id,
-      correo: perfil?.correo ?? user.email ?? "",
+      correo,
       nombre:
         perfil?.nombre ??
         (user.user_metadata?.full_name as string | undefined) ??
         user.email ??
         "Usuario",
       avatar: perfil?.avatar_url ?? (user.user_metadata?.avatar_url as string | undefined),
-      esAdminPlataforma: Boolean(perfil?.es_admin_plataforma) && correoEsAdminPlataforma(perfil?.correo ?? user.email),
+      esAdminPlataforma: flagAdmin && esAdmin,
       dock: perfil && "dock" in perfil ? normalizarDock(perfil.dock) : undefined,
     },
     empresa: activa
@@ -105,6 +163,7 @@ export const obtenerSesion = cache(async (): Promise<Sesion | null> => {
         }
       : null,
     rol: activa?.rol ?? null,
+    permisos,
     empresas: lista.map((m) => ({ id: m.empresas!.id, nombre: m.empresas!.nombre, rol: m.rol })),
   };
 });

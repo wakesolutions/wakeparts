@@ -1,6 +1,7 @@
 "use client";
 
 import type { DefModulo } from "@/components/ventanas/contexto";
+import { veModulo } from "@/lib/permisos";
 import type { Sesion } from "@/lib/sesion";
 import {
   IconoActividad,
@@ -14,6 +15,7 @@ import {
   IconoMostrador,
   IconoNotas,
   IconoPerfil,
+  IconoPlanes,
   IconoSeguimiento,
   IconoSitio,
   IconoTaller,
@@ -28,6 +30,7 @@ import { ModuloCotizar } from "./cotizar";
 import { ModuloInventario } from "./inventario";
 import { ModuloMiUsuario } from "./mi-usuario";
 import { ModuloNotas } from "./notas";
+import { ModuloPlanes } from "./planes";
 import { ModuloSeguimiento } from "./seguimiento";
 import { ModuloSitioWeb } from "./sitio-web";
 import { ModuloMantenimiento, ModuloUsuarios } from "./tablas";
@@ -40,7 +43,8 @@ export type ModuloEscritorio = DefModulo & {
   visible?: (sesion: Sesion) => boolean;
 };
 
-const administra = (s: Sesion) => s.rol === "dueno" || s.rol === "admin";
+/** Plan de la empresa + permisos del rol (0023; sin la migración, lo de siempre por rol). */
+const ve = (id: string) => (s: Sesion) => veModulo(s, id);
 
 /**
  * Módulos del escritorio, en el orden del dock.
@@ -54,6 +58,7 @@ export const MODULOS: ModuloEscritorio[] = [
     icono: <IconoMostrador />,
     componente: ModuloCotizar,
     tamano: { w: 1320, h: 800 },
+    visible: ve("cotizar"),
   },
   {
     id: "caja",
@@ -61,6 +66,7 @@ export const MODULOS: ModuloEscritorio[] = [
     icono: <IconoCaja />,
     componente: ModuloCaja,
     tamano: { w: 1180, h: 780 },
+    visible: ve("caja"),
   },
   {
     id: "inventario",
@@ -68,6 +74,7 @@ export const MODULOS: ModuloEscritorio[] = [
     icono: <IconoInventario />,
     componente: ModuloInventario,
     tamano: { w: 1240, h: 760 },
+    visible: ve("inventario"),
   },
   {
     // Facturas de proveedores, gastos y cuentas por pagar (0021). Solo dueño/admin.
@@ -76,7 +83,7 @@ export const MODULOS: ModuloEscritorio[] = [
     icono: <IconoCompras />,
     componente: ModuloCompras,
     tamano: { w: 1240, h: 800 },
-    visible: administra,
+    visible: ve("compras"),
   },
   {
     // Alta de productos desde el teléfono (foto + lo mínimo), para cargar el inventario inicial.
@@ -85,7 +92,7 @@ export const MODULOS: ModuloEscritorio[] = [
     icono: <IconoToma />,
     componente: TomaRapida,
     tamano: { w: 980, h: 760 },
-    visible: administra,
+    visible: ve("toma"),
   },
   {
     id: "ventas",
@@ -93,6 +100,7 @@ export const MODULOS: ModuloEscritorio[] = [
     icono: <IconoVentas />,
     componente: ModuloVentas,
     tamano: { w: 1180, h: 720 },
+    visible: ve("ventas"),
   },
   {
     // Notas de crédito y débito, con o sin factura (0019). Solo las emiten dueño/admin.
@@ -101,7 +109,7 @@ export const MODULOS: ModuloEscritorio[] = [
     icono: <IconoNotas />,
     componente: ModuloNotas,
     tamano: { w: 1120, h: 800 },
-    visible: administra,
+    visible: ve("notas"),
   },
   {
     // Libro diario, asientos, balanza, mayor, catálogo y cierre de mes (0022). Solo dueño/admin.
@@ -110,7 +118,7 @@ export const MODULOS: ModuloEscritorio[] = [
     icono: <IconoContabilidad />,
     componente: ModuloContabilidad,
     tamano: { w: 1240, h: 820 },
-    visible: administra,
+    visible: ve("contabilidad"),
   },
   {
     id: "sitio",
@@ -118,7 +126,7 @@ export const MODULOS: ModuloEscritorio[] = [
     icono: <IconoSitio />,
     componente: ModuloSitioWeb,
     tamano: { w: 1100, h: 780 },
-    visible: administra,
+    visible: ve("sitio"),
   },
   {
     id: "mantenimiento",
@@ -126,6 +134,7 @@ export const MODULOS: ModuloEscritorio[] = [
     icono: <IconoLlave />,
     componente: ModuloMantenimiento,
     tamano: { w: 1180, h: 720 },
+    visible: ve("mantenimiento"),
   },
   {
     id: "usuarios",
@@ -133,7 +142,7 @@ export const MODULOS: ModuloEscritorio[] = [
     icono: <IconoEquipo />,
     componente: ModuloUsuarios,
     tamano: { w: 1040, h: 640 },
-    visible: administra,
+    visible: ve("usuarios"),
   },
   {
     id: "actividad",
@@ -141,7 +150,7 @@ export const MODULOS: ModuloEscritorio[] = [
     icono: <IconoActividad />,
     componente: ModuloActividad,
     tamano: { w: 1240, h: 740 },
-    visible: (s) => administra(s) || s.usuario.esAdminPlataforma,
+    visible: (s) => veModulo(s, "actividad") || s.usuario.esAdminPlataforma,
   },
   {
     id: "seguimiento",
@@ -152,11 +161,21 @@ export const MODULOS: ModuloEscritorio[] = [
     visible: (s) => s.usuario.esAdminPlataforma,
   },
   {
+    // Planes, límites y permisos por rol (0023). Solo admin de plataforma.
+    id: "planes",
+    nombre: "Planes",
+    icono: <IconoPlanes />,
+    componente: ModuloPlanes,
+    tamano: { w: 1180, h: 780 },
+    visible: (s) => s.usuario.esAdminPlataforma,
+  },
+  {
     id: "taller",
     nombre: "Taller",
     icono: <IconoTaller />,
     componente: ModuloTaller,
     tamano: { w: 1100, h: 780 },
+    visible: ve("taller"),
   },
   {
     // Se abre desde el nombre en la barra de menú.

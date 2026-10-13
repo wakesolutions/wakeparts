@@ -158,7 +158,7 @@ Configuración externa necesaria en Supabase → Authentication → URL Configur
 
 | Variable | Uso |
 |---|---|
-| `ADMINS_PLATAFORMA` | Correos (separados por coma) que pueden editar el catálogo global. Segundo candado de la app sobre el flag `usuarios.es_admin_plataforma`; sin la variable, solo `miltonbarrientos2@gmail.com`. No es secreta. |
+| `ADMINS_PLATAFORMA` | Correos (separados por coma) de los admins de plataforma: catálogo global, Seguimiento y Planes. Manda sobre el flag `usuarios.es_admin_plataforma`: al cargar la sesión se pone o se quita con la llave secreta para que coincida (0023). Sin la variable, solo `miltonbarrientos2@gmail.com`. No es secreta. |
 | `NEXT_PUBLIC_CONTACTO_WHATSAPP` | WhatsApp comercial tal como se muestra. Default `+504 8901-5974`; el enlace `wa.me` se arma con sus dígitos. |
 | `NEXT_PUBLIC_CONTACTO_EMAIL` | Correo comercial. Default `ventas@wake.solutions`. |
 | `NEXT_PUBLIC_RESPONSABLE` | Quién ofrece Wake Parts en `/terminos` y `/privacidad`. Default `Wake Solutions`. |

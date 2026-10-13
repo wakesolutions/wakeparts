@@ -231,3 +231,16 @@ export function IconoContabilidad() {
     </svg>
   );
 }
+
+export function IconoPlanes() {
+  // Tres placas escalonadas (planes) con una llave de permisos
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <rect x="6" y="26" width="10" height="15" rx="2" fill="currentColor" opacity="0.55" />
+      <rect x="19" y="18" width="10" height="23" rx="2" fill="currentColor" opacity="0.8" />
+      <rect x="32" y="9" width="10" height="32" rx="2" fill="currentColor" />
+      <circle cx="37" cy="16" r="2.4" fill="var(--wp-accent)" />
+      <path d="M9 34h4M22 26h4M35 24h4" stroke="var(--wp-accent-lo)" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}
