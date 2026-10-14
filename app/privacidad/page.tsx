@@ -41,6 +41,12 @@ const DATOS = [
     para: "Que ese taller te contacte para atender el pedido (solo lo ven sus usuarios) y frenar envíos abusivos.",
   },
   {
+    que: "Pago de la suscripción",
+    detalle:
+      "Nombre, correo y teléfono de quien paga, el plan y los datos de la tarjeta, que pasan directo a n1co (nuestro procesador de pagos). Guardamos solo una referencia del método de pago y el resultado de cada cobro, nunca el número completo ni el código de seguridad.",
+    para: "Cobrar el plan, renovarlo, avisarte si un cobro no pasó y llevar el historial de pagos.",
+  },
+  {
     que: "Registro de actividad",
     detalle:
       "De cada página que se abre (también sin iniciar sesión), cada inicio o cierre de sesión y cada error: fecha y hora, dirección IP, tipo de dispositivo, sistema y navegador, ciudad y país aproximados, la página y de dónde venías. De cada cambio de datos: quién lo hizo y el valor anterior y el nuevo.",
@@ -96,7 +102,7 @@ export default function Privacidad() {
       </div>
       <p>
         No pedimos ni guardamos tu contraseña de Google: el inicio de sesión lo hace Google y a nosotros solo nos
-        confirma quién sos. Tampoco guardamos datos de tarjetas.
+        confirma quién sos. Tampoco guardamos datos de tarjetas: viajan cifrados a n1co, que es quien los resguarda.
       </p>
 
       <h2 className={styles.legalTitulo}>Quién puede verlos</h2>
@@ -110,9 +116,27 @@ export default function Privacidad() {
           obligación legal.
         </li>
         <li>
-          <strong>Proveedores de infraestructura</strong> que alojan el sistema por nosotros: Supabase (base de datos,
-          inicio de sesión y fotos) y el servicio donde se aloja el sitio web. Procesan los datos solo para hacer
-          funcionar Wake Parts.
+          <strong>Proveedores que prestan parte del servicio por nosotros</strong>. Procesan los datos solo para hacer
+          funcionar Wake Parts y algunos están fuera de Honduras:
+          <ul className={styles.legalLista}>
+            <li>
+              <strong>Supabase</strong>: base de datos, inicio de sesión y fotos.
+            </li>
+            <li>
+              <strong>Vercel</strong>: aloja el sitio web y el sistema.
+            </li>
+            <li>
+              <strong>Google</strong>: inicio de sesión con tu cuenta de Google (recibimos tu nombre, correo y foto).
+            </li>
+            <li>
+              <strong>n1co</strong>: procesa el pago de la suscripción con tarjeta, incluida la verificación de tu banco
+              (3D Secure).
+            </li>
+            <li>
+              <strong>Zoho</strong>: envía los correos del sistema (recordatorios de tu plan, avisos de cobro y mensajes
+              de soporte).
+            </li>
+          </ul>
         </li>
         <li>
           <strong>Autoridades</strong>, únicamente si una ley u orden judicial nos obliga.

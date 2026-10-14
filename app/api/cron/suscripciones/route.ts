@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { enviarCorreo } from "@/lib/correo";
+import { rechazoCron } from "@/lib/cron";
 import { estadoDesdeN1co, fechaN1co, n1coConfigurado, obtenerSuscripcionN1co } from "@/lib/n1co";
 import { registrar } from "@/lib/registro";
 import { URL_SITIO } from "@/lib/sitio";
@@ -9,7 +10,6 @@ import {
   cambiarEstadoSuscripcion,
   clienteServicio,
   duenoDeEmpresa,
-  mismoSecreto,
   planDesdeN1co,
   registrarEventoSuscripcion,
 } from "@/lib/suscripcion-servidor";
@@ -165,10 +165,8 @@ async function procesar() {
 }
 
 async function manejar(request: Request) {
-  const esperado = process.env.CRON_SECRET?.trim();
-  if (!esperado) return NextResponse.json({ error: "Falta CRON_SECRET en el servidor." }, { status: 503 });
-  const recibido = request.headers.get("authorization")?.replace(/^Bearer\s+/i, "").trim();
-  if (!mismoSecreto(recibido, esperado)) return NextResponse.json({ error: "No autorizado." }, { status: 401 });
+  const rechazo = rechazoCron(request);
+  if (rechazo) return rechazo;
 
   try {
     const resumen = await procesar();

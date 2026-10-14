@@ -1,7 +1,7 @@
 -- =============================================================================
 -- 0022 · Contabilidad: catálogo de cuentas, asientos y cierre de mes
 -- -----------------------------------------------------------------------------
--- ESTADO: PENDIENTE
+-- ESTADO: YA APLICADA (confirmado 2026-10-14)
 -- Idempotente y atómica. Requiere 0021 (compras).
 --
 -- Qué crea o cambia:

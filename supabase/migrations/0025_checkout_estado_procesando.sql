@@ -12,7 +12,7 @@
 -- Datos: ninguna fila usa hoy «procesando» (justamente no se podía); los
 -- estados existentes siguen siendo válidos.
 --
--- ESTADO: PENDIENTE
+-- ESTADO: YA APLICADA (confirmado 2026-10-14)
 
 begin;
 

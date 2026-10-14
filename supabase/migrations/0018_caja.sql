@@ -1,7 +1,7 @@
 -- =============================================================================
 -- 0018 · Caja: turnos, movimientos, arqueo y cierre
 -- -----------------------------------------------------------------------------
--- ESTADO: PENDIENTE
+-- ESTADO: YA APLICADA (confirmado 2026-10-14)
 -- Idempotente y atómica. Requiere 0017.
 --
 -- Qué crea o cambia:

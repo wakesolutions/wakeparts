@@ -2,6 +2,18 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-14 · Revisión para producción: operación, alertas y cabeceras
+
+- **Revisión exhaustiva** (pedido del usuario: «¿está listo para venderse?»). Confirmado por el usuario: migraciones hasta 0025 aplicadas, `CRON_SECRET` en Vercel, plan pago de Supabase, y **todas las reglas fiscales y legales confirmadas con el contador y el abogado**. Los encabezados de 0018–0025 decían «PENDIENTE» aunque ya estaban aplicadas y confundieron la revisión: se corrigieron (solo el comentario).
+- **Next 16.3.6 → 16.3.8** (parche, misma versión menor) por los avisos altos de `npm audit` (SSRF en imágenes, caché, metadatos). Se eligió el parche y no 16.4.0 para no traer cambios de comportamiento; `npm audit` queda en 0.
+- **Limpieza por endpoint** (`/api/cron/limpieza`, diario) en vez de pg_cron: el usuario ya usa cron-job.org y así todo lo programado vive en un solo lugar y avisa si falla. Corre `limpiar_registros()` y `limpiar_notificaciones()`; cumple los plazos de `/privacidad`.
+- **Alertas por correo** (`/api/cron/alertas`, cada 15 min): sin migración, la marca de «hasta dónde avisé» es el evento `alerta.enviada` en el mismo registro. Agrupa por evento + mensaje y pone los cobros primero. Si el correo falla, la marca no avanza (reintenta). Si la base no responde, el endpoint da 500 y cron-job.org avisa: funciona también como alarma de caída.
+- **`/api/salud`** pública para el monitor de disponibilidad: solo dice si la base responde. Las rutas `/api/*` ya no cuentan como visitas (el monitor llenaría el registro).
+- **Cabeceras de seguridad** en `next.config.ts` (anti-iframe, nosniff, referrer, permisos) sin CSP completa, para no romper el iframe del 3D Secure ni los scripts de Next.
+- **Privacidad**: se nombran los proveedores (Supabase, Vercel, Google, n1co, Zoho) y el dato de pago. **Pendiente de revisión del abogado** (pedido del usuario).
+- **Guía de operación** `docs/operacion.md`: qué corre y cada cuánto, primeros 5 minutos, cobros, respaldos (Storage aparte), rotación de secretos, despliegues y qué necesita la persona de respaldo.
+- Corrección de la revisión: sin el cron de suscripciones, las pruebas **sí** vencían (`plan_de_empresa()` lo calcula al vuelo); solo faltaban los correos y la sincronización con n1co.
+
 ## 2026-10-14 · Revisión del abogado: términos y precios publicados
 
 - **Respuesta del abogado** (13-oct): privacidad, cookies e información de la IA aprobadas tal cual (Honduras aún no tiene ley de protección de datos; el texto protege la intimidad y separa los datos del cliente de los nuestros). Términos: quitar «es una demo» y «precio a tu medida» (ya hay tarifas), enlazar a los precios, redactar «Tu cuenta y equipo» de forma más profesional, «podés descargar una copia de tus datos» y quitar la demo de «Responsabilidad». Facturación, uso aceptable, propiedad y ley aplicable, sin cambios.

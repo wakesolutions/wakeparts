@@ -1,7 +1,7 @@
 -- =============================================================================
 -- 0021 · Compras, proveedores y cuentas por pagar
 -- -----------------------------------------------------------------------------
--- ESTADO: PENDIENTE
+-- ESTADO: YA APLICADA (confirmado 2026-10-14)
 -- Idempotente y atómica. Requiere 0018 (caja).
 --
 -- Qué crea o cambia:

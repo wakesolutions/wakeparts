@@ -1,7 +1,7 @@
 -- =============================================================================
 -- 0019 · Notas de crédito y débito sin factura relacionada (módulo Notas)
 -- -----------------------------------------------------------------------------
--- ESTADO: PENDIENTE
+-- ESTADO: YA APLICADA (confirmado 2026-10-14)
 -- Idempotente y atómica. Requiere 0018.
 --
 -- Qué crea o cambia:

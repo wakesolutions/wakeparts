@@ -20,6 +20,8 @@ const RUTAS_PUBLICAS = [
   // Webhook de n1co (verifica contra la API de n1co) y cron (exige CRON_SECRET).
   "/api/n1co/webhook",
   "/api/cron/",
+  // Chequeo de salud para el monitor de disponibilidad (sin datos).
+  "/api/salud",
   "/robots.txt",
   "/sitemap.xml",
   "/manifest.webmanifest",
@@ -84,7 +86,8 @@ export async function updateSession(request: NextRequest, event?: NextFetchEvent
   const autenticado = Boolean(data?.claims);
   const { pathname } = request.nextUrl;
 
-  if (event && esVisita(request)) {
+  // Las rutas /api no son páginas: el monitor de salud y los cron no son visitas.
+  if (event && !pathname.startsWith("/api/") && esVisita(request)) {
     const claims = data?.claims as { sub?: string; email?: string } | undefined;
     event.waitUntil(
       registrar({

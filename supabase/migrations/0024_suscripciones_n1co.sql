@@ -34,7 +34,7 @@
 -- Escrituras de cobro: solo el servidor con la llave secreta (service_role).
 -- Ningún usuario puede activarse un plan desde el navegador.
 --
--- ESTADO: PENDIENTE · Requiere 0023.
+-- ESTADO: YA APLICADA (confirmado 2026-10-14) · Requiere 0023.
 -- Idempotente y transaccional: se puede ejecutar más de una vez.
 -- =============================================================================
 

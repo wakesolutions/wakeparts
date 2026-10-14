@@ -146,7 +146,10 @@ Todo queda en la tabla `registros` (migración 0011, detalle en `database.md`); 
 - `lib/supabase/server.ts` manda `x-cliente-ip`, `x-cliente-dispositivo`, `x-cliente-agente`, `x-cliente-ruta` y `x-cliente-entorno` en cada consulta, para que el trigger sepa desde dónde se hizo el cambio. Son informativos (quien llame a PostgREST directo podría falsearlos).
 - `entorno` distingue producción, vista previa y desarrollo (`npm run dev` escribe en la misma base). `REGISTRO_DESACTIVADO=1` apaga el registro desde la app.
 - Sin cookies ni identificadores de visitante: por eso no hace falta consentimiento (ver Cookies). Está declarado en `/privacidad` y `/cookies`.
-- Plazo: `limpiar_registros()` (visitas 180 días, resto 730). Ejecutarlo a mano o programarlo con pg_cron.
+- Plazo: `limpiar_registros()` (visitas 180 días, resto 730) y `limpiar_notificaciones()` (90 días) los corre a diario `GET /api/cron/limpieza` (cron-job.org con `CRON_SECRET`). Es lo que promete `/privacidad`.
+- Las rutas `/api/*` no se registran como visitas (el monitor de salud y los cron llenarían la tabla).
+- **Alertas por correo**: `GET /api/cron/alertas` (cada 15 min, `CRON_SECRET`) junta los registros nuevos de nivel `error` y los avisos `suscripcion.*` desde el último evento `alerta.enviada`, los agrupa por evento + mensaje (cobros primero) y manda un correo a `ALERTAS_CORREO` (o a `ADMINS_PLATAFORMA`). Si el correo falla, la marca no avanza y el siguiente cron reintenta.
+- **Salud**: `GET /api/salud` (pública, sin datos): 200 si la base responde, 503 si no. Para el monitor de disponibilidad. Ver `operacion.md`.
 
 ## Autenticación
 
@@ -188,8 +191,13 @@ Configuración externa necesaria en Supabase → Authentication → URL Configur
 | `SUPABASE_SECRET_KEY` | Llave secreta (salta RLS). Solo scripts/admin en servidor; nunca en el cliente. |
 | `N1CO_MODE`, `N1CO_CLIENT_ID`, `N1CO_CLIENT_SECRET`, `N1CO_LOCATION_CODE` | Cobros con n1co Business (0024, `lib/n1co.ts`). `N1CO_MODE` = `sandbox` (pruebas, `api-sandbox.n1co.shop`) o `live` (`api.n1co.com`). `N1CO_CLIENT_SECRET` es **secreta**: solo servidor, también en Vercel. Sin ellas, el módulo Suscripción muestra los planes pero no deja pagar. |
 | `N1CO_WEBHOOK_SECRET` | **Secreta**. La URL del webhook configurada en n1co es `https://<dominio>/api/n1co/webhook?clave=<N1CO_WEBHOOK_SECRET>`. Opcional (si falta, no se exige), pero el webhook igual verifica todo contra la API de n1co. |
-| `CRON_SECRET` | **Secreta**. cron-job.org llama una vez al día `GET /api/cron/suscripciones` con el header `Authorization: Bearer <CRON_SECRET>` (recordatorios de prueba, renovaciones vencidas, paso a Gratis). Sin la variable, el cron responde 503. |
+| `CRON_SECRET` | **Secreta**. cron-job.org llama con el header `Authorization: Bearer <CRON_SECRET>`: `/api/cron/suscripciones` (1 vez al día: recordatorios de prueba, renovaciones vencidas, paso a Gratis), `/api/cron/limpieza` (1 vez al día) y `/api/cron/alertas` (cada 15 min). Candado común en `lib/cron.ts`. Sin la variable, responden 503. |
+| `ALERTAS_CORREO` | Correos (separados por coma) que reciben las alertas de errores. Sin la variable, van a `ADMINS_PLATAFORMA`. No es secreta. |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_FROM_NAME` | Correo saliente (Zoho Mail, `ventas@wake.solutions`) con `lib/correo.ts` (`enviarCorreo`, `verificarCorreo`; nodemailer, STARTTLS obligatorio en 587). `SMTP_PASSWORD` es **secreta**: solo servidor, también en Vercel. Hoy lo usa Seguimiento. |
+
+## Cabeceras de seguridad
+
+`next.config.ts` › `headers()` en todo el sitio: `frame-ancestors 'self'` + `X-Frame-Options: SAMEORIGIN` (nadie de afuera mete Wake Parts en un iframe; el iframe del 3D Secure es al revés y no se afecta), `nosniff`, `Referrer-Policy: strict-origin-when-cross-origin` (la auditoría sigue leyendo la ruta del referente propio) y `Permissions-Policy` con cámara solo para el propio origen (Toma rápida). `poweredByHeader: false`. No hay CSP completa: si se agrega, probarla antes como `Report-Only`.
 
 ## Datos y multiempresa
 

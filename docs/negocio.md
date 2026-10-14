@@ -2,6 +2,8 @@
 
 > Estado de cada sección: **Implementado**, **Propuesto** (acordado como dirección, sin código) o **A verificar** (necesita confirmación del usuario o de un contador antes de implementarse).
 
+> **2026-10-14**: el usuario confirmó con su contador y su abogado **todas** las reglas marcadas «a verificar» o «a confirmar» en este documento tal como están implementadas. Una regla fiscal **nueva** sigue necesitando confirmación antes de implementarse (regla 13).
+
 ## 1. Clientes objetivo
 
 - **Tienda de repuestos**: vende piezas nuevas (originales o genéricas). Maneja **stock por cantidad**: 12 filtros de aceite iguales.

@@ -1,7 +1,7 @@
 -- =============================================================================
 -- 0020 · Dock personalizable por usuario
 -- -----------------------------------------------------------------------------
--- ESTADO: PENDIENTE
+-- ESTADO: YA APLICADA (confirmado 2026-10-14)
 -- Idempotente y atómica. Requiere 0008.
 --
 -- Qué crea o cambia:

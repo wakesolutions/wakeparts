@@ -27,7 +27,7 @@
 -- Claves de límite: productos, clientes, proveedores, puntos_emision, usuarios,
 -- fotos_por_producto, facturas_mes, cotizaciones_mes.
 --
--- ESTADO: PENDIENTE
+-- ESTADO: YA APLICADA (confirmado 2026-10-14)
 -- Idempotente y transaccional: se puede ejecutar más de una vez. Los planes
 -- semilla se insertan solo si no existen (no pisa lo que edite el admin).
 -- =============================================================================
