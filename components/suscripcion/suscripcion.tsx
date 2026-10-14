@@ -566,6 +566,8 @@ function Pago({
   const avisados = useRef(new Set<string>());
   /** El banco ya terminó de su lado pero n1co todavía no confirma (PENDING). */
   const [verificando, setVerificando] = useState(false);
+  /** AuthenticationId del último «SUCCESS» de la ventana del banco (lo que n1co pide para cobrar). */
+  const confirmada = useRef<string | null>(null);
   const [esperando, setEsperando] = useState(false);
 
   const cambiar = (k: keyof typeof f, v: string) => setF((x) => ({ ...x, [k]: v }));
@@ -667,9 +669,10 @@ function Pago({
       // «authentication.complete» + SUCCESS, y una sola vez por autenticación.
       if (m.estado === "PENDING") setVerificando(true);
       if (m.tipo !== "authentication.complete" || m.estado !== "SUCCESS") return;
-      const clave = m.id ?? tresDs.intento;
-      if (enviadas.current.has(clave)) return;
-      enviadas.current.add(clave);
+      if (!m.id) return;
+      confirmada.current = m.id;
+      if (enviadas.current.has(m.id)) return;
+      enviadas.current.add(m.id);
       void enviar({ ...base(), intento: tresDs.intento, autenticacion: m.id });
     }
     window.addEventListener("message", alRecibir);
@@ -734,6 +737,11 @@ function Pago({
                 Tu banco está terminando la verificación. Si en unos segundos no avanza, tocá «Ya confirmé».
               </p>
             )}
+            {error && (
+              <p className={styles.error} role="alert">
+                {error.texto}
+              </p>
+            )}
             <iframe
               ref={marco}
               title="Verificación de tu banco (3D Secure)"
@@ -746,7 +754,14 @@ function Pago({
                 type="button"
                 className={`${ui.boton} ${ui.primario}`}
                 disabled={ocupado}
-                onClick={() => void enviar({ ...base(), intento: tresDs.intento })}
+                onClick={() => {
+                  // Sin la confirmación del banco no se llama a n1co: evitaría gastar otra verificación.
+                  if (!confirmada.current)
+                    return setError({
+                      texto: "Todavía no recibimos la confirmación de tu banco. Terminá la verificación en la ventana.",
+                    });
+                  void enviar({ ...base(), intento: tresDs.intento, autenticacion: confirmada.current });
+                }}
               >
                 {ocupado ? "Confirmando…" : "Ya confirmé"}
               </button>

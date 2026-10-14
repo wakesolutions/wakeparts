@@ -152,7 +152,9 @@ export async function pagarSuscripcion(p: PeticionPago): Promise<ResultadoPago> 
   const telefono = telefonoE164(p.telefono)!;
   const cliente = {
     id: empresa.id,
-    name: (p.tarjeta?.titular.trim() || sesion.usuario.nombre).slice(0, 120),
+    // Idéntico en tokenizar, crear y continuar tras el 3DS (la tarjeta ya no viaja
+    // en la continuación): n1co debe ver al mismo cliente en todo el cobro.
+    name: (sesion.usuario.nombre.trim() || empresa.nombre).slice(0, 120),
     email: sesion.usuario.correo.trim().toLowerCase(),
     phoneNumber: telefono,
   };
@@ -171,20 +173,41 @@ export async function pagarSuscripcion(p: PeticionPago): Promise<ResultadoPago> 
       .eq("id", p.intento)
       .eq("id_empresa", empresa.id)
       .maybeSingle();
-    if (
-      !fila ||
-      new Date(fila.expira_en) < new Date() ||
-      fila.plan !== plan.codigo ||
-      fila.ciclo !== p.ciclo ||
-      !["autenticacion", "iniciado"].includes(fila.estado) ||
-      !fila.n1co_metodo_pago
-    )
-      return { ok: false, error: "El intento de pago venció. Empezá de nuevo." };
-    // El id de la autenticación lo guardó el servidor; si el iframe manda otro, no se acepta.
-    if (fila.estado === "autenticacion" && p.autenticacion && p.autenticacion !== fila.n1co_autenticacion)
-      return { ok: false, error: "La verificación del banco no coincide. Empezá de nuevo." };
+    // Toda continuación rechazada deja rastro: nunca más un cobro que se corta en silencio.
+    const rechazar = async (motivo: string, error: string) => {
+      await registrar({
+        tipo: "accion",
+        nivel: "aviso",
+        evento: "suscripcion.continuacion_rechazada",
+        mensaje: motivo,
+        id_usuario: sesion.usuario.id,
+        correo: sesion.usuario.correo,
+        id_empresa: empresa.id,
+        datos: { intento: p.intento, estado: fila?.estado ?? null },
+      });
+      return { ok: false as const, error };
+    };
+    if (!fila) return rechazar("intento inexistente", "El intento de pago venció. Empezá de nuevo.");
+    if (new Date(fila.expira_en) < new Date()) return rechazar("intento vencido", "El intento de pago venció. Empezá de nuevo.");
+    if (fila.plan !== plan.codigo || fila.ciclo !== p.ciclo)
+      return rechazar("plan o ciclo distinto", "El intento de pago es de otro plan. Empezá de nuevo.");
+    if (!["autenticacion", "iniciado"].includes(fila.estado) || !fila.n1co_metodo_pago)
+      return rechazar(`estado ${fila.estado}`, "Este intento de pago ya terminó. Revisá tu plan antes de intentar de nuevo.");
+
+    // 3D Secure: n1co pide enviar el `AuthenticationId` que avisa su ventana al
+    // terminar (doc › Autenticación 3D Secure), que NO es el `authentication.id`
+    // de la primera respuesta. Sin ese aviso no se llama a n1co: volver a cobrar
+    // con el id viejo hace que el banco pida otra verificación.
+    if (fila.estado === "autenticacion") {
+      const id = String(p.autenticacion ?? "").trim();
+      if (!/^[A-Za-z0-9-]{8,100}$/.test(id))
+        return rechazar(
+          "sin AuthenticationId de la ventana del banco",
+          "Todavía no recibimos la confirmación de tu banco. Terminá la verificación en la ventana; no hace falta repetirla.",
+        );
+      autenticacion = id;
+    }
     intento = { id: fila.id, metodo: fila.n1co_metodo_pago };
-    autenticacion = fila.estado === "autenticacion" ? fila.n1co_autenticacion : null;
     // Candado: si llegan dos continuaciones (mensaje del iframe + botón), solo una cobra.
     const { data: tomado } = await db
       .from("suscripciones_checkout")
@@ -271,12 +294,33 @@ export async function pagarSuscripcion(p: PeticionPago): Promise<ResultadoPago> 
         intento: intento.id,
         plan: plan.codigo,
         con_autenticacion: Boolean(autenticacion),
+        // Ids de 3DS (no son datos de la tarjeta): el enviado y el de la primera respuesta.
+        autenticacion: autenticacion,
         estado: r.status ?? null,
         codigo: r.error?.code ?? null,
         mensaje: (r.error?.message ?? r.error?.detail ?? r.message ?? "").slice(0, 200) || null,
         suscripcion: r.subscription?.subscriptionId ?? null,
       },
     });
+
+    if (r.status === "AUTHENTICATION_REQUIRED" && autenticacion) {
+      // Ya verificó una vez: no se abre otra verificación sola (gasta intentos y
+      // puede bloquear la tarjeta). Queda registrado para revisarlo con n1co.
+      await db.from("suscripciones_checkout").update({ estado: "fallido" }).eq("id", intento.id);
+      await registrarEventoSuscripcion({
+        idEmpresa: empresa.id,
+        origen: "checkout",
+        tipo: "pago_fallido",
+        plan: plan.codigo,
+        ciclo: p.ciclo,
+        mensaje: "n1co pidió otra verificación 3DS después de una exitosa",
+      });
+      return {
+        ok: false,
+        error:
+          "Tu banco confirmó, pero el procesador pidió verificar otra vez. No la abrimos para no gastar tus intentos: escribinos y lo revisamos antes de probar de nuevo.",
+      };
+    }
 
     if (r.status === "AUTHENTICATION_REQUIRED") {
       const url = r.authentication?.url ?? "";
