@@ -58,6 +58,13 @@ const PLAN_NUEVO: Plan = {
   nombre: "",
   descripcion: "",
   precio_mensual: null,
+  precio_anual: null,
+  n1co_plan_mensual: null,
+  n1co_plan_anual: null,
+  publico: false,
+  solo_admins: false,
+  etiqueta: "",
+  caracteristicas: [],
   orden: 9,
   modulos: ["inicio", "mi-usuario", "taller"],
   limites: {},
@@ -86,11 +93,12 @@ export function PlanesLimites() {
           >
             <span className={styles.tarjetaNombre}>{p.nombre}</span>
             <span className={styles.tarjetaDato}>
-              {p.precio_mensual ? `L ${p.precio_mensual.toLocaleString("es-HN")}/mes` : p.precio_mensual === 0 ? "Gratis" : "Precio sin definir"}
+              {p.precio_mensual ? `$${p.precio_mensual.toLocaleString("en-US")}/mes` : p.precio_mensual === 0 ? "Gratis" : "Precio sin definir"}
+              {p.solo_admins ? " · solo admins" : p.publico ? "" : " · oculto"}
             </span>
             <span className={styles.tarjetaDato}>
               {cuantas(p.codigo)} empresa{cuantas(p.codigo) === 1 ? "" : "s"}
-              {p.predeterminado && " · predeterminado"}
+              {p.predeterminado && " · sin pago"}
             </span>
           </button>
         ))}
@@ -135,6 +143,7 @@ function EditorPlan({
   const [limites, setLimites] = useState<Record<string, string>>(() =>
     Object.fromEntries(LIMITES.map((l) => [l.clave, plan.limites[l.clave]?.toString() ?? ""])),
   );
+  const [caracteristicas, setCaracteristicas] = useState(plan.caracteristicas.join("\n"));
   const [aviso, setAviso] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
 
@@ -161,6 +170,13 @@ function EditorPlan({
           nombre: f.nombre,
           descripcion: f.descripcion,
           precio_mensual: f.precio_mensual,
+          precio_anual: f.precio_anual,
+          n1co_plan_mensual: f.n1co_plan_mensual,
+          n1co_plan_anual: f.n1co_plan_anual,
+          publico: f.publico,
+          solo_admins: f.solo_admins,
+          etiqueta: f.etiqueta,
+          caracteristicas: caracteristicas.split("\n"),
           orden: f.orden,
           modulos: f.modulos,
           limites: Object.fromEntries(
@@ -179,7 +195,7 @@ function EditorPlan({
         <label className={styles.campo}>
           <span>Código</span>
           <input
-            className={ui.campoMono}
+            className={`${ui.campo} ${ui.campoMono}`}
             value={f.codigo}
             disabled={!nuevo}
             placeholder="p. ej. pro"
@@ -192,9 +208,9 @@ function EditorPlan({
           <input className={ui.campo} value={f.nombre} maxLength={60} onChange={(e) => cambiar("nombre", e.target.value)} />
         </label>
         <label className={styles.campo}>
-          <span>Precio mensual (L, referencial)</span>
+          <span>Precio mensual (USD)</span>
           <input
-            className={ui.campoMono}
+            className={`${ui.campo} ${ui.campoMono}`}
             type="number"
             min={0}
             step="0.01"
@@ -205,11 +221,95 @@ function EditorPlan({
         <label className={styles.campo}>
           <span>Orden</span>
           <input
-            className={ui.campoMono}
+            className={`${ui.campo} ${ui.campoMono}`}
             type="number"
             min={0}
             value={f.orden}
             onChange={(e) => cambiar("orden", Number(e.target.value))}
+          />
+        </label>
+        <label className={styles.campo}>
+          <span>Precio anual (USD)</span>
+          <input
+            className={`${ui.campo} ${ui.campoMono}`}
+            type="number"
+            min={0}
+            step="0.01"
+            value={f.precio_anual ?? ""}
+            onChange={(e) => cambiar("precio_anual", e.target.value === "" ? null : Number(e.target.value))}
+          />
+        </label>
+        <label className={styles.campo}>
+          <span>ID n1co mensual</span>
+          <input
+            className={`${ui.campo} ${ui.campoMono}`}
+            inputMode="numeric"
+            placeholder="Sin cobro"
+            value={f.n1co_plan_mensual ?? ""}
+            onChange={(e) => cambiar("n1co_plan_mensual", e.target.value.replace(/\D/g, "") ? Number(e.target.value.replace(/\D/g, "")) : null)}
+          />
+        </label>
+        <label className={styles.campo}>
+          <span>ID n1co anual</span>
+          <input
+            className={`${ui.campo} ${ui.campoMono}`}
+            inputMode="numeric"
+            placeholder="Sin cobro"
+            value={f.n1co_plan_anual ?? ""}
+            onChange={(e) => cambiar("n1co_plan_anual", e.target.value.replace(/\D/g, "") ? Number(e.target.value.replace(/\D/g, "")) : null)}
+          />
+        </label>
+        <div className={`${styles.campo} ${styles.ancho}`}>
+          <span>Quién lo ve</span>
+          <div className={styles.casillas}>
+            <label className={styles.casillaFila}>
+              <input
+                type="radio"
+                className={ui.casilla}
+                name={`visible-${plan.codigo || "nuevo"}`}
+                checked={f.publico}
+                onChange={() => setF((x) => ({ ...x, publico: true, solo_admins: false }))}
+              />
+              Todos los talleres
+            </label>
+            <label className={styles.casillaFila}>
+              <input
+                type="radio"
+                className={ui.casilla}
+                name={`visible-${plan.codigo || "nuevo"}`}
+                checked={f.solo_admins}
+                onChange={() => setF((x) => ({ ...x, publico: false, solo_admins: true }))}
+              />
+              Solo admins (pruebas)
+            </label>
+            <label className={styles.casillaFila}>
+              <input
+                type="radio"
+                className={ui.casilla}
+                name={`visible-${plan.codigo || "nuevo"}`}
+                checked={!f.publico && !f.solo_admins}
+                onChange={() => setF((x) => ({ ...x, publico: false, solo_admins: false }))}
+              />
+              Oculto (solo por asignación)
+            </label>
+          </div>
+        </div>
+        <label className={`${styles.campo} ${styles.ancho}`}>
+          <span>Para quién es (texto de venta)</span>
+          <input
+            className={ui.campo}
+            value={f.etiqueta ?? ""}
+            maxLength={160}
+            onChange={(e) => cambiar("etiqueta", e.target.value)}
+          />
+        </label>
+        <label className={`${styles.campo} ${styles.ancho}`}>
+          <span>Qué incluye (una línea por punto)</span>
+          <textarea
+            className={ui.campo}
+            rows={4}
+            value={caracteristicas}
+            onChange={(e) => setCaracteristicas(e.target.value)}
           />
         </label>
         <label className={`${styles.campo} ${styles.ancho}`}>
@@ -225,7 +325,10 @@ function EditorPlan({
 
       <section>
         <p className={ui.etiquetaSeccion}>Módulos incluidos</p>
-        <p className={styles.nota}>Inicio y Mi usuario siempre están. Lo que no esté marcado desaparece del dock de esas empresas.</p>
+        <p className={styles.nota}>
+          Inicio y Mi usuario siempre están. Lo que no esté marcado desaparece del dock de esas empresas. Los precios
+          que cobra n1co salen del plan creado allá: mantenelos iguales a los de aquí.
+        </p>
         <div className={styles.casillas}>
           {MODULOS_CONTROLADOS.map((m) => (
             <label key={m.id} className={styles.casillaFila}>
@@ -244,7 +347,7 @@ function EditorPlan({
             <label key={l.clave} className={styles.campo} title={l.detalle}>
               <span>{l.nombre}</span>
               <input
-                className={ui.campoMono}
+                className={`${ui.campo} ${ui.campoMono}`}
                 type="number"
                 min={0}
                 placeholder="Sin límite"
@@ -265,9 +368,9 @@ function EditorPlan({
             type="button"
             className={ui.boton}
             disabled={ocupado}
-            onClick={() => correr(() => fijarPredeterminado(plan.codigo), "Las empresas nuevas arrancan con este plan.", plan.codigo)}
+            onClick={() => correr(() => fijarPredeterminado(plan.codigo), "Las empresas sin pago (y al terminar la prueba) quedan en este plan.", plan.codigo)}
           >
-            Usar para empresas nuevas
+            Usar como plan sin pago
           </button>
         )}
         {!nuevo && !plan.predeterminado && empresas === 0 && (
@@ -322,22 +425,42 @@ const USOS: { clave: keyof UsoEmpresa; limite: string; nombre: string }[] = [
   { clave: "clientes", limite: "clientes", nombre: "Clientes" },
   { clave: "proveedores", limite: "proveedores", nombre: "Proveedores" },
   { clave: "usuarios", limite: "usuarios", nombre: "Usuarios" },
+  { clave: "sucursales", limite: "sucursales", nombre: "Sucursales" },
   { clave: "puntos_emision", limite: "puntos_emision", nombre: "Puntos" },
   { clave: "facturas_mes", limite: "facturas_mes", nombre: "Facturas (mes)" },
   { clave: "cotizaciones_mes", limite: "cotizaciones_mes", nombre: "Cotiz. (mes)" },
+  { clave: "almacenamiento_bytes", limite: "almacenamiento_mb", nombre: "MB usados" },
 ];
 
+const ESTADOS: Record<string, string> = {
+  prueba: "En prueba",
+  activa: "Pagando",
+  vencida: "Pago pendiente",
+  cancelada: "Cancelada",
+  gratis: "Gratis",
+  cortesia: "Cortesía",
+};
+
+function detalleEstado(e: UsoEmpresa) {
+  if (e.estado === "prueba" && e.prueba_hasta) return `prueba hasta ${fechaDia(e.prueba_hasta)}`;
+  if ((e.estado === "activa" || e.estado === "cancelada" || e.estado === "vencida") && e.periodo_fin)
+    return `${e.ciclo ?? ""} · periodo hasta ${fechaDia(e.periodo_fin)}`;
+  return e.asignado_en ? `desde ${fechaDia(e.asignado_en)}` : "";
+}
+
 function FilaEmpresa({ empresa: e, planes, onGuardado }: { empresa: UsoEmpresa; planes: Plan[]; onGuardado: () => Promise<void> }) {
-  const [plan, setPlan] = useState(e.plan);
+  const [modo, setModo] = useState<"cortesia" | "prueba" | "gratis">("cortesia");
+  const [plan, setPlan] = useState(e.plan_efectivo ?? e.plan);
+  const [dias, setDias] = useState(7);
   const [nota, setNota] = useState(e.nota ?? "");
   const [aviso, setAviso] = useState<string | null>(null);
   const [ocupado, setOcupado] = useState(false);
-  const limites = planes.find((p) => p.codigo === e.plan)?.limites ?? {};
-  const cambio = plan !== e.plan || nota !== (e.nota ?? "");
+  const efectivo = planes.find((p) => p.codigo === (e.plan_efectivo ?? e.plan));
+  const limites = efectivo?.limites ?? {};
 
   async function guardar() {
     setOcupado(true);
-    const r = await asignarPlan(e.id_empresa, plan, nota).catch(() => ({ ok: false as const, error: "Sin conexión." }));
+    const r = await asignarPlan(e.id_empresa, plan, nota, modo, dias).catch(() => ({ ok: false as const, error: "Sin conexión." }));
     setOcupado(false);
     if (!r.ok) return setAviso(r.error);
     setAviso("Guardado.");
@@ -349,20 +472,20 @@ function FilaEmpresa({ empresa: e, planes, onGuardado }: { empresa: UsoEmpresa; 
       <div className={styles.empresaCabeza}>
         <div>
           <p className={styles.empresaNombre}>{e.empresa}</p>
-          <p className={styles.nota}>{e.asignado_en ? `Plan desde ${fechaDia(e.asignado_en)}` : "Plan predeterminado"}</p>
+          <p className={styles.nota}>
+            <span className={styles.estadoChip} data-estado={e.estado ?? "gratis"}>
+              {ESTADOS[e.estado ?? "gratis"] ?? e.estado}
+            </span>{" "}
+            {efectivo?.nombre ?? e.plan_efectivo} · {detalleEstado(e)}
+            {e.n1co_suscripcion_id && <code className={styles.n1co}> n1co #{e.n1co_suscripcion_id}</code>}
+          </p>
         </div>
-        <select className={ui.campo} value={plan} onChange={(x) => setPlan(x.target.value)} aria-label={`Plan de ${e.empresa}`}>
-          {planes.map((p) => (
-            <option key={p.codigo} value={p.codigo}>
-              {p.nombre}
-            </option>
-          ))}
-        </select>
       </div>
       <dl className={styles.usos}>
         {USOS.map((u) => {
-          const usado = e[u.clave] as number | null;
-          if (usado === null) return null;
+          const bruto = e[u.clave] as number | null;
+          if (bruto === null || bruto === undefined) return null;
+          const usado = u.clave === "almacenamiento_bytes" ? Math.round(bruto / 1048576) : bruto;
           const tope = limites[u.limite];
           const lleno = tope !== undefined && usado >= tope;
           return (
@@ -377,15 +500,46 @@ function FilaEmpresa({ empresa: e, planes, onGuardado }: { empresa: UsoEmpresa; 
         })}
       </dl>
       <div className={styles.fila}>
+        <select className={ui.campo} value={modo} onChange={(x) => setModo(x.target.value as typeof modo)} aria-label="Qué hacer">
+          <option value="cortesia">Dar plan de cortesía</option>
+          <option value="prueba">Dar prueba</option>
+          <option value="gratis">Pasar a Gratis</option>
+        </select>
+        {modo !== "gratis" && (
+          <select className={ui.campo} value={plan} onChange={(x) => setPlan(x.target.value)} aria-label={`Plan de ${e.empresa}`}>
+            {planes.map((p) => (
+              <option key={p.codigo} value={p.codigo}>
+                {p.nombre}
+              </option>
+            ))}
+          </select>
+        )}
+        {modo === "prueba" && (
+          <label className={styles.casillaFila}>
+            <input
+              className={`${ui.campo} ${ui.campoMono}`}
+              type="number"
+              min={1}
+              max={90}
+              value={dias}
+              style={{ width: "4.5rem" }}
+              onChange={(x) => setDias(Number(x.target.value))}
+              aria-label="Días de prueba"
+            />
+            días
+          </label>
+        )}
+      </div>
+      <div className={styles.fila}>
         <input
           className={ui.campo}
-          placeholder="Nota interna (por qué este plan, pruebas…)"
+          placeholder="Nota interna (por qué, pruebas…)"
           value={nota}
           maxLength={500}
           onChange={(x) => setNota(x.target.value)}
         />
-        <button type="button" className={`${ui.boton} ${ui.primario}`} disabled={!cambio || ocupado} onClick={guardar}>
-          Guardar
+        <button type="button" className={`${ui.boton} ${ui.primario}`} disabled={ocupado} onClick={guardar}>
+          Aplicar
         </button>
         {aviso && (
           <span className={styles.nota} role="status">
@@ -393,6 +547,11 @@ function FilaEmpresa({ empresa: e, planes, onGuardado }: { empresa: UsoEmpresa; 
           </span>
         )}
       </div>
+      {e.n1co_suscripcion_id && modo !== "cortesia" && (
+        <p className={styles.nota}>
+          Tiene suscripción con tarjeta: esto no la cancela en n1co y la próxima renovación la vuelve a activar.
+        </p>
+      )}
     </li>
   );
 }

@@ -816,6 +816,16 @@ export default function Manual() {
                   Excel por tema (empresa, usuarios, CAI, productos, kardex, clientes, facturas y notas, cuentas por cobrar,
                   abonos, caja y pedidos web). Lo pueden hacer el dueño y los administradores, cuando quieran.
                 </p>
+                <p>
+                  <strong>Suscripción</strong>: al registrar tu taller tenés <strong>7 días de prueba</strong> con todo
+                  incluido; el medidor de tanque de <em>Taller › Suscripción</em> te muestra cuántos quedan y te avisamos
+                  por correo antes de que termine. Después podés seguir en el plan <strong>Gratis</strong> (con límites) o
+                  elegir <strong>Arranque</strong>, <strong>Avance</strong> o <strong>Pleno</strong>, al mes o al año (dos
+                  meses gratis). Ahí mismo ves lo que usás contra los límites de tu plan, pagás con tarjeta y cancelás
+                  cuando quieras: seguís con tu plan hasta el fin del periodo pagado y después pasás a Gratis, sin perder
+                  datos. Solo el dueño paga o cancela; Wake Parts no guarda los datos de tu tarjeta (el cobro lo procesa
+                  n1co).
+                </p>
               </div>
               <div>
                 <h3 className={styles.subtitulo}>Sitio web</h3>

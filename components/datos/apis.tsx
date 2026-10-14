@@ -26,6 +26,7 @@ import { apiNotificaciones, type ApiNotificaciones } from "@/components/notifica
 import { apiInventario, type ApiInventario } from "@/components/inventario/api";
 import { apiReportes, type ApiReportes } from "@/components/reportes/api";
 import { apiSitioWeb, type ApiSitioWeb } from "@/components/sitio-web/api";
+import { apiSuscripcion, type ApiSuscripcion } from "@/components/suscripcion/api";
 import { apiVentas, type ApiVentas } from "@/components/ventas/api";
 
 /**
@@ -49,6 +50,7 @@ export type Apis = {
   reportes: ApiReportes;
   identidad: ApiIdentidad;
   sitioWeb: ApiSitioWeb;
+  suscripcion: ApiSuscripcion;
   notificaciones: ApiNotificaciones;
   recursos: ApiRecursos;
   empresa: ApiEmpresa;
@@ -69,6 +71,7 @@ const REALES: Apis = {
   reportes: apiReportes,
   identidad: apiIdentidad,
   sitioWeb: apiSitioWeb,
+  suscripcion: apiSuscripcion,
   notificaciones: apiNotificaciones,
   recursos: apiRecursos,
   empresa: apiEmpresa,

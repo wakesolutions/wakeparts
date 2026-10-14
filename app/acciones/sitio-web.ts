@@ -1,5 +1,6 @@
 "use server";
 
+import { verificarAlmacenamiento } from "@/lib/almacenamiento";
 import { randomUUID } from "node:crypto";
 import { BUCKET_EMPRESAS } from "@/lib/identidad";
 import { urlImagen } from "@/lib/imagenes";
@@ -98,6 +99,8 @@ export async function subirFotoSitio(datos: FormData): Promise<Resultado<{ sitio
 
   const ruta = `${empresa.id}/sitio/${randomUUID()}.${archivo.type.split("/")[1].replace("jpeg", "jpg")}`;
   const supabase = await createClient();
+  const sinEspacio = await verificarAlmacenamiento(supabase, empresa.id, archivo.size);
+  if (sinEspacio) return { ok: false, error: sinEspacio };
   const subida = await supabase.storage
     .from(BUCKET_EMPRESAS)
     .upload(ruta, archivo, { cacheControl: "31536000", upsert: false, contentType: archivo.type });

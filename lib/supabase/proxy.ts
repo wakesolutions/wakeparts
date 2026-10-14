@@ -17,6 +17,9 @@ const RUTAS_PUBLICAS = [
   "/t/",
   "/demo",
   "/api/registro",
+  // Webhook de n1co (verifica contra la API de n1co) y cron (exige CRON_SECRET).
+  "/api/n1co/webhook",
+  "/api/cron/",
   "/robots.txt",
   "/sitemap.xml",
   "/manifest.webmanifest",

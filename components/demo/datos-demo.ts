@@ -1,5 +1,6 @@
 "use client";
 
+import type { DatosSuscripcion } from "@/lib/suscripcion";
 import { ubicarVehiculo } from "@/app/acciones/vehiculos";
 import type { Apis } from "@/components/datos/apis";
 import { apiRecursos } from "@/components/datos/api-recursos";
@@ -2772,6 +2773,69 @@ BASES.asientos = () =>
     registro: a.registro,
   }));
 
+// ---------------------------------------------------------- suscripción ---
+
+// La demo enseña la pantalla real con planes de muestra y nunca cobra.
+const PLANES_DEMO: DatosSuscripcion["planes"] = [
+  {
+    codigo: "gratis", nombre: "Gratis", descripcion: null, etiqueta: "Para probar el sistema en un negocio pequeño.",
+    precio_mensual: 0, precio_anual: 0, orden: 0, modulos: ["inicio", "cotizar", "caja", "inventario", "ventas", "taller"],
+    limites: { sucursales: 1, usuarios: 1, productos: 50, clientes: 25, facturas_mes: 30, almacenamiento_mb: 100 },
+    caracteristicas: ["Facturación con CAI", "Búsqueda por vehículo", "Kardex", "1 usuario", "Hasta 50 productos"],
+    mensual_disponible: false, anual_disponible: false, solo_admins: false,
+  },
+  {
+    codigo: "arranque", nombre: "Arranque", descripcion: null, etiqueta: "Ideal para tiendas, yonkers o talleres de una sola ubicación.",
+    precio_mensual: 30, precio_anual: 300, orden: 1, modulos: [],
+    limites: { sucursales: 1, usuarios: 5, productos: 500, clientes: 150, almacenamiento_mb: 1024 },
+    caracteristicas: ["Facturación con CAI", "Importación de Excel", "Reportes de ventas", "Catálogo web con tu marca"],
+    mensual_disponible: true, anual_disponible: true, solo_admins: false,
+  },
+  {
+    codigo: "avance", nombre: "Avance", descripcion: null, etiqueta: "Ideal para negocios en crecimiento con 2 a 3 puntos.",
+    precio_mensual: 50, precio_anual: 500, orden: 2, modulos: [],
+    limites: { sucursales: 3, usuarios: 15, productos: 5000, clientes: 3000, almacenamiento_mb: 10240 },
+    caracteristicas: ["Todo lo de Arranque", "Varios CAI por sucursal", "Soporte prioritario en horario extendido"],
+    mensual_disponible: true, anual_disponible: true, solo_admins: false,
+  },
+  {
+    codigo: "pleno", nombre: "Pleno", descripcion: null, etiqueta: "Ideal para cadenas, grupos o negocios grandes.",
+    precio_mensual: 100, precio_anual: 1000, orden: 3, modulos: [], limites: { almacenamiento_mb: 51200 },
+    caracteristicas: ["Todo lo de Avance", "Catálogo web con dominio propio", "Soporte prioritario 24/7"],
+    mensual_disponible: true, anual_disponible: true, solo_admins: false,
+  },
+];
+
+const suscripcion: Apis["suscripcion"] = {
+  leer: async () =>
+    espera(
+      {
+        ok: true as const,
+        datos: {
+          suscripcion: {
+            estado: "prueba" as const, plan: "gratis", plan_nombre: "Gratis", plan_efectivo: "pleno",
+            plan_efectivo_nombre: "Pleno", plan_prueba: "pleno",
+            prueba_hasta: new Date(Date.now() + 5 * 86_400_000).toISOString(),
+            ciclo: null, periodo_fin: null, cancelada_en: null, con_tarjeta: false,
+          },
+          uso: {
+            productos: 45, clientes: 3, proveedores: 2, puntos_emision: 1, sucursales: 1, usuarios: 1,
+            facturas_mes: 12, cotizaciones_mes: 31, almacenamiento_bytes: 38 * 1048576,
+          },
+          planes: PLANES_DEMO,
+          eventos: [],
+          puedeGestionar: true,
+          cobrosActivos: true,
+          modo: "sandbox" as const,
+        },
+      },
+      300,
+    ),
+  pagar: async () => espera({ ok: false as const, error: "En la demo no se cobra. Creá tu cuenta para elegir un plan." }, 600),
+  cancelar: async () => espera({ ok: false as const, error: "En la demo no hay suscripción que cancelar." }),
+  sincronizar: async () => espera({ ok: true as const, mensaje: "En la demo todo está al día." }),
+};
+
 export const APIS_DEMO: Partial<Apis> = {
   recursos,
   empresa,
@@ -2788,5 +2852,6 @@ export const APIS_DEMO: Partial<Apis> = {
   reportes,
   identidad,
   sitioWeb,
+  suscripcion,
   notificaciones,
 };

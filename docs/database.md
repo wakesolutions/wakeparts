@@ -445,6 +445,16 @@ Avisos de la campanita. `id_empresa`, `id_usuario` (null = para todos los miembr
 - Triggers `limite_plan` (before insert, y `update of activo` donde aplica) en `productos`, `clientes`, `proveedores`, `puntos_emision`, `productos_imagenes`, `documentos`, `invitaciones` y `empresas_usuarios`.
 - Los módulos del plan y del rol solo controlan el escritorio (`veModulo()` en `lib/permisos.ts`); RLS sigue exigiendo dueño/admin para escribir en lo administrativo.
 
+## Suscripciones con n1co (0024)
+
+- `planes` + `precio_anual`, `n1co_plan_mensual` / `n1co_plan_anual` (únicos; IDs de los planes creados en n1co), `publico` (lo ven los talleres), `solo_admins` (plan de prueba de $0.50, solo admins de plataforma), `etiqueta`, `caracteristicas text[]`. Semilla: `gratis` (predeterminado = donde caen las empresas sin pago), `arranque` ($30/$300), `avance` ($50/$500), `pleno` ($100/$1000), `prueba` ($0.50, solo admins, acceso de Pleno). Se borraron `basico`/`avanzado`/`business` de 0023.
+- Claves de límite nuevas: `sucursales` (establecimientos distintos de `puntos_emision` activos; trigger `limite_plan_sucursales`) y `almacenamiento_mb` (`almacenamiento_empresa()` suma `storage.objects` de los buckets `productos` y `empresas`; `verificar_almacenamiento()` para la app y `almacenamiento_libre()` en las políticas de subida).
+- `empresas_planes` + `estado` (`prueba` · `activa` · `vencida` · `cancelada` · `gratis` · `cortesia`), `plan_prueba`, `prueba_hasta`, `ciclo`, `n1co_suscripcion_id` (único), `periodo_fin`, `cancelada_en`, `recordatorios text[]`, `actualizado_en`. Empresa nueva: 7 días (`dias_prueba()`) con Pleno y después Gratis. Las 6 existentes entraron a la prueba al aplicar 0024.
+- `plan_de_empresa()` calcula el plan efectivo al vuelo (ver `arquitectura.md` › Suscripciones).
+- `suscripciones_checkout` (intentos de pago: plan, ciclo, plan de n1co, método tokenizado y autenticación 3DS; **sin datos de tarjeta**; estado `iniciado` · `autenticacion` · `procesando` · `exitoso` · `fallido`; expira en 2 h). RLS: solo lectura para admin de plataforma; escribe el servidor (service_role).
+- `suscripciones_eventos` (bitácora: pagos, renovaciones, rechazos, cancelaciones, recordatorios; `clave` única para idempotencia). Lectura: dueño de la empresa y admin de plataforma; escribe el servidor.
+- Funciones para miembros: `mi_suscripcion()`, `mi_uso()`, `planes_publicos()`. Admin: `uso_planes_empresas()` (recreada con estado, sucursales y almacenamiento).
+
 ## Funciones
 
 | Función | Qué hace |

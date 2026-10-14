@@ -154,6 +154,16 @@ Solo Google, vía Supabase Auth con PKCE, todo del lado del servidor:
 
 Configuración externa necesaria en Supabase → Authentication → URL Configuration, en Redirect URLs: `http://localhost:3000/auth/callback` y `https://wakeparts-beta.vercel.app/auth/callback`.
 
+## Suscripciones y cobros (0024)
+
+- **Quién paga**: solo el dueño, en *Taller › Suscripción* (`components/suscripcion/`, vía `useApi("suscripcion")`; la demo no cobra). Server Actions en `app/acciones/suscripcion.ts`.
+- **Flujo**: validación local completa (Luhn, vencimiento, teléfono E.164, facturación de EE. UU./Canadá) → intento en `suscripciones_checkout` (límite: 6 intentos cada 15 min por empresa) → la tarjeta se tokeniza en n1co (`/api/v3/PaymentMethods`; nunca se guarda ni se registra) → `/api/v3/Subscriptions`. Si el banco pide 3D Secure, la URL solo se acepta si es `https` de `n1co.com`, `n1co.shop` o `h4b.dev`; el iframe solo escucha mensajes de ese origen y la continuación usa el id de autenticación que guardó el servidor, con un candado (`procesando`) para que dos continuaciones no cobren dos veces.
+- **Quién activa**: solo el servidor con la llave secreta (`lib/suscripcion-servidor.ts`), con la respuesta de n1co. El plan y el ciclo salen del `planId` de n1co (`planes.n1co_plan_mensual/anual`), nunca del navegador. Cambio de plan: la suscripción nueva se crea y la anterior se cancela en n1co.
+- **Webhook** (`/api/n1co/webhook`): el cuerpo solo dice qué suscripción mirar; estado, plan y periodo se leen de la API de n1co. Idempotente (`suscripciones_eventos.clave`); si el proceso falla, se suelta la clave para que n1co reintente. Una suscripción desconocida solo se asocia con un intento reciente del mismo correo y plan.
+- **Cron** (`/api/cron/suscripciones`): avisos de prueba a 3 días, 1 día y al terminar; consulta a n1co las suscripciones con periodo vencido; canceladas/vencidas sin gracia pasan a Gratis. Cada aviso se guarda en `empresas_planes.recordatorios` (no se repite).
+- **El plan efectivo no depende del cron**: `plan_de_empresa()` lo calcula al vuelo (prueba vigente → plan de prueba; cancelada → plan hasta fin de periodo; vencida → 3 días de gracia; si no, Gratis).
+- **Almacenamiento**: `verificarAlmacenamiento()` (`lib/almacenamiento.ts`) antes de cada subida y la política de Storage como segundo candado.
+
 ## Variables de entorno
 
 | Variable | Uso |
@@ -167,6 +177,9 @@ Configuración externa necesaria en Supabase → Authentication → URL Configur
 | `NEXT_PUBLIC_SUPABASE_URL` | URL del proyecto Supabase. |
 | `SUPABASE_PUBLISHABLE_KEY` | Llave publicable. **Solo servidor** hoy. Si algún día hace falta un cliente de navegador (realtime), exponer como `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. |
 | `SUPABASE_SECRET_KEY` | Llave secreta (salta RLS). Solo scripts/admin en servidor; nunca en el cliente. |
+| `N1CO_MODE`, `N1CO_CLIENT_ID`, `N1CO_CLIENT_SECRET`, `N1CO_LOCATION_CODE` | Cobros con n1co Business (0024, `lib/n1co.ts`). `N1CO_MODE` = `sandbox` (pruebas, `api-sandbox.n1co.shop`) o `live` (`api.n1co.com`). `N1CO_CLIENT_SECRET` es **secreta**: solo servidor, también en Vercel. Sin ellas, Taller › Suscripción muestra los planes pero no deja pagar. |
+| `N1CO_WEBHOOK_SECRET` | **Secreta**. La URL del webhook configurada en n1co es `https://<dominio>/api/n1co/webhook?clave=<N1CO_WEBHOOK_SECRET>`. Opcional (si falta, no se exige), pero el webhook igual verifica todo contra la API de n1co. |
+| `CRON_SECRET` | **Secreta**. cron-job.org llama una vez al día `GET /api/cron/suscripciones` con el header `Authorization: Bearer <CRON_SECRET>` (recordatorios de prueba, renovaciones vencidas, paso a Gratis). Sin la variable, el cron responde 503. |
 | `SMTP_HOST`, `SMTP_PORT`, `SMTP_SECURE`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM`, `SMTP_FROM_NAME` | Correo saliente (Zoho Mail, `ventas@wake.solutions`) con `lib/correo.ts` (`enviarCorreo`, `verificarCorreo`; nodemailer, STARTTLS obligatorio en 587). `SMTP_PASSWORD` es **secreta**: solo servidor, también en Vercel. Hoy lo usa Seguimiento. |
 
 ## Datos y multiempresa

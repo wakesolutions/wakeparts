@@ -2,6 +2,16 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-14 · Cobros con n1co Business (0024)
+
+- **Pedido del usuario**: cobrar dentro de la app con n1co (no links de pago) y poder cancelar, con los planes del socio: **Arranque** ($30/mes, $300/año), **Avance** ($50/$500) y **Pleno** ($100/$1000), un plan de prueba de **$0.50 solo para admins** y un plan **Gratis** limitado «para darnos a conocer». Decisiones del usuario: 7 días de prueba con el plan más grande y recordatorios por cron; las 6 empresas existentes entran a la prueba; se paga y cancela en *Taller › Suscripción*; los módulos son los que indica el socio.
+- **Módulos que el socio no nombra** (caja, notas, compras, actividad, contabilidad): Arranque lleva caja y notas (son parte de facturar con CAI); Avance suma compras y actividad; Pleno suma contabilidad. Editables en el módulo Planes.
+- **Gratis** (decidido aquí): 1 sucursal, 1 punto, 1 usuario, 50 productos, 25 clientes, 5 proveedores, 1 foto por producto, 30 facturas y 60 cotizaciones al mes, 100 MB; sin sitio web, notas, compras ni contabilidad. Pasarse del límite no borra nada: solo bloquea altas nuevas.
+- **Base del código**: la integración de `wakehealth` (tokenizar → suscripción → 3DS en iframe → webhook → cancelar), rehecha con más seguridad: el webhook de wakehealth activaba empresas con lo que decía el cuerpo (cualquiera podía mandar un POST); aquí se verifica todo con la API de n1co. Además: plan derivado del `planId` de n1co, URL de 3DS en lista blanca, origen del `postMessage` exacto, candado contra doble cobro, límite de intentos, idempotencia, secretos con comparación en tiempo constante, nada de la tarjeta en registros ni en la base, tiempo límite en cada llamada.
+- **Plan efectivo al vuelo** (`plan_de_empresa()`): si el cron falla, la prueba igual vence y la cancelación igual respeta el fin de periodo. El cron solo avisa y ordena.
+- **Cambio de plan** = suscripción nueva + cancelar la anterior en n1co, sin prorrateo (lo restante no se reembolsa; se avisa antes de pagar). A revisar con el socio si se quiere prorrateo.
+- Los precios que cobra n1co salen del plan creado en n1co: deben coincidir con los de `planes` (se avisa en el editor).
+
 ## 2026-10-13 · Planes, límites y permisos por rol (0023)
 
 - **Pedido del usuario**: permisos flexibles por rol que controle un admin, empresas fragmentadas en planes Básico (gratis), Avanzado y Business con límites configurables, sin pasarela de pagos y **sin que el taller se entere** (solo para que el admin gestione y pruebe); varios admins por variable de entorno.

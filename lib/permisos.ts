@@ -43,6 +43,7 @@ export const CAPACIDADES: readonly { clave: Permiso; nombre: string; detalle: st
 ];
 
 export const LIMITES: readonly { clave: string; nombre: string; detalle?: string }[] = [
+  { clave: "sucursales", nombre: "Sucursales", detalle: "Establecimientos distintos de los puntos de emisión" },
   { clave: "productos", nombre: "Productos activos" },
   { clave: "clientes", nombre: "Clientes activos" },
   { clave: "proveedores", nombre: "Proveedores activos" },
@@ -51,6 +52,7 @@ export const LIMITES: readonly { clave: string; nombre: string; detalle?: string
   { clave: "fotos_por_producto", nombre: "Fotos por producto" },
   { clave: "facturas_mes", nombre: "Facturas por mes" },
   { clave: "cotizaciones_mes", nombre: "Cotizaciones por mes" },
+  { clave: "almacenamiento_mb", nombre: "Almacenamiento (MB)", detalle: "Fotos, logo, fondo y fotos del sitio" },
 ];
 
 const modulo = (id: string): Permiso => `modulo:${id}`;

@@ -1,5 +1,6 @@
 "use server";
 
+import { verificarAlmacenamiento } from "@/lib/almacenamiento";
 import { randomUUID } from "node:crypto";
 import { obtenerSesion } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
@@ -80,6 +81,13 @@ export async function subirImagen(datos: FormData): Promise<{ ok: true; imagen: 
   const extension = archivo.type.split("/")[1].replace("jpeg", "jpg");
   const ruta = `${base}.${extension}`;
   const rutaMiniatura = miniatura instanceof File ? `${base}_m.${miniatura.type.split("/")[1].replace("jpeg", "jpg")}` : null;
+
+  const sinEspacio = await verificarAlmacenamiento(
+    supabase,
+    empresa,
+    archivo.size + (miniatura instanceof File ? miniatura.size : 0),
+  );
+  if (sinEspacio) return { ok: false, error: sinEspacio };
 
   const bucket = supabase.storage.from("productos");
   const opciones = { cacheControl: "31536000", upsert: false };
