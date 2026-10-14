@@ -2,11 +2,12 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { EncabezadoPublico, JsonLd, Migas, PiePublico, Seccion } from "./piezas";
 import styles from "./publico.module.css";
+import { VERSION_LEGAL, VERSION_LEGAL_TEXTO } from "@/lib/legal";
 import { CONTACTO, NOMBRE_SITIO, URL_SITIO } from "@/lib/sitio";
 
-/** Fecha de la última revisión de los textos legales (ISO). */
-export const LEGAL_ACTUALIZADO = "2026-10-14";
-const LEGAL_ACTUALIZADO_TEXTO = "14 de octubre de 2026";
+/** Fecha de la última revisión de los textos legales (ISO). Se cambia en lib/legal.ts. */
+export const LEGAL_ACTUALIZADO = VERSION_LEGAL;
+const LEGAL_ACTUALIZADO_TEXTO = VERSION_LEGAL_TEXTO;
 
 export const PAGINAS_LEGALES = [
   { ruta: "/terminos", nombre: "Términos de uso" },

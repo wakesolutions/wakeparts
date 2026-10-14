@@ -2795,13 +2795,13 @@ const PLANES_DEMO: DatosSuscripcion["planes"] = [
     codigo: "avance", nombre: "Avance", descripcion: null, etiqueta: "Ideal para negocios en crecimiento con 2 a 3 puntos.",
     precio_mensual: 50, precio_anual: 500, orden: 2, modulos: [],
     limites: { sucursales: 3, usuarios: 15, productos: 5000, clientes: 3000, almacenamiento_mb: 10240 },
-    caracteristicas: ["Todo lo de Arranque", "Varios CAI por sucursal", "Soporte prioritario en horario extendido"],
+    caracteristicas: ["Todo lo de Arranque", "Varios CAI por sucursal", "Soporte prioritario: respondemos en menos de 1 día"],
     mensual_disponible: true, anual_disponible: true, solo_admins: false,
   },
   {
     codigo: "pleno", nombre: "Pleno", descripcion: null, etiqueta: "Ideal para cadenas, grupos o negocios grandes.",
     precio_mensual: 100, precio_anual: 1000, orden: 3, modulos: [], limites: { almacenamiento_mb: 51200 },
-    caracteristicas: ["Todo lo de Avance", "Catálogo web con dominio propio", "Soporte prioritario 24/7"],
+    caracteristicas: ["Todo lo de Avance", "Catálogo web con dominio propio", "Soporte prioritario: respondemos en menos de 1 día"],
     mensual_disponible: true, anual_disponible: true, solo_admins: false,
   },
 ];

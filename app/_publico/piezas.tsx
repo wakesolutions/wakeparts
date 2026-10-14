@@ -442,7 +442,7 @@ export function BloqueContacto() {
     },
     {
       titulo: "Soporte por WhatsApp y correo",
-      texto: "Con el horario y la prioridad de tu plan; en Pleno, 24/7.",
+      texto: "Respondemos en menos de 1 día, con la prioridad de tu plan.",
     },
     {
       titulo: "Empresas con varias sucursales",

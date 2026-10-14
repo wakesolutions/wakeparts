@@ -7,7 +7,7 @@
 | Framework | Next.js **16** (App Router, React 19, Turbopack) |
 | Estilos | Tailwind CSS 4 + CSS Modules para componentes con mucho detalle visual |
 | Base de datos y auth | Supabase (Postgres 15+, Auth con Google) · `@supabase/ssr` |
-| Deploy | Vercel: `https://wakeparts-beta.vercel.app` |
+| Deploy | Vercel (plan Pro): `https://parts.wake.solutions` (subdominio propio; `wakeparts.vercel.app` sigue respondiendo con canonical al dominio) |
 
 > Next 16 difiere de versiones anteriores. Antes de usar una API, leé `node_modules/next/dist/docs/`. Cambios que ya nos afectaron: `middleware.ts` → **`proxy.ts`** (función `proxy`); `cookies()`, `headers()`, `params` y `searchParams` son **async**; los tipos globales `PageProps<"/ruta">` y `LayoutProps<"/ruta">` existen sin importarlos.
 
@@ -96,7 +96,8 @@ Convenciones:
 - **Precios de la portada** (`#precios`): `lib/planes-landing.ts` lee la tabla `planes` con la llave secreta (solo columnas publicables, planes públicos y activos) en `unstable_cache` de 10 min con etiqueta `planes`; `guardarPlan`/`eliminarPlan` la invalidan. Si falla, la sección no se muestra.
 - **Vitrina de capturas** (portada, sección «Así se ve por dentro»): imágenes reales del sandbox en `public/capturas/*.webp`, definidas en `app/_publico/capturas.ts` (también van al JSON-LD como `screenshot`). Si cambia la interfaz, regeneralas con `npm run dev` y luego `npm run capturas` (`scripts/capturar-landing.mjs`: `playwright-core` maneja el Chrome o Edge instalado, sin descargar navegadores; `BASE_URL`, `CHROME_PATH`).
 - **Es una demo**: la portada lo aclara (nota bajo el arranque y sección `#contacto` con `BloqueDemo`: precio a convenir, soporte 24/7, ajustes a la medida, WhatsApp y correo). El contacto sale de `CONTACTO` en `lib/sitio.ts` (también en el pie, la FAQ de precio, el `contactPoint` del JSON-LD y las páginas legales); nunca escribas el número o el correo sueltos.
-- **Páginas legales**: `PaginaLegal` (`app/_publico/legal.tsx`) da el marco común (h1, resumen, contacto, enlaces cruzados, JSON-LD). `PAGINAS_LEGALES` alimenta el sitemap; `LEGAL_ACTUALIZADO` es la fecha visible: cambiala al editar cualquier texto legal. Los textos no fueron revisados por un abogado.
+- **Páginas legales**: `PaginaLegal` (`app/_publico/legal.tsx`) da el marco común (h1, resumen, contacto, enlaces cruzados, JSON-LD). `PAGINAS_LEGALES` alimenta el sitemap; la fecha visible y la versión que se acepta salen de `VERSION_LEGAL` en `lib/legal.ts`: cambiala al editar cualquier texto legal. Textos revisados por el abogado (2026-10-14).
+- **Aceptación expresa** (0026): casilla `AceptacionLegal` (`components/ui/aceptacion-legal.tsx`) en el registro de la empresa (`crearEmpresa(valores, aceptaTerminos)`) y en el pago de un plan (`PeticionPago.aceptaTerminos`, exigido por `validarPago` en un pago nuevo). El servidor la vuelve a exigir y guarda la constancia con `guardarAceptacionLegal()` (`lib/legal-servidor.ts`, cliente con la sesión del usuario). En el pago, sin constancia no se cobra; en el registro la empresa ya existe, así que un fallo queda como `legal.aceptacion_fallo` en el registro de actividad (con IP y hora) y llega por las alertas. Los empleados invitados no aceptan: actúan por la empresa cuyo dueño aceptó.
 - Un departamento nuevo o un cambio de ciudades: `DEPARTAMENTOS` en `lib/sitio.ts` (el sitemap, los enlaces y las imágenes salen de ahí). Cada departamento tiene un párrafo propio (`contexto`) para no duplicar contenido.
 
 ## Demo pública (/demo)
@@ -111,6 +112,7 @@ Convenciones:
 
 - `NotificacionesProvider` (en `Escritorio`) consulta `leerNotificaciones()` **cada 30 s con la pestaña visible**, al volver a la pestaña y cuando un componente llama `avisarCambioNotificaciones()` (p. ej. al atender un pedido). No hay websockets: la llave de Supabase no llega al navegador (regla 7).
 - La campanita (`components/notificaciones/campana.tsx`) muestra **Por atender** (tareas) y **Recientes**; las tareas que llegan con el escritorio abierto salen como aviso emergente. El dock muestra cuántas tareas tiene cada módulo (`enlace.modulo`).
+- **Fuentes**: pedidos web (0014) y CAI por vencer o por agotarse (0027: tareas creadas por la base, correo al dueño desde `/api/cron/alertas` con `lib/avisos-cai.ts`). Ícono por `tipo` en `IconoTipo` de la campanita.
 - Tocar una notificación: `abrir(modulo)` + `pedirDestino(enlace)` (`lib/ir-a.ts`). `ModuloTablas` toma la `seccion` y el componente de la sección toma el `recurso` + `id` (`tomarRegistro`), tanto si ya estaba abierto como si se monta después. Para que un módulo nuevo responda, usá `tomarSeccion`/`tomarRegistro` + `escucharDestino` (toda lista con `MantenimientoRecurso` ya toma su registro sola).
 - Sandbox: botón «Simular pedido web» en `/dev/escritorio`.
 - **Capturas de la landing**: `npm run capturas` (con `npm run dev` corriendo) genera mostrador, factura, reporte, compatibilidad, celular, sitio, catálogo y campanita en `public/capturas/`. El script da por leídos el recorrido y el aviso de cookies.
@@ -148,7 +150,7 @@ Todo queda en la tabla `registros` (migración 0011, detalle en `database.md`); 
 - Sin cookies ni identificadores de visitante: por eso no hace falta consentimiento (ver Cookies). Está declarado en `/privacidad` y `/cookies`.
 - Plazo: `limpiar_registros()` (visitas 180 días, resto 730) y `limpiar_notificaciones()` (90 días) los corre a diario `GET /api/cron/limpieza` (cron-job.org con `CRON_SECRET`). Es lo que promete `/privacidad`.
 - Las rutas `/api/*` no se registran como visitas (el monitor de salud y los cron llenarían la tabla).
-- **Alertas por correo**: `GET /api/cron/alertas` (cada 15 min, `CRON_SECRET`) junta los registros nuevos de nivel `error` y los avisos `suscripcion.*` desde el último evento `alerta.enviada`, los agrupa por evento + mensaje (cobros primero) y manda un correo a `ALERTAS_CORREO` (o a `ADMINS_PLATAFORMA`). Si el correo falla, la marca no avanza y el siguiente cron reintenta.
+- **Alertas por correo**: `GET /api/cron/alertas` (cada 15 min, `CRON_SECRET`) primero procesa los avisos de CAI de los talleres (`procesarAvisosCai()`, 0027) y después junta los registros nuevos de nivel `error` y los avisos `suscripcion.*` desde el último evento `alerta.enviada`, los agrupa por evento + mensaje (cobros primero) y manda un correo a `ALERTAS_CORREO` (o a `ADMINS_PLATAFORMA`). Si el correo falla, la marca no avanza y el siguiente cron reintenta.
 - **Salud**: `GET /api/salud` (pública, sin datos): 200 si la base responde, 503 si no. Para el monitor de disponibilidad. Ver `operacion.md`.
 
 ## Autenticación
@@ -164,7 +166,7 @@ Solo Google, vía Supabase Auth con PKCE, todo del lado del servidor:
 4. `/inicio` usa `obtenerSesion()`: sin sesión → `/`; **sin empresa → `/bienvenida`** (registro obligatorio, RPC `crear_empresa`); con empresa → escritorio.
 5. Las páginas protegidas vuelven a validar con `supabase.auth.getUser()`: el proxy es una comprobación optimista, no la autorización real. Cada Server Action que modifique datos debe verificar el usuario.
 
-Configuración externa necesaria en Supabase → Authentication → URL Configuration, en Redirect URLs: `http://localhost:3000/auth/callback` y `https://wakeparts-beta.vercel.app/auth/callback`.
+Configuración externa necesaria en Supabase → Authentication → URL Configuration, en Redirect URLs: `http://localhost:3000/auth/callback` y `https://parts.wake.solutions/auth/callback`.
 
 ## Suscripciones y cobros (0024)
 

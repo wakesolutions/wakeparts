@@ -22,7 +22,7 @@ Solo con Google, vía Supabase Auth (PKCE):
 3. `proxy.ts` refresca la sesión en cada request y protege todo lo que no sea `/` o `/auth/*`.
 
 En Supabase → Authentication → URL Configuration, las **Redirect URLs** deben incluir
-`http://localhost:3000/auth/callback` y `https://wakeparts-beta.vercel.app/auth/callback`.
+`http://localhost:3000/auth/callback` y `https://parts.wake.solutions/auth/callback`.
 
 ## Base de datos
 

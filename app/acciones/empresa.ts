@@ -1,10 +1,13 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { CAMPOS_REGISTRO, CAMPOS_TALLER } from "@/lib/empresa";
+import { ERROR_SIN_ACEPTAR, VERSION_LEGAL } from "@/lib/legal";
+import { guardarAceptacionLegal } from "@/lib/legal-servidor";
 import { COOKIE_PALETA, PALETAS, type PaletaId } from "@/lib/paletas";
 import type { ResultadoGuardar, Valores } from "@/lib/recursos/tipos";
 import { validarValores } from "@/lib/recursos/validar";
+import { contextoDe, registrar } from "@/lib/registro";
 import { obtenerSesion } from "@/lib/sesion";
 import { createClient } from "@/lib/supabase/server";
 
@@ -16,7 +19,12 @@ async function recordarPaleta(paleta: PaletaId) {
   });
 }
 
-export async function crearEmpresa(valores: Valores): Promise<ResultadoGuardar> {
+/**
+ * Registro de la empresa (onboarding). `aceptaTerminos` es la casilla de los
+ * Términos y la Privacidad: sin ella no se crea nada (0026).
+ */
+export async function crearEmpresa(valores: Valores, aceptaTerminos: boolean): Promise<ResultadoGuardar> {
+  if (aceptaTerminos !== true) return { ok: false, error: ERROR_SIN_ACEPTAR };
   const validacion = validarValores(CAMPOS_REGISTRO, valores);
   if (!validacion.ok) {
     return { ok: false, error: "Revisá los campos marcados.", errores: validacion.errores };
@@ -43,6 +51,26 @@ export async function crearEmpresa(valores: Valores): Promise<ResultadoGuardar> 
           ? "Tu sesión expiró. Volvé a entrar."
           : "No se pudo crear la empresa. Revisá los datos e intentá de nuevo.",
     };
+  }
+
+  // Constancia de la aceptación. La empresa ya existe: si la base falla, la
+  // constancia queda en el registro de actividad (con usuario, IP y hora) y avisa
+  // por correo para revisarlo, en vez de dejar al dueño a medio registro.
+  const aceptacion = await guardarAceptacionLegal(supabase, "registro", data as string, { empresa: d.nombre });
+  if (!aceptacion.ok) {
+    console.error("[crearEmpresa] aceptación legal", aceptacion);
+    const sesion = await obtenerSesion();
+    await registrar({
+      tipo: "error",
+      nivel: "error",
+      evento: "legal.aceptacion_fallo",
+      mensaje: `No se guardó la aceptación de términos (registro): ${aceptacion.codigo ?? "?"} ${aceptacion.mensaje}`.slice(0, 500),
+      id_usuario: sesion?.usuario.id ?? null,
+      correo: sesion?.usuario.correo ?? null,
+      id_empresa: data as string,
+      datos: { contexto: "registro", version: VERSION_LEGAL, aceptado_en: new Date().toISOString() },
+      contexto: contextoDe(await headers()),
+    });
   }
 
   // Datos de ejemplo (0007): si fallan, la empresa igual queda creada; se pueden cargar desde Taller.

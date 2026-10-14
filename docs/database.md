@@ -424,10 +424,17 @@ Desde 0013, **`anon` ya no puede ejecutar `buscar_productos`** (devolvía el pre
 Avisos de la campanita. `id_empresa`, `id_usuario` (null = para todos los miembros), `tipo` (`pedido_web`…), `titulo` (≤ 160), `cuerpo` (≤ 400), `enlace` jsonb `{modulo, seccion, recurso, id}` (adónde lleva en el escritorio), `es_tarea` + `resuelta_en`/`resuelta_por` (tarea **compartida**: la resuelve cualquiera del equipo), `origen_tabla` + `origen_id` (registro que la generó). Leído es **por usuario** (`notificaciones_leidas`).
 
 - **Se crean solo desde la base** (triggers security definer); la API no puede insertar, editar ni borrar. Miembros leen las de su empresa (y las dirigidas a ellos).
-- **Fuente actual**: trigger `zy_notificar` en `pedidos_web`: pedido nuevo → tarea «Pedido web #n · Cliente»; `atendido`/`descartado` → resuelta; vuelve a `nuevo` → pendiente otra vez. Si falla, solo emite un `warning`: el pedido se guarda igual.
+- **Fuentes**: CAI por vencer o por agotarse (0027, ver abajo) y el trigger `zy_notificar` en `pedidos_web`: pedido nuevo → tarea «Pedido web #n · Cliente»; `atendido`/`descartado` → resuelta; vuelve a `nuevo` → pendiente otra vez. Si falla, solo emite un `warning`: el pedido se guarda igual.
 - `v_notificaciones` (security invoker): + `pendiente`, `leida` (del usuario) y nombre de quien la resolvió. `resumen_notificaciones(empresa)`: `{pendientes, no_leidas, ultima}`. `marcar_notificaciones_leidas(empresa, ids?)` (null = todas). `limpiar_notificaciones(dias = 90)` borra viejas leídas o resueltas (a mano o pg_cron).
-- **Otra fuente nueva** (CAI por vencer, existencia baja…): un trigger o función que inserte en `notificaciones` con su `enlace` y `origen_*`, y que la resuelva cuando corresponda. La campanita no cambia.
+- **Otra fuente nueva** (existencia baja…): un trigger o función que inserte en `notificaciones` con su `enlace` y `origen_*`, y que la resuelva cuando corresponda. La campanita no cambia.
 - Sin auditoría `zz_registrar_cambio`: son avisos, no datos del negocio (el pedido ya se audita).
+
+## Avisos de CAI (0027)
+
+- `cai_avisos`: un aviso por CAI y umbral (`unique (id_cai, aviso)`): `dias_30` · `dias_15` · `dias_5` · `vencido` (fecha límite, hora de Tegucigalpa) y `rango_80` · `rango_95` · `agotado` (uso del rango). Guarda `titulo`, `cuerpo` y `correo_enviado_en`. RLS sin políticas: solo servidor y funciones.
+- `revisar_cai(empresa = null)` (security definer, solo `service_role` y triggers): por cada punto de emisión activo y tipo de documento mira el CAI activo de fecha límite más lejana (el que se usará último; si ya está registrado el siguiente, no hay aviso). Umbral nuevo → fila en `cai_avisos` + tarea en `notificaciones` (`tipo = 'cai'`, `origen_tabla = 'cai'`, `origen_id = '<id>:fecha'` o `'<id>:rango'`, enlace a Ventas › CAI); una sola tarea abierta por CAI y familia. Lo que ya no aplica se resuelve solo. Devuelve cuántos avisos nuevos hubo.
+- Triggers en `cai`: `zy_cai_revisar` (alta, baja, `activo`, fecha, rango o punto) y `zy_cai_revisar_tramo` (`siguiente`, solo al cambiar `cai_tramo()`: 80 %, 95 %, agotado). Nunca bloquean: si fallan, `warning`.
+- Correo: `/api/cron/alertas` llama `revisar_cai()` y manda un correo por empresa a dueño y admins con lo que tenga `correo_enviado_en` vacío (máx. 3 días de antigüedad); `lib/avisos-cai.ts`.
 
 ## Seguimiento de talleres (0015, solo admin de plataforma)
 
@@ -454,6 +461,12 @@ Avisos de la campanita. `id_empresa`, `id_usuario` (null = para todos los miembr
 - `suscripciones_checkout` (intentos de pago: plan, ciclo, plan de n1co, método tokenizado y autenticación 3DS; **sin datos de tarjeta**; estado `iniciado` · `autenticacion` · `procesando` · `exitoso` · `fallido`; expira en 2 h). RLS: solo lectura para admin de plataforma; escribe el servidor (service_role).
 - `suscripciones_eventos` (bitácora: pagos, renovaciones, rechazos, cancelaciones, recordatorios; `clave` única para idempotencia). Lectura: dueño de la empresa y admin de plataforma; escribe el servidor.
 - Funciones para miembros: `mi_suscripcion()`, `mi_uso()`, `planes_publicos()`. Admin: `uso_planes_empresas()` (recreada con estado, sucursales y almacenamiento).
+
+## Aceptaciones legales (0026)
+
+- `aceptaciones_legales`: constancia de que una persona marcó «Acepto los Términos de uso y la Política de privacidad». `id_usuario`, `id_empresa` (null si se borra la empresa), `contexto` (`registro` · `suscripcion`), `version` (fecha ISO de `VERSION_LEGAL`, `lib/legal.ts`), `documentos` (`{terminos,privacidad}`), `detalle` jsonb ≤ 2 KB (en el pago: plan, ciclo, precio en USD, renovación automática), `ip` y `agente` (de los headers `x-cliente-*`), `aceptado_en`. Trigger de auditoría `zz_registrar_cambio`.
+- **Inmutable por la API**: sin políticas de insert/update/delete. Solo escribe `registrar_aceptacion_legal(contexto, version, empresa, detalle)` (security definer, `authenticated`): toma el usuario de `auth.uid()` y exige membresía si se pasa empresa.
+- Lectura: cada uno las suyas; dueño/admin las de su empresa; admin de plataforma, todas.
 
 ## Funciones
 

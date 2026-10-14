@@ -3,6 +3,8 @@
  * navegador y el servidor. El cobro lo hace n1co; aquí no hay nada secreto.
  */
 
+import { ERROR_SIN_ACEPTAR } from "@/lib/legal";
+
 export type Ciclo = "mensual" | "anual";
 export type EstadoSuscripcion = "prueba" | "activa" | "vencida" | "cancelada" | "gratis" | "cortesia";
 
@@ -76,6 +78,8 @@ export type PeticionPago = {
   telefono: string;
   tarjeta?: { numero: string; titular: string; mes: string; anio: string; cvv: string };
   facturacion: { pais: string; estado: string; codigoPostal: string };
+  /** Casilla de Términos y Privacidad (obligatoria en un pago nuevo; 0026). */
+  aceptaTerminos?: boolean;
   /** Segundo paso tras el 3D Secure: el intento que lo pidió. */
   intento?: string;
   autenticacion?: string;
@@ -144,6 +148,7 @@ export function validarPago(p: PeticionPago): { error: string; campo: string } |
   if (!/^\d{4}$/.test(t.anio)) return { error: "Elegí el año de vencimiento.", campo: "anio" };
   if (new Date(anio, mes, 0, 23, 59, 59) < new Date()) return { error: "La tarjeta está vencida.", campo: "mes" };
   if (!/^\d{3,4}$/.test(t.cvv)) return { error: "El código de seguridad tiene 3 o 4 dígitos.", campo: "cvv" };
+  if (p.aceptaTerminos !== true) return { error: ERROR_SIN_ACEPTAR, campo: "acepta" };
   return null;
 }
 

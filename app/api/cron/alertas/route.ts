@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { procesarAvisosCai } from "@/lib/avisos-cai";
 import { enviarCorreo } from "@/lib/correo";
 import { rechazoCron } from "@/lib/cron";
 import { registrar } from "@/lib/registro";
@@ -18,6 +19,10 @@ import { clienteServicio } from "@/lib/suscripcion-servidor";
  *
  * Si la base no responde, este endpoint da 500: con «avisar si falla» en
  * cron-job.org también sirve de alarma de que algo grande se cayó.
+ *
+ * Antes, los avisos de CAI por vencer o por agotarse a los talleres
+ * (`lib/avisos-cai.ts`, 0027). Si fallan, quedan como error en el registro y
+ * salen en este mismo correo.
  */
 
 export const dynamic = "force-dynamic";
@@ -53,6 +58,8 @@ async function manejar(request: Request) {
   const rechazo = rechazoCron(request);
   if (rechazo) return rechazo;
 
+  const cai = await procesarAvisosCai();
+
   const db = clienteServicio();
   const { data: marca, error: errorMarca } = await db
     .from("registros")
@@ -76,7 +83,7 @@ async function manejar(request: Request) {
   if (error) return NextResponse.json({ error: "La base no respondió." }, { status: 500 });
 
   const filas = (data ?? []) as Fila[];
-  if (!filas.length) return NextResponse.json({ ok: true, nuevos: 0 });
+  if (!filas.length) return NextResponse.json({ ok: true, nuevos: 0, cai });
 
   // Agrupar por evento + mensaje: cien veces el mismo error es una sola línea.
   const grupos = new Map<string, { fila: Fila; veces: number; ultima: string; empresas: Set<string> }>();
@@ -139,7 +146,7 @@ async function manejar(request: Request) {
     mensaje: asunto,
     datos: { desde, hasta, eventos: filas.length, grupos: lista.length, cobros, destinatarios: enviados },
   });
-  return NextResponse.json({ ok: true, nuevos: filas.length, grupos: lista.length, enviados });
+  return NextResponse.json({ ok: true, nuevos: filas.length, grupos: lista.length, enviados, cai });
 }
 
 export const GET = manejar;

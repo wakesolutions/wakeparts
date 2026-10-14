@@ -8,7 +8,7 @@ Qué hacer para que el servicio siga funcionando y qué hacer cuando algo falla.
 |---|---|---|---|
 | `GET /api/cron/suscripciones` | cron-job.org, header `Authorization: Bearer <CRON_SECRET>` | **1 vez al día** (06:00 hora de Honduras) | Correos de prueba y de cobro sin enviar; las suscripciones vencidas no se sincronizan con n1co. El plan efectivo **no** depende de esto (`plan_de_empresa()` lo calcula al vuelo). |
 | `GET /api/cron/limpieza` | cron-job.org, mismo header | **1 vez al día** (04:00) | El registro crece y se incumple el plazo que promete `/privacidad` (visitas 6 meses, el resto 2 años). |
-| `GET /api/cron/alertas` | cron-job.org, mismo header | **Cada 15 minutos** | No llegan los correos de errores. |
+| `GET /api/cron/alertas` | cron-job.org, mismo header | **Cada 15 minutos** | No llegan los correos de errores ni los avisos de CAI por vencer a los talleres (la campanita igual los muestra cuando el CAI cambia o se factura; los de fecha esperan al cron). |
 | `GET /api/salud` | Monitor de disponibilidad (UptimeRobot, Better Stack o el mismo cron-job.org), **sin** header | **Cada 5 minutos** | No te enterás de una caída. |
 | Respaldo diario de la base | Supabase (plan pago) | Diario, automático | Ver §4. |
 
@@ -19,14 +19,14 @@ Variables que tienen que estar en Vercel (Production): todas las de `docs/arquit
 Prueba rápida (desde la terminal, cambiando el secreto):
 
 ```bash
-curl -s https://wakeparts.vercel.app/api/salud
+curl -s https://parts.wake.solutions/api/salud
 ```
 
 ```bash
-curl -s -H "Authorization: Bearer TU_CRON_SECRET" https://wakeparts.vercel.app/api/cron/alertas
+curl -s -H "Authorization: Bearer TU_CRON_SECRET" https://parts.wake.solutions/api/cron/alertas
 ```
 
-`{"ok":true,"nuevos":0}` = funciona y no hubo errores nuevos.
+`{"ok":true,"nuevos":0,"cai":{…}}` = funciona y no hubo errores nuevos (`cai` dice cuántos avisos de CAI nuevos hubo y cuántos correos se mandaron a talleres).
 
 ## 2. Primeros 5 minutos ante cualquier problema
 
@@ -58,6 +58,7 @@ curl -s -H "Authorization: Bearer TU_CRON_SECRET" https://wakeparts.vercel.app/a
 - **El webhook no llega**: confirmá en n1co que la URL sea `https://<dominio>/api/n1co/webhook?clave=<N1CO_WEBHOOK_SECRET>`. Un `401` en sus registros = la clave no coincide.
 
 ### Facturación de un taller
+- **Avisos de CAI**: el sistema avisa en la campanita y por correo al dueño 30, 15 y 5 días antes de la fecha límite y al 80 % y 95 % del rango. Si un taller dice que no le llegó el correo, buscá `cai.aviso_enviado` en Actividad (o `cai.avisos_error`).
 - **«No hay CAI vigente»**: el CAI se agotó o venció. El taller registra el nuevo CAI del SAR en Ventas › CAI (el sistema no puede emitir facturas sin CAI vigente, a propósito).
 - **Factura con un error**: no se edita ni se borra (está bloqueado en la base). Se corrige con **anulación** o **nota de crédito**, según lo que corresponda fiscalmente.
 - **Un número de factura «saltado»**: no debería pasar (el número se toma con bloqueo dentro de la misma transacción). Si alguien lo reporta, revisá en Actividad los cambios de `cai` y `documentos` de esa empresa a esa hora antes de responder.
@@ -105,7 +106,9 @@ Lo mínimo que necesita la persona de respaldo (los accesos van en el gestor de 
 - [ ] El WhatsApp comercial o la lista de dueños de taller para avisar.
 - [ ] Esta guía y `docs/arquitectura.md`.
 
-Contactos de soporte (completar):
+Quién da soporte: el responsable y su socio, los dos con esta guía. **Compromiso con los talleres: respondemos en menos de 1 día** (todos los planes; Avance y Pleno van primero).
+
+Contactos de los proveedores (completar):
 
 | Proveedor | Canal | Cuenta o referencia |
 |---|---|---|
@@ -116,6 +119,7 @@ Contactos de soporte (completar):
 
 ## 8. Soporte a los talleres
 
+- **Respondemos en menos de 1 día** por WhatsApp o correo (es lo que prometen la portada y los planes). Si algo va a tardar más, avisá en ese plazo qué pasa y cuándo volvés a escribir.
 - Primero preguntá **qué pantalla, qué hora y qué usuario**. Con eso lo encontrás en Actividad.
 - Nunca pidas la contraseña de Google de nadie: no hace falta para nada.
 - Si un taller pide sus datos o la baja, la exportación está en Taller › Datos. La eliminación de la empresa se hace a mano en la base, conservando lo que la ley obligue (documentos fiscales). Anotalo en la bitácora.

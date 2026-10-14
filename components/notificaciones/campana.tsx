@@ -24,8 +24,29 @@ function IconoCampana() {
   );
 }
 
-/** Ícono por tipo de notificación (por ahora: pedido web). */
+/** Ícono por tipo de notificación: pedido web y CAI (0027). */
 function IconoTipo({ tipo }: { tipo: string }) {
+  if (tipo === "cai") {
+    // Hoja con sello: el CAI del SAR.
+    return (
+      <svg
+        viewBox="0 0 16 16"
+        width="16"
+        height="16"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        aria-hidden="true"
+      >
+        <path d="M3.5 1.5h6l3 3v10h-9z" />
+        <path d="M9.5 1.5v3h3" />
+        <path d="M5.5 7.5h5M5.5 10h2.5" />
+        <circle cx="10.5" cy="11.8" r="1.4" />
+      </svg>
+    );
+  }
   if (tipo === "pedido_web") {
     return (
       <svg

@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useId, useRef, useState, type FormEvent } from "react";
 import { useSesion } from "@/app/inicio/_components/sesion-contexto";
 import { useApi } from "@/components/datos/apis";
+import { AceptacionLegal } from "@/components/ui/aceptacion-legal";
 import ui from "@/components/ui/controles.module.css";
 import { useVentanaActual } from "@/components/ventanas/ventana";
 import { VentanaFlotante } from "@/components/ventanas/ventana-flotante";
@@ -558,6 +559,7 @@ function Pago({
   const [ocupado, setOcupado] = useState(false);
   const [tresDs, setTresDs] = useState<{ intento: string; url: string } | null>(null);
   const [intentoFacturacion, setIntentoFacturacion] = useState<string | null>(null);
+  const [acepta, setAcepta] = useState(false);
   const enCurso = useRef(false);
   const urlRef = useRef<string | null>(null);
   /** Autenticaciones ya enviadas: el iframe puede avisar más de una vez. */
@@ -638,6 +640,7 @@ function Pago({
     ciclo,
     telefono: f.telefono,
     facturacion: { pais: f.pais, estado: f.estado, codigoPostal: f.codigoPostal },
+    aceptaTerminos: acepta,
   });
 
   // Respuesta del 3D Secure dentro del iframe.
@@ -697,7 +700,7 @@ function Pago({
       id="suscripcion-pago"
       titulo={`Plan ${plan.nombre}`}
       padre={madre}
-      tamano={{ w: 560, h: tresDs ? 720 : 760 }}
+      tamano={{ w: 560, h: tresDs ? 720 : 830 }}
       foco={plan.codigo}
       onCerrar={() => {
         if (!enCurso.current && !esperando) onCerrar();
@@ -910,6 +913,23 @@ function Pago({
                 </>
               )}
             </fieldset>
+
+            <AceptacionLegal
+              id={`${id}-acepta`}
+              marcada={acepta}
+              invalida={error?.campo === "acepta"}
+              describedBy={error?.campo === "acepta" ? `${id}-error` : undefined}
+              onCambiar={(v) => {
+                setAcepta(v);
+                if (v && error?.campo === "acepta") setError(null);
+              }}
+              extra={
+                <>
+                  y autorizo el cobro de {usd(precio)} {ciclo === "anual" ? "cada año" : "cada mes"}, que se renueva solo hasta
+                  que lo cancele.
+                </>
+              }
+            />
 
             {error && (
               <p id={`${id}-error`} className={styles.error} role="alert">

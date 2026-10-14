@@ -13,6 +13,7 @@ import {
   tokenizarTarjeta,
 } from "@/lib/n1co";
 import { normalizarLimites, normalizarModulosPlan } from "@/lib/permisos";
+import { guardarAceptacionLegal } from "@/lib/legal-servidor";
 import { registrar } from "@/lib/registro";
 import { obtenerSesion } from "@/lib/sesion";
 import {
@@ -255,6 +256,28 @@ export async function pagarSuscripcion(p: PeticionPago): Promise<ResultadoPago> 
       .gte("creado_en", desde);
     if ((count ?? 0) >= MAX_INTENTOS)
       return { ok: false, error: `Demasiados intentos de pago. Esperá ${VENTANA_INTENTOS_MIN} minutos y probá de nuevo.` };
+
+    // Constancia de que el dueño aceptó los términos y la privacidad vigentes y el
+    // cobro recurrente (0026). Sin constancia no se cobra.
+    const aceptacion = await guardarAceptacionLegal(await createClient(), "suscripcion", empresa.id, {
+      plan: plan.codigo,
+      ciclo: p.ciclo,
+      precio_usd: precio,
+      renovacion_automatica: true,
+    });
+    if (!aceptacion.ok) {
+      await registrar({
+        tipo: "error",
+        nivel: "error",
+        evento: "legal.aceptacion_fallo",
+        mensaje: `No se guardó la aceptación de términos (suscripción): ${aceptacion.codigo ?? "?"} ${aceptacion.mensaje}`.slice(0, 500),
+        id_usuario: sesion.usuario.id,
+        correo: sesion.usuario.correo,
+        id_empresa: empresa.id,
+        datos: { contexto: "suscripcion", plan: plan.codigo, ciclo: p.ciclo },
+      });
+      return { ok: false, error: "No pudimos guardar tu aceptación de los términos. No se hizo ningún cargo; intentá de nuevo en un momento." };
+    }
 
     const { data: nuevo, error } = await db
       .from("suscripciones_checkout")

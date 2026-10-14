@@ -753,7 +753,10 @@ export default function Manual() {
                 </div>
                 <p>
                   Si el rango se acaba o la fecha pasa, no deja emitir: registrá el siguiente CAI. Con documentos
-                  emitidos, un CAI solo se puede desactivar.
+                  emitidos, un CAI solo se puede desactivar. Para que no te agarre de sorpresa, la{" "}
+                  <strong>campanita</strong> te avisa 30, 15 y 5 días antes de la fecha límite y cuando usaste el 80 % y
+                  el 95 % del rango, y al dueño y los administradores les llega el mismo aviso por correo. El aviso se
+                  quita solo cuando registrás el CAI siguiente.
                 </p>
               </div>
             </div>
@@ -870,7 +873,8 @@ export default function Manual() {
                   meses gratis). Ahí mismo ves lo que usás contra los límites de tu plan, pagás con tarjeta y cancelás
                   cuando quieras: seguís con tu plan hasta el fin del periodo pagado y después pasás a Gratis, sin perder
                   datos. Solo el dueño paga o cancela; Wake Parts no guarda los datos de tu tarjeta (el cobro lo procesa
-                  n1co).
+                  n1co). Para pagar marcás que aceptás los Términos de uso, la Política de privacidad y el cobro
+                  automático de cada periodo, igual que al registrar tu taller.
                 </p>
               </div>
               <div>

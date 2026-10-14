@@ -2,6 +2,25 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-14 · Avisos de CAI, soporte en menos de 1 día y dominio propio (0027, 0028)
+
+- **Confirmado por el usuario**: dominio propio `parts.wake.solutions` (subdominio de wake.solutions) ya en producción; crons configurados en cron-job.org; Vercel en plan Pro; Supabase pago; el abogado aprobó los textos nuevos (privacidad con proveedores y la aceptación expresa). Soporte: el usuario y su socio, con `operacion.md`.
+- **Soporte = «respondemos en menos de 1 día»** en todos los planes (decisión del usuario, con visto bueno del abogado). Se quita «horario laboral», «horario extendido» y «24/7». Avance y Pleno conservan «prioritario» (se atienden primero), sin otro plazo. La portada y la demo se cambiaron en el código; las características de los planes viven en la base (0028 reemplaza solo el renglón que empieza con «Soporte»).
+- **Avisos de CAI** (pendiente 6 de la revisión): umbrales 30/15/5 días y vencido; 80 % y 95 % del rango y agotado. Se evalúa solo el CAI que se usará último por punto y tipo: si el siguiente ya está registrado, no se avisa (el cambio de CAI es automático en `tomar_numero_cai`). Tareas en la campanita (no avisos sueltos) porque piden una acción, y se resuelven solas al registrar el CAI siguiente.
+- **Por qué triggers + cron**: los de rango se detectan al facturar (trigger con `WHEN` sobre `cai_tramo()`, que solo corre al cruzar 80/95/agotado: no agrega trabajo a cada factura); los de fecha necesitan el paso del tiempo y los crea el cron de alertas cada 15 min. El trigger nunca bloquea la factura (`exception when others` → `warning`).
+- **Correo** dentro de `/api/cron/alertas` (ya existe y corre cada 15 min) en vez de un cron nuevo: el usuario ya los configuró. Un correo por empresa al dueño y los administradores; si falla, se reintenta; un aviso de más de 3 días sin correo ya no se manda. Al aplicar 0027, los CAI que ya estaban en un umbral reciben la tarea pero **no** correo (no avisar por estados viejos, p. ej. CAI de prueba).
+- **Ojo con «Catálogo web con dominio propio»** en Pleno: el dominio propio por taller todavía no existe (pendiente conocido). A decidir con el socio: implementarlo o quitar el renglón.
+
+## 2026-10-14 · Aceptación expresa de términos y privacidad (0026)
+
+- **Pedido del usuario** (pendiente 2 de la revisión para producción): los términos decían «al registrar tu empresa aceptás», pero no había casilla ni constancia, y el pago no mostraba los términos.
+- **Casilla sin marcar por defecto** en el registro de la empresa y en el pago de un plan, con enlaces que abren en otra pestaña (no se pierde lo escrito). En el pago suma «autorizo el cobro de $X cada mes/año, que se renueva solo hasta que lo cancele» (lo que ya dicen los términos). La continuación del 3D Secure no vuelve a pedirla: la constancia es del intento.
+- **Constancia en una tabla propia e inmutable** (`aceptaciones_legales`) en vez de una columna en `usuarios`: queda el historial de cada versión aceptada y en qué contexto. La escribe solo una función con el usuario de la sesión; la IP y el dispositivo salen de los mismos headers que la auditoría.
+- **La versión es la fecha de los textos legales** (`VERSION_LEGAL` en `lib/legal.ts`), la misma que muestran `/terminos` y `/privacidad`: cambiarla al editar un texto legal.
+- **Pago**: sin constancia no se cobra («no se hizo ningún cargo»). **Registro**: la empresa se crea primero (no hay transacción común con `crear_empresa`); si la constancia falla, queda en el registro de actividad (`legal.aceptacion_fallo`, nivel error, con usuario, IP y hora) y llega por las alertas, en vez de dejar al dueño a medio registro.
+- No se pide a quienes ya tienen cuenta ni a los empleados invitados (actúan por la empresa). Si el abogado quiere constancia de los existentes, se agrega un aviso en el escritorio que pida aceptar la versión vigente.
+- Pendiente para el abogado (revisión): cláusula de reembolsos y de qué pasa con los datos al cancelar o cerrar la cuenta.
+
 ## 2026-10-14 · Revisión para producción: operación, alertas y cabeceras
 
 - **Revisión exhaustiva** (pedido del usuario: «¿está listo para venderse?»). Confirmado por el usuario: migraciones hasta 0025 aplicadas, `CRON_SECRET` en Vercel, plan pago de Supabase, y **todas las reglas fiscales y legales confirmadas con el contador y el abogado**. Los encabezados de 0018–0025 decían «PENDIENTE» aunque ya estaban aplicadas y confundieron la revisión: se corrigieron (solo el comentario).
