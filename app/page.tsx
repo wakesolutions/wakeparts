@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import {
   BloqueCai,
-  BloqueDemo,
+  BloqueContacto,
   DemoBusqueda,
   EncabezadoPublico,
   Funciones,
@@ -10,6 +10,7 @@ import {
   JsonLd,
   LlamadoFinal,
   PREGUNTAS,
+  Precios,
   PiePublico,
   PreguntasFrecuentes,
   Seccion,
@@ -20,6 +21,7 @@ import {
 } from "./_publico/piezas";
 import styles from "./_publico/publico.module.css";
 import { CAPTURAS } from "./_publico/capturas";
+import { leerPlanesLanding } from "@/lib/planes-landing";
 import { Vitrina } from "./_publico/vitrina";
 import { Arranque } from "./_components/arranque";
 import { CONTACTO, DEPARTAMENTOS, DESCRIPCION_SITIO, LEMA, NOMBRE_SITIO, URL_SITIO } from "@/lib/sitio";
@@ -103,6 +105,7 @@ const ESQUEMA = {
 export default async function Portada({ searchParams }: PageProps<"/">) {
   const { error } = await searchParams;
   const mensaje = typeof error === "string" ? ERRORES[error] : undefined;
+  const planes = await leerPlanesLanding();
 
   return (
     <div className="wp-cabina min-h-dvh">
@@ -173,9 +176,9 @@ export default async function Portada({ searchParams }: PageProps<"/">) {
               className="wp-entra mt-8 max-w-[38ch] text-center text-sm leading-relaxed text-wp-ink-2 text-pretty"
               style={{ animationDelay: "1350ms" }}
             >
-              <strong className="text-wp-ink">Esto es una demo</strong> de lo que podemos montar para tu negocio.{" "}
-              <Link href="#contacto" className="underline decoration-wp-accent/60 underline-offset-4 hover:text-wp-ink">
-                Hablemos
+              <strong className="text-wp-ink">7 días de prueba</strong> con todo incluido y después un plan Gratis.{" "}
+              <Link href="#precios" className="underline decoration-wp-accent/60 underline-offset-4 hover:text-wp-ink">
+                Ver precios
               </Link>
               .
             </p>
@@ -315,24 +318,37 @@ export default async function Portada({ searchParams }: PageProps<"/">) {
           <PreguntasFrecuentes preguntas={PREGUNTAS} />
         </Seccion>
 
+        {planes.length > 0 && (
+          <Seccion
+            id="precios"
+            sobretitulo="Planes y precios"
+            titulo={
+              <>
+                Un plan para
+                <br />
+                cada mostrador<span className="text-wp-accent">.</span>
+              </>
+            }
+            bajada="Empezá gratis y subí de plan cuando tu negocio lo pida. Cada plan define cuánto podés registrar, qué módulos incluye y el soporte."
+          >
+            <Precios planes={planes} />
+          </Seccion>
+        )}
+
         <Seccion
           id="contacto"
           tono="panel"
-          sobretitulo="Esto es una demo"
+          sobretitulo="Contacto"
           titulo={
             <>
-              Tu versión,
-              <br />a tu medida<span className="text-wp-accent">.</span>
+              Hablemos
+              <br />
+              de tu negocio<span className="text-wp-accent">.</span>
             </>
           }
-          bajada={
-            <>
-              Wake Parts, tal como lo ves acá, es una demostración de lo que te podemos ofrecer. Probalo con tus datos
-              y, cuando estés listo, armamos juntos la versión para tu negocio.
-            </>
-          }
+          bajada="Escribinos para resolver dudas, elegir el plan correcto o pedir ayuda para arrancar."
         >
-          <BloqueDemo />
+          <BloqueContacto />
         </Seccion>
 
         <LlamadoFinal />

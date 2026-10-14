@@ -1003,6 +1003,100 @@
   font-size: 0.8rem;
 }
 
+/* ---------------------------------------------------------------- precios --- */
+
+.planes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 14rem), 1fr));
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.plan {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: clamp(1.1rem, 2.6vw, 1.5rem);
+  border-radius: 18px;
+  background: var(--wp-panel);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.06),
+    inset 0 0 0 1px var(--wp-line),
+    0 30px 60px -34px rgb(0 0 0 / 0.9);
+}
+
+.planNombre {
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--wp-accent-hi);
+}
+
+.planEtiqueta {
+  min-height: 2.8em;
+  font-size: 0.88rem;
+  line-height: 1.45;
+  color: var(--wp-ink-3);
+}
+
+.planPrecio {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3rem;
+  margin-top: 0.3rem;
+}
+
+.planPrecio strong {
+  font-size: clamp(2rem, 4vw, 2.6rem);
+  font-weight: 700;
+  font-variation-settings: "wdth" 80;
+  line-height: 1;
+  color: var(--wp-ink);
+}
+
+.planPrecio span,
+.planAnual {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.planIncluye {
+  display: grid;
+  gap: 0.45rem;
+  margin-top: 0.7rem;
+  padding: 0.9rem 0 0;
+  border-top: 1px solid var(--wp-line);
+  list-style: none;
+  font-size: 0.9rem;
+  line-height: 1.45;
+  color: var(--wp-ink-2);
+}
+
+.planIncluye li {
+  padding-left: 1rem;
+  background: linear-gradient(var(--wp-accent), var(--wp-accent)) 0 0.6em / 0.4rem 2px no-repeat;
+}
+
+.planesNota {
+  max-width: 62ch;
+  margin-top: 1.4rem;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--wp-ink-3);
+}
+
+.planesNota a {
+  color: var(--wp-ink);
+  text-decoration: underline;
+  text-decoration-color: var(--wp-accent);
+  text-underline-offset: 3px;
+}
+
 /* ------------------------------------------------------ demo y contacto --- */
 
 .contacto {

@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidateTag } from "next/cache";
 import {
   normalizarLimites,
   normalizarModulosPlan,
@@ -188,6 +189,8 @@ export async function guardarPlan(
     correo: sesion.usuario.correo,
     datos: { codigo, modulos: fila.modulos, limites: fila.limites },
   });
+  // Precios de la portada (lib/planes-landing.ts).
+  revalidateTag("planes", "max");
   return { ok: true };
 }
 
@@ -199,6 +202,7 @@ export async function eliminarPlan(codigo: string): Promise<Resultado> {
   if (plan?.predeterminado) return { ok: false, error: "No se puede eliminar el plan predeterminado." };
   const { error } = await supabase.from("planes").delete().eq("codigo", codigo);
   if (error) return { ok: false, error: mensajeError(error) };
+  revalidateTag("planes", "max");
   return { ok: true };
 }
 

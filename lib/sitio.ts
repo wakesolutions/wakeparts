@@ -20,7 +20,7 @@ export const CONTACTO = {
   whatsapp: WHATSAPP,
   /** Enlace de chat: solo dígitos, con código de país. */
   whatsappUrl: `https://wa.me/${WHATSAPP.replace(/\D/g, "")}?text=${encodeURIComponent(
-    "Hola, vi la demo de Wake Parts y quiero información para mi negocio.",
+    "Hola, vi Wake Parts y quiero información para mi negocio.",
   )}`,
   email: EMAIL,
   emailUrl: `mailto:${EMAIL}?subject=${encodeURIComponent("Wake Parts para mi negocio")}`,

@@ -2,7 +2,9 @@ import Image from "next/image";
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { IconoBuscar } from "@/components/ui/iconos";
+import type { PlanLanding } from "@/lib/planes-landing";
 import { CONTACTO, DEPARTAMENTOS, jsonLd, type Departamento } from "@/lib/sitio";
+import { usd } from "@/lib/suscripcion";
 import styles from "./publico.module.css";
 
 /** <script type="application/ld+json"> seguro. */
@@ -21,6 +23,7 @@ export function EncabezadoPublico() {
         <Link href="/#sitio-web">Sitio web</Link>
         <Link href="/#facturacion-cai">Facturación CAI</Link>
         <Link href="/honduras">Departamentos</Link>
+        <Link href="/#precios">Precios</Link>
         <Link href="/ayuda">Manual</Link>
         <Link href="/#contacto">Contacto</Link>
       </nav>
@@ -70,6 +73,9 @@ export function PiePublico() {
           </li>
           <li>
             <Link href="/honduras">Departamentos</Link>
+          </li>
+          <li>
+            <Link href="/#precios">Precios</Link>
           </li>
           <li>
             <Link href="/#preguntas">Preguntas frecuentes</Link>
@@ -336,7 +342,7 @@ export const PREGUNTAS: Pregunta[] = [
   },
   {
     p: "¿Cuánto cuesta Wake Parts?",
-    r: `Lo que ves es una demo que podés usar gratis. Para tu negocio, el precio lo definimos juntos según lo que necesités: sucursales, usuarios, ajustes a la medida y acompañamiento. Incluye soporte 24/7. Escribinos al WhatsApp ${CONTACTO.whatsapp} o a ${CONTACTO.email}.`,
+    r: "Hay un plan Gratis con límites para negocios pequeños y tres planes de pago: Arranque, Avance y Pleno, al mes o al año (el año sale a precio de diez meses). Todo negocio nuevo empieza con 7 días de prueba con todo incluido. Los precios y lo que incluye cada plan están en la sección Precios de esta página.",
   },
   {
     p: "¿Cómo empiezo?",
@@ -391,22 +397,57 @@ export function LlamadoFinal({ texto = "Encendé tu tablero hoy." }: { texto?: s
   );
 }
 
-/** Aclara que el sitio es una demo y da el contacto comercial. Va con id="contacto" (enlace del encabezado). */
-export function BloqueDemo() {
+/** Planes y precios de la portada (id="precios"). Los datos salen de la tabla `planes` (lib/planes-landing.ts). */
+export function Precios({ planes }: { planes: PlanLanding[] }) {
+  return (
+    <>
+      <ul className={styles.planes}>
+        {planes.map((p) => {
+          const mensual = p.precio_mensual ?? 0;
+          return (
+            <li key={p.codigo} className={styles.plan}>
+              <p className={styles.planNombre}>{p.nombre}</p>
+              {p.etiqueta && <p className={styles.planEtiqueta}>{p.etiqueta}</p>}
+              <p className={styles.planPrecio}>
+                <strong>{usd(mensual)}</strong>
+                <span>/mes</span>
+              </p>
+              <p className={styles.planAnual}>
+                {mensual === 0 ? "Sin tarjeta" : p.precio_anual ? `o ${usd(p.precio_anual)} al año` : "Solo mensual"}
+              </p>
+              <ul className={styles.planIncluye}>
+                {p.caracteristicas.map((c) => (
+                  <li key={c}>{c}</li>
+                ))}
+              </ul>
+            </li>
+          );
+        })}
+      </ul>
+      <p className={styles.planesNota}>
+        Precios en dólares. Todo negocio nuevo empieza con <strong>7 días de prueba</strong> con todo incluido; después
+        elegís un plan o seguís en Gratis, sin perder tus datos. Pagás con tarjeta, al mes o al año, y cancelás cuando
+        quieras desde el módulo Suscripción. Ver los <Link href="/terminos">términos de uso</Link>.
+      </p>
+    </>
+  );
+}
+
+/** Contacto comercial. Va con id="contacto" (enlace del encabezado). */
+export function BloqueContacto() {
   const puntos = [
     {
-      titulo: "Precio a tu medida",
-      texto:
-        "Lo definimos entre nosotros según el tamaño de tu negocio, tus sucursales y lo que necesitás. Sin tarifas de catálogo.",
+      titulo: "Te lo dejamos listo",
+      texto: "Si preferís no empezar solo, te ayudamos a cargar tu inventario y tu CAI y a dar los primeros pasos.",
     },
     {
-      titulo: "Soporte 24/7",
-      texto: "Si algo se traba un domingo en la noche, hay alguien del otro lado, por WhatsApp o por correo.",
+      titulo: "Soporte por WhatsApp y correo",
+      texto: "Con el horario y la prioridad de tu plan; en Pleno, 24/7.",
     },
     {
-      titulo: "Ajustes para tu negocio",
+      titulo: "Empresas con varias sucursales",
       texto:
-        "Formatos de factura, reportes, campos, flujos o integraciones: lo adaptamos a cómo trabajás vos, no al revés.",
+        "Si necesitás condiciones especiales, ajustes a la medida o un contrato por escrito, lo acordamos directamente.",
     },
   ];
   return (
@@ -430,7 +471,7 @@ export function BloqueDemo() {
           <strong>{CONTACTO.email}</strong>
         </a>
         <p className={styles.contactoNota}>
-          Contanos qué vendés y cuántos atienden el mostrador; te respondemos con una propuesta.
+          Contanos qué vendés y cuántos atienden el mostrador; te ayudamos a elegir el plan.
         </p>
       </div>
     </div>

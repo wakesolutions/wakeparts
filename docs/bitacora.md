@@ -2,6 +2,15 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-14 · Revisión del abogado: términos y precios publicados
+
+- **Respuesta del abogado** (13-oct): privacidad, cookies e información de la IA aprobadas tal cual (Honduras aún no tiene ley de protección de datos; el texto protege la intimidad y separa los datos del cliente de los nuestros). Términos: quitar «es una demo» y «precio a tu medida» (ya hay tarifas), enlazar a los precios, redactar «Tu cuenta y equipo» de forma más profesional, «podés descargar una copia de tus datos» y quitar la demo de «Responsabilidad». Facturación, uso aceptable, propiedad y ley aplicable, sin cambios.
+- **Sin contrato por cliente**: aceptar los términos basta según la Ley sobre Comercio Electrónico (Decreto 149-2014). El contrato de `docs/legal/` queda **solo para clientes corporativos**; los términos dicen que, si existe, manda en lo que contradiga.
+- **Sección «Precios» en la portada** (`#precios`): lee la tabla `planes` en el servidor (`lib/planes-landing.ts`, caché de 10 min con etiqueta `planes`, que se invalida al guardar o eliminar un plan). Así la landing nunca muestra un precio distinto al que cobra n1co. Si la consulta falla, la sección no aparece.
+- **La landing deja de presentarse como demo**: el bloque de contacto ya no promete «precio a tu medida» ni «soporte 24/7» general (el soporte depende del plan; 24/7 es de Pleno). `/demo` sigue siendo la prueba sin cuenta.
+- **Agregado sin pedido explícito del abogado**: «si cambiamos un precio, te avisamos antes de tu siguiente renovación» y «avisanos si sospechás un acceso no autorizado». A confirmar con él.
+- Las preguntas de la revisión legal le parecieron genéricas: el abogado da por listo vender una vez aprobados los precios.
+
 ## 2026-10-14 · Cobro a prueba de respuestas raras de n1co
 
 - **Contrastado con la documentación y el demo oficial de n1co** (`n1coApp/demo-epay-subscriptions`): tras el 3DS se continúa solo con `authentication.complete` + `SUCCESS`, enviando el `AuthenticationId` del aviso y el mismo cliente y método de pago. Es lo que hace el código.

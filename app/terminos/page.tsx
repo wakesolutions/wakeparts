@@ -7,7 +7,7 @@ import { CONTACTO, RESPONSABLE } from "@/lib/sitio";
 export const metadata: Metadata = {
   title: "Términos de uso",
   description:
-    "Condiciones para usar Wake Parts: es una demo de lo que podemos ofrecerle a tu negocio; el precio, el soporte 24/7 y los ajustes se acuerdan directamente con nosotros.",
+    "Condiciones para usar Wake Parts: planes y precios, cuenta y equipo, obligaciones fiscales, uso aceptable, tus datos y responsabilidad.",
   alternates: { canonical: "/terminos" },
   openGraph: { url: "/terminos" },
 };
@@ -25,9 +25,8 @@ export default function Terminos() {
       }
       resumen={
         <>
-          Wake Parts, tal como está publicado, es una <strong>demo</strong> de lo que te podemos ofrecer. Podés usarla
-          gratis para probar. Para usarlo en tu negocio acordamos juntos el precio, el soporte 24/7 y los ajustes que
-          necesités.
+          Estas condiciones regulan el uso de Wake Parts. Podés empezar con 7 días de prueba y después elegir el plan
+          Gratis o uno de pago; los precios vigentes están en la <Link href="/#precios">sección de precios</Link>.
         </>
       }
     >
@@ -39,36 +38,32 @@ export default function Terminos() {
         <Link href="/cookies">política de cookies</Link>.
       </p>
 
-      <h2 className={styles.legalTitulo}>Es una demo</h2>
+      <h2 className={styles.legalTitulo}>Planes y precios</h2>
       <ul className={styles.legalLista}>
         <li>
-          La versión publicada sirve para que conozcás el sistema y lo probés con tus datos o con los productos de
-          ejemplo. Se ofrece <strong>tal cual</strong>, sin costo y sin garantía de disponibilidad.
-        </li>
-        <li>Puede cambiar, recibir mejoras o tener interrupciones mientras la seguimos desarrollando.</li>
-        <li>
-          Si querés usarla para facturar de verdad en tu negocio, <strong>hablemos antes</strong>: acordamos tu versión
-          y las condiciones del servicio por escrito.
-        </li>
-      </ul>
-
-      <h2 className={styles.legalTitulo}>Tu versión para el negocio</h2>
-      <ul className={styles.legalLista}>
-        <li>
-          <strong>Precio a tu medida:</strong> no hay tarifas publicadas; lo definimos entre nosotros según tus
-          sucursales, usuarios, ajustes y el acompañamiento que necesités.
+          Los planes, sus precios, límites, módulos y soporte están publicados en la{" "}
+          <Link href="/#precios">sección de precios</Link> y en el módulo Suscripción del sistema.
         </li>
         <li>
-          <strong>Soporte 24/7</strong> por WhatsApp y correo.
+          Cada empresa nueva empieza con <strong>7 días de prueba</strong> con todo incluido. Al terminar puede seguir en
+          el plan Gratis, con sus límites, o contratar un plan de pago.
         </li>
         <li>
-          <strong>Ajustes para tu negocio:</strong> formatos de documentos, reportes, campos, flujos o integraciones,
-          según lo que acordemos.
+          Los planes de pago se cobran por adelantado con tarjeta, al mes o al año, y se renuevan solos al final de cada
+          periodo hasta que se cancelen. El cobro lo procesa n1co; Wake Parts no guarda los datos de tu tarjeta.
+        </li>
+        <li>
+          Solo el dueño de la empresa contrata, cambia o cancela el plan. Al cancelar, la empresa conserva su plan hasta
+          el fin del periodo pagado y después pasa a Gratis, sin perder sus datos.
+        </li>
+        <li>
+          Si cambiamos un precio, te lo avisamos antes de que se aplique a tu siguiente renovación.
         </li>
       </ul>
       <p>
-        Las condiciones de ese servicio (precio, alcance, tiempos) quedan en el acuerdo que firmemos, y en lo que se
-        contradiga con estos términos, manda ese acuerdo. Escribinos al WhatsApp{" "}
+        Las empresas que necesiten condiciones especiales (varias sucursales, ajustes a la medida o acompañamiento) pueden
+        acordarlas con nosotros en un contrato por escrito; en lo que ese contrato contradiga estos términos, manda el
+        contrato. Escribinos al WhatsApp{" "}
         <a href={CONTACTO.whatsappUrl} target="_blank" rel="noopener noreferrer">
           {CONTACTO.whatsapp}
         </a>{" "}
@@ -77,12 +72,22 @@ export default function Terminos() {
 
       <h2 className={styles.legalTitulo}>Tu cuenta y tu equipo</h2>
       <ul className={styles.legalLista}>
-        <li>Entrás con tu cuenta de Google; cuidá su acceso, porque todo lo que se haga con ella queda a tu nombre.</li>
         <li>
-          El dueño de la empresa decide a quién invita y con qué rol, y responde por lo que hagan los usuarios de su
-          empresa.
+          El acceso a Wake Parts se hace con una cuenta de Google. Sos responsable de mantenerla segura: las acciones
+          realizadas con ella se consideran hechas por vos.
         </li>
-        <li>Los datos que registrés tienen que ser verdaderos y tenés que tener derecho a usarlos.</li>
+        <li>
+          Quien registra la empresa queda como su <strong>dueño</strong>. El dueño autoriza a los usuarios, les asigna
+          un rol y responde por el uso que hagan del sistema en nombre de la empresa.
+        </li>
+        <li>
+          La información que se registre debe ser veraz, y la empresa debe contar con el derecho o la autorización para
+          tratarla, incluidos los datos de sus clientes.
+        </li>
+        <li>
+          Si sospechás que alguien entró sin permiso a tu cuenta o a la de tu empresa, avisanos de inmediato para
+          ayudarte a protegerla.
+        </li>
       </ul>
 
       <h2 className={styles.legalTitulo}>Facturación y obligaciones fiscales</h2>
@@ -107,7 +112,7 @@ export default function Terminos() {
       <p>
         Los productos, clientes, precios y documentos que registrás son <strong>de tu empresa</strong>. Los usamos solo
         para prestarte el servicio, como explica la <Link href="/privacidad">política de privacidad</Link>. Podés
-        pedirnos una copia en cualquier momento.
+        descargar una copia de tus datos en cualquier momento desde Taller › Datos (dueño o administrador).
       </p>
 
       <h2 className={styles.legalTitulo}>Propiedad del sistema</h2>
@@ -118,8 +123,8 @@ export default function Terminos() {
 
       <h2 className={styles.legalTitulo}>Responsabilidad</h2>
       <p>
-        Hacemos lo posible para que Wake Parts funcione bien y tus datos estén seguros, pero en la demo no garantizamos
-        que esté libre de errores o siempre disponible. En la medida que la ley lo permita, no respondemos por pérdidas
+        Hacemos lo posible para que Wake Parts funcione bien y tus datos estén seguros, pero no garantizamos que el
+        servicio esté libre de errores o disponible sin interrupciones. En la medida que la ley lo permita, no respondemos por pérdidas
         indirectas, ventas no realizadas ni por decisiones tomadas con base en la información del sistema. Revisá tus
         documentos antes de entregarlos.
       </p>
