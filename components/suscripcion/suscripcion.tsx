@@ -488,14 +488,27 @@ function marca(numero: string) {
   return "";
 }
 
-/** Solo se escuchan mensajes del 3D Secure que abrió el servidor (mismo origen que su URL). */
-function mensaje3ds(evento: MessageEvent, url: string | null) {
-  if (!url) return null;
-  try {
-    if (evento.origin !== new URL(url).origin) return null;
-  } catch {
-    return null;
+/** Dominios desde los que n1co (o su procesador) avisa el resultado del 3D Secure. */
+const ORIGEN_3DS = /^https:\/\/([a-z0-9-]+\.)*(n1co\.com|n1co\.shop|h4b\.dev)$/i;
+
+/**
+ * Aviso del 3D Secure: debe venir de la ventana que abrimos (o de una página
+ * dentro de ella) y de un dominio de n1co. El banco puede pasar por varias
+ * páginas, así que no se exige el origen exacto de la URL inicial.
+ */
+function mensaje3ds(evento: MessageEvent, ventana: Window | null | undefined) {
+  if (!ventana || !ORIGEN_3DS.test(evento.origin)) return null;
+  let fuente = evento.source as Window | null;
+  let propia = false;
+  for (let n = 0; fuente && n < 4; n++) {
+    if (fuente === ventana) {
+      propia = true;
+      break;
+    }
+    if (fuente === fuente.parent) break;
+    fuente = fuente.parent;
   }
+  if (!propia) return null;
   let d: unknown = evento.data;
   if (typeof d === "string") {
     try {
@@ -506,10 +519,11 @@ function mensaje3ds(evento: MessageEvent, url: string | null) {
   }
   if (!d || typeof d !== "object") return null;
   const o = d as Record<string, unknown>;
-  const tipo = String(o.MessageType ?? o.messageType ?? "");
-  const estado = String(o.Status ?? o.status ?? "").toUpperCase();
+  const tipo = String(o.MessageType ?? o.messageType ?? o.type ?? "").trim().toLowerCase();
+  const estado = String(o.Status ?? o.status ?? "").trim().toUpperCase();
   const id = (o.AuthenticationId ?? o.authenticationId) as string | undefined;
-  return { tipo, estado, id };
+  const error = String(o.ErrorTitle ?? o.errorTitle ?? o.ErrorDetail ?? o.errorDetail ?? "");
+  return { tipo, estado, id: id ? String(id) : undefined, error, origen: evento.origin };
 }
 
 function Pago({
@@ -548,6 +562,10 @@ function Pago({
   const urlRef = useRef<string | null>(null);
   /** Autenticaciones ya enviadas: el iframe puede avisar más de una vez. */
   const enviadas = useRef(new Set<string>());
+  const marco = useRef<HTMLIFrameElement>(null);
+  const avisados = useRef(new Set<string>());
+  /** El banco ya terminó de su lado pero n1co todavía no confirma (PENDING). */
+  const [verificando, setVerificando] = useState(false);
   const [esperando, setEsperando] = useState(false);
 
   const cambiar = (k: keyof typeof f, v: string) => setF((x) => ({ ...x, [k]: v }));
@@ -624,8 +642,16 @@ function Pago({
   useEffect(() => {
     if (!tresDs) return;
     function alRecibir(e: MessageEvent) {
-      const m = mensaje3ds(e, urlRef.current);
+      const m = mensaje3ds(e, marco.current?.contentWindow);
       if (!m || !tresDs) return;
+      // Rastro en Actividad de cada aviso distinto (sin datos de la tarjeta).
+      const firma = `${m.tipo}|${m.estado}|${m.id ?? ""}`;
+      if (!avisados.current.has(firma)) {
+        avisados.current.add(firma);
+        void api
+          .avisarTresDs(tresDs.intento, { origen: m.origen, tipo: m.tipo, estado: m.estado, conId: Boolean(m.id), error: m.error })
+          .catch(() => {});
+      }
       if (m.tipo === "authentication.failed" || ["FAILED", "EXPIRED", "ERROR"].includes(m.estado)) {
         setTresDs(null);
         urlRef.current = null;
@@ -639,6 +665,7 @@ function Pago({
       }
       // n1co avisa PENDING mientras el banco verifica: solo se cobra con
       // «authentication.complete» + SUCCESS, y una sola vez por autenticación.
+      if (m.estado === "PENDING") setVerificando(true);
       if (m.tipo !== "authentication.complete" || m.estado !== "SUCCESS") return;
       const clave = m.id ?? tresDs.intento;
       if (enviadas.current.has(clave)) return;
@@ -699,10 +726,16 @@ function Pago({
         ) : tresDs ? (
           <div className={styles.tresDs}>
             <p className={styles.nota}>
-              Tu banco pide confirmar el pago. Completá la verificación abajo; si no avanza solo al terminar, tocá
-              «Ya confirmé».
+              Tu banco pide confirmar el pago. Completá la verificación abajo (código por SMS, app del banco o
+              clave); cuando el banco diga que terminó, si no avanza solo, tocá «Ya confirmé».
             </p>
+            {verificando && (
+              <p className={styles.nota} role="status">
+                Tu banco está terminando la verificación. Si en unos segundos no avanza, tocá «Ya confirmé».
+              </p>
+            )}
             <iframe
+              ref={marco}
               title="Verificación de tu banco (3D Secure)"
               src={tresDs.url}
               className={styles.iframe}

@@ -414,6 +414,25 @@ export async function estadoPago(intentoId: string): Promise<ResultadoPago> {
   return { ok: false, error: "El pago no pasó. Revisá los datos o probá con otra tarjeta." };
 }
 
+/** Lo que avisa la ventana del 3D Secure (tipo y estado, nada de la tarjeta), para Actividad. */
+export async function avisarTresDs(
+  intentoId: string,
+  m: { origen: string; tipo: string; estado: string; conId: boolean; error?: string },
+): Promise<void> {
+  const d = await dueno();
+  if ("error" in d) return;
+  const corto = (v: unknown, n = 80) => String(v ?? "").slice(0, n);
+  await registrar({
+    tipo: "accion",
+    evento: "suscripcion.3ds_mensaje",
+    mensaje: `${corto(m.tipo, 40) || "sin tipo"} · ${corto(m.estado, 20) || "sin estado"}`,
+    id_usuario: d.sesion.usuario.id,
+    correo: d.sesion.usuario.correo,
+    id_empresa: d.empresa.id,
+    datos: { intento: corto(intentoId, 40), origen: corto(m.origen), con_id: Boolean(m.conId), error: corto(m.error, 160) || null },
+  });
+}
+
 export async function cancelarSuscripcion(motivo: string): Promise<Resultado<{ mensaje: string }>> {
   const d = await dueno();
   if ("error" in d) return { ok: false, error: d.error! };
