@@ -2836,8 +2836,25 @@ const suscripcion: Apis["suscripcion"] = {
   sincronizar: async () => espera({ ok: true as const, mensaje: "En la demo todo está al día." }),
 };
 
+/** Búsqueda global sobre las mismas filas en memoria que las tablas. */
+const buscador: Apis["buscador"] = {
+  buscar: async (texto, pedidos, tamano = 5) => {
+    const busqueda = texto.trim();
+    if (busqueda.length < 2) return {};
+    const salida: Awaited<ReturnType<Apis["buscador"]["buscar"]>> = {};
+    for (const recurso of pedidos) {
+      const filas = filasDemo(recurso);
+      if (!filas) continue;
+      const r = consultarEnMemoria(obtenerRecurso(recurso), filas, { busqueda, pagina: 0, tamano });
+      if (r.ok) salida[recurso] = { filas: r.filas, total: r.total };
+    }
+    return espera(salida, 140);
+  },
+};
+
 export const APIS_DEMO: Partial<Apis> = {
   recursos,
+  buscador,
   empresa,
   perfil,
   ventas,

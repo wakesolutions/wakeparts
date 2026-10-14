@@ -7,6 +7,7 @@ import {
   type ApiCatalogoVehiculos,
   type ApiCompatibilidad,
 } from "@/components/compatibilidad/api";
+import { apiBuscador, type ApiBuscador } from "@/components/buscador/api";
 import { apiCaja, type ApiCaja } from "@/components/caja/api";
 import { apiCobros, type ApiCobros } from "@/components/cobros/api";
 import { apiCompras, type ApiCompras } from "@/components/compras/api";
@@ -52,6 +53,7 @@ export type Apis = {
   sitioWeb: ApiSitioWeb;
   suscripcion: ApiSuscripcion;
   notificaciones: ApiNotificaciones;
+  buscador: ApiBuscador;
   recursos: ApiRecursos;
   empresa: ApiEmpresa;
   perfil: ApiPerfil;
@@ -73,6 +75,7 @@ const REALES: Apis = {
   sitioWeb: apiSitioWeb,
   suscripcion: apiSuscripcion,
   notificaciones: apiNotificaciones,
+  buscador: apiBuscador,
   recursos: apiRecursos,
   empresa: apiEmpresa,
   perfil: apiPerfil,

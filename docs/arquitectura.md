@@ -110,14 +110,22 @@ Convenciones:
 
 - `NotificacionesProvider` (en `Escritorio`) consulta `leerNotificaciones()` **cada 30 s con la pestaña visible**, al volver a la pestaña y cuando un componente llama `avisarCambioNotificaciones()` (p. ej. al atender un pedido). No hay websockets: la llave de Supabase no llega al navegador (regla 7).
 - La campanita (`components/notificaciones/campana.tsx`) muestra **Por atender** (tareas) y **Recientes**; las tareas que llegan con el escritorio abierto salen como aviso emergente. El dock muestra cuántas tareas tiene cada módulo (`enlace.modulo`).
-- Tocar una notificación: `abrir(modulo)` + `pedirDestino(enlace)` (`lib/ir-a.ts`). `ModuloTablas` toma la `seccion` y el componente de la sección toma el `recurso` + `id` (`tomarRegistro`), tanto si ya estaba abierto como si se monta después. Para que un módulo nuevo responda, usá `tomarSeccion`/`tomarRegistro` + `escucharDestino`.
+- Tocar una notificación: `abrir(modulo)` + `pedirDestino(enlace)` (`lib/ir-a.ts`). `ModuloTablas` toma la `seccion` y el componente de la sección toma el `recurso` + `id` (`tomarRegistro`), tanto si ya estaba abierto como si se monta después. Para que un módulo nuevo responda, usá `tomarSeccion`/`tomarRegistro` + `escucharDestino` (toda lista con `MantenimientoRecurso` ya toma su registro sola).
 - Sandbox: botón «Simular pedido web» en `/dev/escritorio`.
 - **Capturas de la landing**: `npm run capturas` (con `npm run dev` corriendo) genera mostrador, factura, reporte, compatibilidad, celular, sitio, catálogo y campanita en `public/capturas/`. El script da por leídos el recorrido y el aviso de cookies.
+
+## Búsqueda global (Ctrl/⌘ F)
+
+- `components/buscador/buscador.tsx` (`<Buscador />` en `Escritorio`): escucha Ctrl/⌘ F y Ctrl/⌘ K en captura (gana a los atajos de las ventanas); con el panel abierto, Ctrl/⌘ F lo cierra y deja la búsqueda del navegador. `abrirBuscador()` lo abre desde la barra.
+- **Ir a** (en el navegador, al instante): módulos visibles + `DESTINOS` de `lib/buscador.ts` (secciones y acciones con sinónimos), puntuados por `puntuar()` (sin tildes, inicio de palabra, iniciales).
+- **Datos**: `useApi("buscador").buscar(texto, recursos, n)` → `buscarGlobal()` (`app/acciones/buscador.ts`), que corre `consultarRecurso` en paralelo solo para los recursos de `FUENTES_BUSQUEDA` (documentos, productos, clientes, recibos, compras, proveedores) cuyos módulos ve el usuario. Demo: misma búsqueda en memoria.
+- **Abrir**: `abrir(modulo)` + `pedirDestino({ modulo, seccion, recurso, id })`. `MantenimientoRecurso` toma el registro (`tomarRegistro`) y llama `onAbrir(fila)` o abre la edición: toda lista basada en él responde sin código extra.
+- **Sumar una fuente**: entrada en `FUENTES_BUSQUEDA` (recurso con columnas `buscable`, grupo, filtro, destinos y `presentar(fila)`), y su `BASES` en `datos-demo.ts` si debe verse en la demo. **Sumar una sección**: entrada en `DESTINOS`.
 
 ## Cookies y datos locales
 
 - **Cookies (todas necesarias o de preferencia):** sesión de Supabase (`sb-…-auth-token`, hasta cerrar sesión, máx. 400 días; `…-code-verifier` solo durante el login) y `wp_paleta` (1 año). Un visitante que no inicia sesión no recibe ninguna.
-- **localStorage** (no viaja al servidor): `wp:ventanas`, `wp:<módulo>:seccion`, `wp:recorrido:<usuario>`, `wp:aviso-cookies` y, en los sitios de los talleres, `wp:carrito-web:<slug>` (lista de piezas y último vehículo; viaja solo al mandar el pedido).
+- **localStorage** (no viaja al servidor): `wp:ventanas`, `wp:<módulo>:seccion`, `wp:recorrido:<usuario>`, `wp:buscador:recientes:<usuario>` (últimos 6 resultados abiertos), `wp:aviso-cookies` y, en los sitios de los talleres, `wp:carrito-web:<slug>` (lista de piezas y último vehículo; viaja solo al mandar el pedido).
 - Sin analítica, publicidad ni terceros; las fuentes se sirven desde el sitio (`next/font`).
 - `components/ui/aviso-cookies.tsx` (en `app/layout.tsx`): aviso **informativo** una sola vez + política en `/cookies` (pública, en sitemap). **Si se agrega una cookie o script opcional (analítica, píxeles, chat), el aviso debe pasar a pedir consentimiento ANTES de cargarlo y hay que actualizar `/cookies`.**
 

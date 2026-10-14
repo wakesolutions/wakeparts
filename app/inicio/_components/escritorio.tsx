@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, type ReactNode } from "react";
+import { Buscador } from "@/components/buscador/buscador";
 import { AmbienteEmpresa } from "@/components/identidad/ambiente-empresa";
 import { IdentidadProvider } from "@/components/identidad/contexto";
 import { AvisosRecien } from "@/components/notificaciones/campana";
@@ -53,6 +54,7 @@ export function Escritorio({
                 {abrir && <AbrirAlCargar id={abrir} />}
                 <Dock />
                 <AvisosRecien />
+                <Buscador />
               </div>
             </RecorridoProvider>
           </NotificacionesProvider>

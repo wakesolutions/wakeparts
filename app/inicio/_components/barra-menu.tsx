@@ -3,9 +3,11 @@
 import Link from "next/link";
 import { useState, useSyncExternalStore, useTransition } from "react";
 import { cerrarSesion } from "@/app/auth/actions";
+import { abrirBuscador, useAtajoBuscar } from "@/components/buscador/buscador";
 import { useApi } from "@/components/datos/apis";
 import { useIdentidad } from "@/components/identidad/contexto";
 import { Campana } from "@/components/notificaciones/campana";
+import { IconoBuscar } from "@/components/ui/iconos";
 import { useVentanas } from "@/components/ventanas/contexto";
 import { PALETAS, type PaletaId } from "@/lib/paletas";
 import { aplicarPaleta } from "@/lib/paletas-cliente";
@@ -76,6 +78,25 @@ function SelectorPaleta({ inicial }: { inicial: PaletaId }) {
   );
 }
 
+/** Botón de la búsqueda global (también Ctrl/⌘ F desde cualquier ventana). */
+function BotonBuscar() {
+  const atajo = useAtajoBuscar();
+  return (
+    <button
+      type="button"
+      className={styles.buscar}
+      onClick={abrirBuscador}
+      title={`Buscar módulos, facturas, productos y clientes (${atajo})`}
+      aria-label="Buscar"
+      aria-keyshortcuts="Control+F Meta+F"
+    >
+      <IconoBuscar tamano={13} />
+      <span className={styles.buscarTexto}>Buscar</span>
+      <kbd className={styles.buscarAtajo}>{atajo}</kbd>
+    </button>
+  );
+}
+
 export function BarraMenu() {
   const { usuario, empresa, rol, demo } = useSesion();
   const { identidad } = useIdentidad();
@@ -106,6 +127,7 @@ export function BarraMenu() {
       </div>
 
       <div className={styles.barraDerecha}>
+        <BotonBuscar />
         {empresa && administra && (
           // En el teléfono no cabe: la paleta se cambia en Taller › Apariencia.
           <span className={styles.soloAncho}>

@@ -196,8 +196,8 @@ export default function Manual() {
               <div>
                 <h3 className={styles.subtitulo}>Barra de menú</h3>
                 <p>
-                  Muestra el módulo activo y tu taller (con su logo, si subiste uno). A la derecha: la{" "}
-                  <strong>campanita</strong> (lo que hay que atender, como los pedidos web, y avisos recientes), las perillas de <strong>paleta</strong> (solo
+                  Muestra el módulo activo y tu taller (con su logo, si subiste uno). A la derecha: <strong>Buscar</strong> (también{" "}
+                  <Tecla>Ctrl</Tecla> <Tecla>F</Tecla>), la <strong>campanita</strong> (lo que hay que atender, como los pedidos web, y avisos recientes), las perillas de <strong>paleta</strong> (solo
                   dueño y administrador; cambian los colores de todo el taller), el reloj, tu nombre (abre{" "}
                   <em>Mi usuario</em>), el enlace a este manual y <strong>Salir</strong> para cerrar sesión.
                 </p>
@@ -240,6 +240,52 @@ export default function Manual() {
                 </p>
               </div>
             </div>
+            <h3 className={styles.subtitulo}>Buscar en todo</h3>
+            <p>
+              Desde cualquier ventana, <Tecla>Ctrl</Tecla> <Tecla>F</Tecla> (en Mac <Tecla>⌘</Tecla> <Tecla>F</Tecla>) o
+              el botón <strong>Buscar</strong> de la barra abre el buscador. Escribí lo que sea: el nombre de un módulo
+              o de una sección («clientes», «cai», «cxc»), un <strong>número de factura</strong>, cotización, nota o
+              recibo, el <strong>código o nombre de un producto</strong> (con su precio y existencia a la vista), un{" "}
+              <strong>cliente</strong> por nombre o RTN, o una compra o proveedor. <Tecla>Enter</Tecla> te lleva
+              directo: abre el módulo, la sección y el registro. Sin escribir nada te muestra lo último que abriste y
+              las acciones rápidas (nueva factura, nueva nota, abrir caja…). Si tenés algo seleccionado en pantalla, lo
+              busca de una vez.
+            </p>
+            <table className={styles.tabla}>
+              <caption>Atajos del buscador</caption>
+              <tbody>
+                <tr>
+                  <th scope="row">
+                    <Tecla>Ctrl</Tecla> <Tecla>F</Tecla> · <Tecla>Ctrl</Tecla> <Tecla>K</Tecla>
+                  </th>
+                  <td>Abrir el buscador (en Mac, con ⌘)</td>
+                </tr>
+                <tr>
+                  <th scope="row">
+                    <Tecla>↑</Tecla> <Tecla>↓</Tecla> · <Tecla>Enter</Tecla>
+                  </th>
+                  <td>Moverse entre resultados y abrir el marcado</td>
+                </tr>
+                <tr>
+                  <th scope="row">
+                    <Tecla>Tab</Tecla>
+                  </th>
+                  <td>Filtrar: Todo, Ir a, Documentos, Productos, Clientes, Compras</td>
+                </tr>
+                <tr>
+                  <th scope="row">
+                    <Tecla>Ctrl</Tecla> <Tecla>F</Tecla> otra vez
+                  </th>
+                  <td>Cerrar el buscador y buscar texto en la página (la búsqueda del navegador)</td>
+                </tr>
+                <tr>
+                  <th scope="row">
+                    <Tecla>Esc</Tecla>
+                  </th>
+                  <td>Cerrar</td>
+                </tr>
+              </tbody>
+            </table>
             <Nota titulo="En el celular">
               Cada módulo ocupa la pantalla entera, sin barra ni dock, y arriba a la izquierda tiene un botón grande{" "}
               <strong>Cerrar</strong> para darle fácil con el dedo. Al cerrarlo volvés al escritorio, donde el dock

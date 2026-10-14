@@ -101,6 +101,7 @@ Formulario genérico. **No sabe de tablas**: recibe `campos` y un `onGuardar(val
 
 - `pestanas({ clave, fila, refrescar })`: pestañas extra de la ventana de edición (la primera es «Datos»). Con pestañas, **crear deja la ventana abierta en el registro nuevo** para seguir (fotos, vehículos). Ejemplo: `modulos/inventario.tsx`.
 - `onAbrir(fila)`: abrir en vez de editar (documentos emitidos).
+- **«Ir a» un registro**: si alguien pidió `pedirDestino({ recurso, id })` (búsqueda global, campanita), al montarse o si ya está a la vista lee la fila y llama `onAbrir(fila)` o abre la edición.
 - `version`, `acciones`: se pasan a la tabla.
 
 ### Capa de servidor
@@ -175,6 +176,7 @@ Donde la tabla maestra no alcanza (mostrador, fotos, compatibilidad, entradas, i
 | `components/inventario/entrada-inventario.tsx` | «Entrada» (Inventario › Productos): buscar o escanear, **Enter** agrega y salta a la cantidad; costo por línea; costo del producto por **promedio ponderado**, último costo o sin cambio; referencia (factura del proveedor). Llama a `entrada_inventario()` (kardex «compra»). Solo dueño/admin. |
 | `components/inventario/importar-productos.tsx` | «Importar» desde **.xlsx o .csv** (`read-excel-file`; CSV con , o ;): plantilla descargable (`write-excel-file`), columnas reconocidas por nombre y alias (`lib/inventario.ts` › `COLUMNAS_IMPORTACION`), vista previa, **Revisar** (corre `importar_productos(…, probar)` y deshace) y luego importar en lotes de 400 con progreso. Errores por número de fila. |
 | `components/inventario/toma-rapida.tsx` · `TomaRapida` | Módulo **Toma rápida** (dueño/admin), pensado para el teléfono: visor de cámara (`capture="environment"`) o galería, nombre, categoría (`CampoRelacion`), precio, existencia con − / +, condición y, plegados, ubicación y OEM. Crea con `useApi("recursos").guardar("productos", null, …)` más los `porDefecto` de la definición; la foto se procesa y sube en segundo plano con `useApi("imagenes")`. Marbetes de lo tomado en la sesión con LED de la foto. `/inicio?abrir=toma` lo abre directo (también `shortcuts` del manifest). |
+| `components/buscador/buscador.tsx` · `Buscador` | Búsqueda global (Ctrl/⌘ F o Ctrl/⌘ K, botón **Buscar** de la barra): Ir a (módulos, secciones, acciones), documentos, productos, clientes, recibos, compras y proveedores; filtros con **Tab**, recientes, texto seleccionado como consulta. Destinos y fuentes en `lib/buscador.ts`; datos con `useApi("buscador")`. Ver `arquitectura.md` › Búsqueda global. |
 | `components/imagenes/galeria-producto.tsx` | Fotos: arrastrar y soltar, se comprimen en el navegador a WebP (1600 px + miniatura 400 px, `procesar.ts`), la primera es la principal, reordenar, ampliar. |
 
 Cálculos de venta compartidos (cliente, servidor, impresión): `lib/ventas.ts` (`calcularTotales` usa el mismo redondeo que `emitir_documento()`). Formatos: `lib/formato.ts` (`moneda`, `enLetras`…).

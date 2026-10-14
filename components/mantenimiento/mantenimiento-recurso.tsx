@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useEffect, useRef, useState, type ReactNode } from "react";
 import { useApi } from "@/components/datos/apis";
 import { Formulario } from "@/components/formulario/formulario";
 import { invalidarOpciones } from "@/components/tabla-maestra/opciones-cache";
@@ -8,6 +8,7 @@ import { TablaMaestra } from "@/components/tabla-maestra/tabla-maestra";
 import ui from "@/components/ui/controles.module.css";
 import { useVentanaActual } from "@/components/ventanas/ventana";
 import { VentanaFlotante } from "@/components/ventanas/ventana-flotante";
+import { escucharDestino, tomarRegistro } from "@/lib/ir-a";
 import { obtenerRecurso, textoNuevo } from "@/lib/recursos";
 import type { Fila } from "@/lib/recursos/tipos";
 import styles from "./mantenimiento.module.css";
@@ -108,6 +109,28 @@ export function MantenimientoRecurso({
       ? pestanas({ clave: clave!, fila: edicion.fila, refrescar: () => refrescar(clave) })
       : [];
   const tamano = def.ventana ?? { w: 520, h: Math.min(180 + def.campos.length * 86, 720) };
+
+  // «Ir a» un registro (búsqueda global, campanita): al montarse o si ya estaba
+  // a la vista, lee la fila y la abre como si se le hubiera hecho doble clic.
+  const alAbrir = useRef(onAbrir);
+  useEffect(() => {
+    alAbrir.current = onAbrir;
+  });
+  // (El pedido se consume al tomarlo: no se descarta la respuesta aunque el
+  // efecto se repita, como en el modo estricto de desarrollo.)
+  useEffect(() => {
+    const ir = async () => {
+      const id = tomarRegistro(recurso);
+      if (!id) return;
+      const fila = await api.leer(recurso, id).catch(() => null);
+      if (!fila) return;
+      setResaltar(fila[obtenerRecurso(recurso).clave] as string | number);
+      if (alAbrir.current) alAbrir.current(fila);
+      else abrir({ modo: "editar", fila });
+    };
+    void ir();
+    return escucharDestino(() => void ir());
+  }, [api, recurso]);
 
   // Con pestañas extra, crear deja la ventana abierta en el registro nuevo
   // para seguir con fotos, compatibilidad, etc.

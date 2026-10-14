@@ -2,6 +2,17 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-14 · Búsqueda global (Ctrl/⌘ F, sin migración)
+
+- **Pedido del usuario**: una barra de búsqueda global para llegar rápido a módulos y encontrar facturas, notas, productos, «para todo», con Ctrl+F / ⌘F.
+- **Se toma Ctrl/⌘ F del navegador** (pedido explícito). Escape: **Ctrl/⌘ F otra vez** con el panel abierto lo cierra y deja pasar la búsqueda nativa de la página. **Ctrl/⌘ K** también abre (costumbre de otras apps). El mostrador conserva F2 y «/».
+- **Una sola ida al servidor** (`buscarGlobal`) que corre en paralelo la búsqueda rápida de cada recurso: las Server Actions del cliente van en fila, tres llamadas por tecla serían lentas. No hay función SQL nueva: reutiliza `consultarRecurso` (columnas `buscable`, empresa activa, RLS).
+- **Abrir un resultado = el «ir a» de la campanita** (`pedirDestino`). Para que sirva con cualquier tabla, `MantenimientoRecurso` ahora toma el registro pedido por sí solo (lee la fila y llama `onAbrir` o abre la edición). `PedidosWeb` dejó de tener su propio manejo.
+- **Destinos fijos en `lib/buscador.ts`** (secciones de cada módulo con sinónimos: «cxc», «sar», «stock») en vez de leer las secciones de los componentes: así se filtran al instante sin montar módulos. Se respeta la visibilidad por plan y rol (`modulos` del gestor de ventanas).
+- **Recientes en localStorage** por usuario (conveniencia del navegador, no viaja al servidor; regla 5). Si hay texto seleccionado al abrir, se busca eso.
+- **Diseño**: panel de instrumento que baja de la barra (240 ms, `--ease-expo`), visor LCD con el conteo, filtros como teclas con LED y **una sola aguja LED** que se desliza a la fila activa (en vez de pintar el fondo de cada fila). Nada en bucle salvo el barrido de carga.
+- Pendiente posible: agregar al carrito desde el buscador (Ctrl+Enter sobre un producto) y búsqueda sin tildes en la base (`unaccent`; hoy la demo ignora tildes y la base real depende de `ilike`).
+
 ## 2026-10-14 · Cobros con n1co Business (0024)
 
 - **Pedido del usuario**: cobrar dentro de la app con n1co (no links de pago) y poder cancelar, con los planes del socio: **Arranque** ($30/mes, $300/año), **Avance** ($50/$500) y **Pleno** ($100/$1000), un plan de prueba de **$0.50 solo para admins** y un plan **Gratis** limitado «para darnos a conocer». Decisiones del usuario: 7 días de prueba con el plan más grande y recordatorios por cron; las 6 empresas existentes entran a la prueba; se paga y cancela en *Taller › Suscripción*; los módulos son los que indica el socio.

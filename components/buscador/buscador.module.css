@@ -1,0 +1,658 @@
+/* Búsqueda global (Ctrl/⌘ F). Un panel de instrumento que baja de la barra:
+   campo grande, visor LCD con el conteo, filtros como teclas y una aguja LED
+   que se desliza a la fila activa. Uso diario: entra rápido, nada en bucle. */
+
+.velo {
+  position: fixed;
+  inset: 0;
+  /* Encima de las ventanas a pantalla completa (60) y de la campanita (70). */
+  z-index: 90;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: clamp(3.5rem, 13vh, 9rem) 16px 16px;
+  background: color-mix(in oklab, var(--wp-bg-deep) 46%, transparent);
+  backdrop-filter: blur(3px) saturate(0.9);
+  -webkit-backdrop-filter: blur(3px) saturate(0.9);
+  animation: velo 160ms var(--ease-quart) both;
+}
+
+@keyframes velo {
+  from {
+    opacity: 0;
+  }
+}
+
+.panel {
+  display: flex;
+  flex-direction: column;
+  width: min(680px, 100%);
+  max-height: min(620px, calc(100dvh - 7rem));
+  overflow: hidden;
+  border-radius: 16px;
+  color: var(--wp-ink);
+  background: color-mix(in oklab, var(--wp-panel) 96%, transparent);
+  backdrop-filter: blur(24px) saturate(1.3);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px var(--wp-line),
+    0 2px 0 -1px var(--wp-metal-edge),
+    var(--wp-sombra-ventana);
+  transform-origin: 50% 0;
+  animation: bajar 240ms var(--ease-expo) both;
+}
+
+@keyframes bajar {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -12px, 0) scale(0.985);
+  }
+}
+
+/* -------------------------------------------------------------- campo --- */
+
+.barra {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.95rem 1rem 0.85rem 1.15rem;
+}
+
+.lupa {
+  flex: none;
+  color: var(--wp-accent);
+}
+
+.entrada {
+  flex: 1;
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  outline: none;
+  font: inherit;
+  font-size: 1.28rem;
+  font-weight: 500;
+  letter-spacing: -0.01em;
+  color: var(--wp-ink);
+  background: none;
+  caret-color: var(--wp-accent);
+}
+
+.entrada::placeholder {
+  color: var(--wp-ink-3);
+  font-weight: 400;
+}
+
+/* Visor LCD con el conteo de resultados: el único instrumento del panel. */
+.lcd {
+  flex: none;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 0.28rem;
+  min-width: 4.4rem;
+  justify-content: flex-end;
+  padding: 0.3rem 0.55rem 0.26rem;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.95rem;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.08em;
+  color: var(--wp-lcd-ink);
+  background: var(--wp-lcd);
+  box-shadow:
+    inset 0 1px 3px rgb(0 0 0 / 0.45),
+    0 1px 0 var(--wp-bevel-light);
+  text-shadow: 0 0 6px color-mix(in oklab, var(--wp-lcd-ink) 55%, transparent);
+}
+
+.lcd small {
+  font-size: 0.52rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.esc {
+  flex: none;
+  height: 24px;
+  padding: 0 0.5rem;
+  border: 0;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--wp-ink-2);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px var(--wp-line),
+    0 1px 0 var(--wp-bevel-dark);
+  cursor: pointer;
+  transition: color 160ms var(--ease-quart);
+}
+
+.esc:hover {
+  color: var(--wp-ink);
+}
+
+.esc:active {
+  transform: translate3d(0, 1px, 0);
+  box-shadow:
+    inset 0 1px 2px var(--wp-bevel-dark),
+    0 0 0 1px var(--wp-line);
+}
+
+/* ------------------------------------------------------------ filtros --- */
+
+.filtros {
+  display: flex;
+  gap: 0.35rem;
+  padding: 0 1rem 0.7rem 1.1rem;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.filtros::-webkit-scrollbar {
+  display: none;
+}
+
+/* Teclas metálicas: la elegida queda hundida con su LED encendido. */
+.filtro {
+  flex: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 26px;
+  padding: 0 0.7rem 0 0.6rem;
+  border: 0;
+  border-radius: 7px;
+  font: inherit;
+  font-size: 0.74rem;
+  font-weight: 500;
+  color: var(--wp-ink-2);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px var(--wp-line),
+    0 1px 0 var(--wp-bevel-dark);
+  cursor: pointer;
+  transition:
+    color 160ms var(--ease-quart),
+    transform 120ms var(--ease-quart);
+}
+
+.filtro::before {
+  content: "";
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--wp-ink-3);
+  opacity: 0.45;
+  transition:
+    background-color 160ms var(--ease-quart),
+    box-shadow 160ms var(--ease-quart),
+    opacity 160ms var(--ease-quart);
+}
+
+.filtro:hover {
+  color: var(--wp-ink);
+}
+
+.filtro[aria-selected="true"] {
+  color: var(--wp-ink);
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 1px 2px var(--wp-bevel-dark),
+    0 0 0 1px var(--wp-line);
+  transform: translate3d(0, 0.5px, 0);
+}
+
+.filtro[aria-selected="true"]::before {
+  opacity: 1;
+  background: var(--wp-accent-hi);
+  box-shadow: 0 0 6px var(--wp-accent-glow);
+}
+
+.filtro:focus-visible,
+.esc:focus-visible {
+  outline: 2px solid var(--wp-accent);
+  outline-offset: 2px;
+}
+
+/* LED que barre el filo mientras llegan los datos (como en las tablas). */
+.carga {
+  position: relative;
+  height: 1px;
+  overflow: hidden;
+  background: var(--wp-line);
+}
+
+.carga[data-cargando]::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 30%;
+  background: linear-gradient(90deg, transparent, var(--wp-accent-hi), transparent);
+  box-shadow: 0 0 8px var(--wp-accent-glow);
+  animation: barrer 900ms var(--ease-inout) infinite;
+}
+
+@keyframes barrer {
+  from {
+    transform: translate3d(-100%, 0, 0);
+  }
+  to {
+    transform: translate3d(340%, 0, 0);
+  }
+}
+
+/* ----------------------------------------------------------- resultados --- */
+
+.lista {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scroll-padding: 2.2rem 0 0.5rem;
+}
+
+.contenido {
+  position: relative;
+  padding: 0.35rem 0.5rem 0.6rem;
+}
+
+/* La aguja: una sola barra LED que viaja a la fila activa (no un fondo por fila). */
+.aguja {
+  position: absolute;
+  top: 0;
+  left: 0.5rem;
+  right: 0.5rem;
+  border-radius: 9px;
+  background: var(--wp-sel);
+  opacity: 0;
+  pointer-events: none;
+  transition:
+    transform 170ms var(--ease-quart),
+    height 170ms var(--ease-quart),
+    opacity 120ms var(--ease-quart);
+}
+
+.aguja::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 22%;
+  bottom: 22%;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--wp-accent-hi);
+  box-shadow: 0 0 8px var(--wp-accent-glow);
+}
+
+.grupo + .grupo {
+  margin-top: 0.4rem;
+}
+
+.grupoTitulo {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 -0.5rem;
+  padding: 0.55rem 1.1rem 0.35rem;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+  background: color-mix(in oklab, var(--wp-panel) 94%, transparent);
+}
+
+.grupoTitulo::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, var(--wp-line), transparent);
+}
+
+.fila {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.8rem;
+  min-height: 48px;
+  padding: 0.45rem 0.7rem 0.45rem 0.85rem;
+  border-radius: 9px;
+  cursor: pointer;
+}
+
+.figura {
+  flex: none;
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+}
+
+.textos {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  gap: 0.08rem;
+}
+
+.titulo,
+.detalle {
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.titulo {
+  font-size: 0.9rem;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+}
+
+.detalle {
+  font-size: 0.74rem;
+  color: var(--wp-ink-2);
+}
+
+.fila mark {
+  color: inherit;
+  background: none;
+  border-radius: 2px;
+  box-shadow: inset 0 -0.42em 0 color-mix(in oklab, var(--wp-accent) 30%, transparent);
+}
+
+.fila[data-tachado] .titulo {
+  color: var(--wp-ink-3);
+  text-decoration: line-through;
+  text-decoration-color: color-mix(in oklab, var(--wp-accent) 70%, transparent);
+}
+
+.derecha {
+  flex: none;
+  display: flex;
+  align-items: center;
+  max-width: 40%;
+}
+
+.etiqueta {
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--wp-ink-3);
+}
+
+.fila[aria-selected="true"] .etiqueta {
+  color: var(--wp-ink-2);
+}
+
+.lectura {
+  display: grid;
+  justify-items: end;
+  gap: 0.12rem;
+}
+
+.valor {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.nota {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.32rem;
+  font-family: var(--font-mono);
+  font-size: 0.58rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: var(--wp-ink-3);
+}
+
+.nota::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--wp-ink-3);
+  opacity: 0.4;
+}
+
+.nota[data-tono="ok"]::before {
+  opacity: 1;
+  background: var(--wp-ok);
+  box-shadow: 0 0 5px color-mix(in oklab, var(--wp-ok) 70%, transparent);
+}
+
+.nota[data-tono="aviso"]::before {
+  opacity: 1;
+  background: var(--wp-aviso);
+  box-shadow: 0 0 5px color-mix(in oklab, var(--wp-aviso) 70%, transparent);
+}
+
+/* ---------------------------------------------------------------- figuras --- */
+
+/* Ícono del módulo, con el mismo esmalte que en el dock. */
+.pastilla {
+  position: relative;
+  display: block;
+  width: 32px;
+  height: 32px;
+}
+
+.pastilla > span {
+  border-radius: 8px;
+}
+
+.pastilla[data-chica] {
+  width: 26px;
+  height: 26px;
+}
+
+.pastilla[data-chica] > span {
+  border-radius: 7px;
+}
+
+.insignia {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 26px;
+  border-radius: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  color: var(--wp-ink-2);
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 1px 2px var(--wp-bevel-dark),
+    0 0 0 1px var(--wp-line);
+}
+
+.insignia[data-tono="acento"] {
+  color: var(--wp-accent-hi);
+}
+
+.insignia[data-tono="ok"] {
+  color: var(--wp-ok);
+}
+
+.insignia[data-tono="aviso"] {
+  color: var(--wp-aviso);
+}
+
+.foto {
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
+  object-fit: cover;
+  background: var(--wp-field);
+  box-shadow: 0 0 0 1px var(--wp-line);
+}
+
+.pieza,
+.inicial,
+.mas {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 7px;
+  background: var(--wp-field);
+  box-shadow:
+    inset 0 1px 2px var(--wp-bevel-dark),
+    0 0 0 1px var(--wp-line);
+}
+
+.pieza {
+  color: var(--wp-ink-3);
+}
+
+.inicial {
+  border-radius: 50%;
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: var(--wp-ink-2);
+}
+
+.mas {
+  font-family: var(--font-mono);
+  font-size: 0.62rem;
+  color: var(--wp-accent-hi);
+}
+
+/* ------------------------------------------------------------ estados --- */
+
+.vacio {
+  padding: 2.4rem 1.2rem 2.6rem;
+  text-align: center;
+}
+
+.vacioTitulo {
+  font-size: 1.05rem;
+  font-weight: 700;
+  text-wrap: balance;
+  overflow-wrap: anywhere;
+}
+
+.vacioTexto {
+  max-width: 34ch;
+  margin: 0.35rem auto 0;
+  font-size: 0.8rem;
+  color: var(--wp-ink-2);
+  text-wrap: balance;
+}
+
+.aviso {
+  margin: 0.5rem 0.6rem 0;
+  padding: 0.55rem 0.75rem;
+  border-radius: 8px;
+  font-size: 0.76rem;
+  color: var(--wp-aviso);
+  background: color-mix(in oklab, var(--wp-aviso) 10%, transparent);
+}
+
+/* ----------------------------------------------------------------- pie --- */
+
+.pie {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.55rem 1.1rem;
+  font-size: 0.7rem;
+  color: var(--wp-ink-3);
+  box-shadow: inset 0 1px 0 var(--wp-line);
+  background: color-mix(in oklab, var(--wp-bg-deep) 18%, transparent);
+}
+
+.pie span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  white-space: nowrap;
+}
+
+.pieDerecha {
+  margin-left: auto;
+}
+
+.pie kbd {
+  display: inline-grid;
+  place-items: center;
+  white-space: nowrap;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 0.3rem;
+  border-radius: 4px;
+  font-family: var(--font-mono);
+  font-size: 0.6rem;
+  color: var(--wp-ink-2);
+  background: linear-gradient(180deg, var(--wp-metal-hi), var(--wp-metal-lo));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px var(--wp-line),
+    0 1px 0 var(--wp-bevel-dark);
+}
+
+/* ------------------------------------------------------------ teléfono --- */
+
+@media (max-width: 640px) {
+  .velo {
+    padding: 8px;
+  }
+
+  .panel {
+    max-height: calc(100dvh - 16px);
+    border-radius: 14px;
+  }
+
+  .entrada {
+    font-size: 1.05rem;
+  }
+
+  .lcd {
+    display: none;
+  }
+
+  .fila {
+    min-height: 52px;
+  }
+
+  /* Poco ancho: el nombre puede ocupar dos líneas antes de cortarse. */
+  .titulo {
+    display: -webkit-box;
+    white-space: normal;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-height: 1.2;
+  }
+
+  /* Sin teclado físico: el pie de atajos sobra. */
+  .pie {
+    display: none;
+  }
+}
+
+@media (max-width: 860px) {
+  .pieDerecha {
+    display: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aguja {
+    transition: none;
+  }
+}

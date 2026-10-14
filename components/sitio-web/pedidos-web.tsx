@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { avisarCambioNotificaciones, escucharDestino, tomarRegistro } from "@/lib/ir-a";
+import { avisarCambioNotificaciones } from "@/lib/ir-a";
 import { useApi } from "@/components/datos/apis";
 import { MantenimientoRecurso } from "@/components/mantenimiento/mantenimiento-recurso";
 import ui from "@/components/ui/controles.module.css";
@@ -21,16 +21,7 @@ export function PedidosWeb() {
   const [version, setVersion] = useState(0);
   const madre = useVentanaActual() ?? undefined;
 
-  // Abierto desde la campanita o el aviso emergente.
-  useEffect(() => {
-    const ir = () => {
-      const id = tomarRegistro("pedidos_web");
-      if (id) setAbierto({ id, numero: "" });
-    };
-    ir();
-    return escucharDestino(ir);
-  }, []);
-
+  // Abierto desde la campanita o el aviso emergente: lo resuelve MantenimientoRecurso (onAbrir).
   return (
     <>
       <MantenimientoRecurso
