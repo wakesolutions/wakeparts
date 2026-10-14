@@ -27,7 +27,7 @@ export type Plan = {
   precio_anual: number | null;
   n1co_plan_mensual: number | null;
   n1co_plan_anual: number | null;
-  /** Se muestra a los talleres en Taller › Suscripción. */
+  /** Se muestra a los talleres en el módulo Suscripción. */
   publico: boolean;
   /** Solo lo ven y pagan los admins de plataforma (plan de prueba de $0.50). */
   solo_admins: boolean;

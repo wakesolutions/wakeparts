@@ -244,3 +244,15 @@ export function IconoPlanes() {
     </svg>
   );
 }
+
+export function IconoSuscripcion() {
+  // Tarjeta de pago con chip y una banda de acento
+  return (
+    <svg viewBox="0 0 48 48" aria-hidden="true">
+      <rect x="5" y="11" width="38" height="26" rx="4" fill="currentColor" />
+      <rect x="5" y="17" width="38" height="5" fill="var(--wp-accent-lo)" opacity="0.7" />
+      <rect x="10" y="26" width="8" height="6" rx="1.4" fill="var(--wp-accent)" />
+      <path d="M23 29h14M23 33h9" stroke="var(--wp-accent-lo)" strokeWidth="2" strokeLinecap="round" />
+    </svg>
+  );
+}

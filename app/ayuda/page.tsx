@@ -818,7 +818,7 @@ export default function Manual() {
                 </p>
                 <p>
                   <strong>Suscripción</strong>: al registrar tu taller tenés <strong>7 días de prueba</strong> con todo
-                  incluido; el medidor de tanque de <em>Taller › Suscripción</em> te muestra cuántos quedan y te avisamos
+                  incluido; el medidor de tanque del módulo <strong>Suscripción</strong> te muestra cuántos quedan y te avisamos
                   por correo antes de que termine. Después podés seguir en el plan <strong>Gratis</strong> (con límites) o
                   elegir <strong>Arranque</strong>, <strong>Avance</strong> o <strong>Pleno</strong>, al mes o al año (dos
                   meses gratis). Ahí mismo ves lo que usás contra los límites de tu plan, pagás con tarjeta y cancelás

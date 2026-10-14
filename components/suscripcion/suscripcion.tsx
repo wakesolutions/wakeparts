@@ -24,7 +24,7 @@ import {
 import styles from "./suscripcion.module.css";
 
 /**
- * Taller › Suscripción (0024): estado del plan, consumo contra los límites,
+ * Módulo Suscripción (0024): estado del plan, consumo contra los límites,
  * planes al mes o al año y pago con tarjeta (n1co). Solo el dueño paga o cancela.
  */
 
@@ -36,7 +36,7 @@ export function Suscripcion() {
   const sesion = useSesion();
   const [datos, setDatos] = useState<DatosSuscripcion | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const [ciclo, setCiclo] = useState<Ciclo>("anual");
+  const [ciclo, setCiclo] = useState<Ciclo>("mensual");
   const [pagando, setPagando] = useState<PlanPublico | null>(null);
   const [aviso, setAviso] = useState<{ ok: boolean; texto: string } | null>(null);
 

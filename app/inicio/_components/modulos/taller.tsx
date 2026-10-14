@@ -13,17 +13,15 @@ import idStyles from "@/components/identidad/identidad.module.css";
 import ui from "@/components/ui/controles.module.css";
 import { CAMPOS_TALLER } from "@/lib/empresa";
 import { ROLES } from "@/lib/recursos/equipo";
-import { Suscripcion } from "@/components/suscripcion/suscripcion";
 import { useSesion } from "../sesion-contexto";
 import styles from "./modulos.module.css";
 
-type Pestana = "datos" | "apariencia" | "factura" | "suscripcion";
+type Pestana = "datos" | "apariencia" | "factura";
 
 const PESTANAS: { id: Pestana; nombre: string }[] = [
   { id: "datos", nombre: "Datos" },
   { id: "apariencia", nombre: "Apariencia" },
   { id: "factura", nombre: "Factura" },
-  { id: "suscripcion", nombre: "Suscripción" },
 ];
 
 type Empresa = NonNullable<Awaited<ReturnType<typeof leerEmpresa>>>;
@@ -40,8 +38,7 @@ function formatoRtn(rtn: string | null) {
 
 /**
  * Taller: datos de la empresa activa, su apariencia (logo, fondo, tema) y el
- * formato de sus facturas y la suscripción (0024; solo el dueño paga o cancela).
- * Editan dueño y administradores; el resto solo ve Datos.
+ * formato de sus facturas. Editan dueño y administradores; el resto solo ve Datos.
  */
 export function ModuloTaller() {
   const { empresa, rol, usuario } = useSesion();
@@ -149,17 +146,6 @@ export function ModuloTaller() {
             }}
             vendedor={usuario.nombre}
           />
-        </div>
-      )}
-
-      {pestana === "suscripcion" && editable && (
-        <div
-          role="tabpanel"
-          id="taller-panel-suscripcion"
-          aria-labelledby="taller-suscripcion"
-          className={idStyles.panel}
-        >
-          <Suscripcion />
         </div>
       )}
 

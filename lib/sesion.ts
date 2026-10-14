@@ -26,6 +26,13 @@ export type Sesion = {
    * de la empresa (0023). undefined = sin la migración (se usa lo de siempre por rol).
    */
   permisos?: Permiso[];
+  /** Plan vigente de la empresa (0024), para el aviso de «mejorá tu plan». undefined = sin la migración. */
+  suscripcion?: {
+    estado: string;
+    planEfectivo: string;
+    planNombre: string | null;
+    pruebaHasta: string | null;
+  };
   empresas: { id: string; nombre: string; rol: Rol }[];
   /** Demo pública (/demo): datos en memoria, sin cuenta. Cambia «Salir» y muestra la franja de la demo. */
   demo?: boolean;
@@ -90,6 +97,22 @@ async function sincronizarFlagAdmin(id: string, debeSer: boolean) {
   }
 }
 
+/** Plan vigente de la empresa (0024). undefined si falta la migración. */
+async function cargarSuscripcion(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  idEmpresa: string,
+): Promise<Sesion["suscripcion"]> {
+  const { data, error } = await supabase.rpc("mi_suscripcion", { p_empresa: idEmpresa }).maybeSingle();
+  if (error || !data) return undefined;
+  const d = data as { estado: string; plan_efectivo: string; plan_efectivo_nombre: string | null; prueba_hasta: string | null };
+  return {
+    estado: d.estado,
+    planEfectivo: d.plan_efectivo,
+    planNombre: d.plan_efectivo_nombre,
+    pruebaHasta: d.prueba_hasta,
+  };
+}
+
 /** Permisos del rol dentro del plan de la empresa (0023). undefined si falta la migración. */
 async function cargarPermisos(
   supabase: Awaited<ReturnType<typeof createClient>>,
@@ -139,7 +162,12 @@ export const obtenerSesion = cache(async (): Promise<Sesion | null> => {
   let flagAdmin = Boolean(perfil?.es_admin_plataforma);
   if (perfil && flagAdmin !== esAdmin && (await sincronizarFlagAdmin(user.id, esAdmin))) flagAdmin = esAdmin;
 
-  const permisos = activa ? await cargarPermisos(supabase, activa.empresas!.id, activa.rol) : undefined;
+  const [permisos, suscripcion] = activa
+    ? await Promise.all([
+        cargarPermisos(supabase, activa.empresas!.id, activa.rol),
+        cargarSuscripcion(supabase, activa.empresas!.id),
+      ])
+    : [undefined, undefined];
 
   return {
     usuario: {
@@ -164,6 +192,7 @@ export const obtenerSesion = cache(async (): Promise<Sesion | null> => {
       : null,
     rol: activa?.rol ?? null,
     permisos,
+    suscripcion,
     empresas: lista.map((m) => ({ id: m.empresas!.id, nombre: m.empresas!.nombre, rol: m.rol })),
   };
 });

@@ -409,7 +409,7 @@ export async function cancelarSuscripcion(motivo: string): Promise<Resultado<{ m
     await enviarCorreo({
       para: contacto.correo,
       asunto: `Cancelaste tu suscripción de Wake Parts · ${contacto.empresa}`,
-      texto: `Hola${contacto.nombre ? ` ${contacto.nombre.split(" ")[0]}` : ""}:\n\nTu suscripción quedó cancelada y no se harán más cobros.${hasta ? ` Seguís con todo tu plan hasta el ${hasta}; después el taller pasa al plan Gratis, sin perder tus datos.` : ""}\n\nSi fue un error, podés suscribirte de nuevo en Taller › Suscripción.`,
+      texto: `Hola${contacto.nombre ? ` ${contacto.nombre.split(" ")[0]}` : ""}:\n\nTu suscripción quedó cancelada y no se harán más cobros.${hasta ? ` Seguís con todo tu plan hasta el ${hasta}; después el taller pasa al plan Gratis, sin perder tus datos.` : ""}\n\nSi fue un error, podés suscribirte de nuevo en el módulo Suscripción.`,
     });
   return {
     ok: true,

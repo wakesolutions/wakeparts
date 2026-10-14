@@ -115,7 +115,7 @@ export async function POST(request: Request) {
         await enviarCorreo({
           para: dueno.correo,
           asunto: `No pudimos cobrar tu suscripción de Wake Parts · ${dueno.empresa}`,
-          texto: `Hola${dueno.nombre ? ` ${dueno.nombre.split(" ")[0]}` : ""}:\n\nEl cobro de tu plan no pasó. Tenés 3 días para actualizar tu tarjeta en Taller › Suscripción antes de que el taller pase al plan Gratis (tus datos no se borran).`,
+          texto: `Hola${dueno.nombre ? ` ${dueno.nombre.split(" ")[0]}` : ""}:\n\nEl cobro de tu plan no pasó. Tenés 3 días para actualizar tu tarjeta en el módulo Suscripción antes de que el taller pase al plan Gratis (tus datos no se borran).`,
         });
     } else if (estado === "cancelada") {
       await cambiarEstadoSuscripcion(idEmpresa, "cancelada", { periodoFin });

@@ -52,7 +52,7 @@ async function avisar(f: Fila, clave: string, asunto: string, cuerpo: (nombre: s
     const r = await enviarCorreo({
       para: dueno.correo,
       asunto: `${asunto} · ${dueno.empresa}`,
-      texto: `Hola${dueno.nombre ? ` ${dueno.nombre.split(" ")[0]}` : ""}:\n\n${cuerpo(dueno.nombre, dueno.empresa)}\n\nEntrá a ${URL_SITIO}/inicio y abrí Taller › Suscripción.`,
+      texto: `Hola${dueno.nombre ? ` ${dueno.nombre.split(" ")[0]}` : ""}:\n\n${cuerpo(dueno.nombre, dueno.empresa)}\n\nEntrá a ${URL_SITIO}/inicio?abrir=suscripcion (módulo Suscripción).`,
     });
     if (!r.ok) return false;
   }
@@ -97,7 +97,7 @@ async function procesar() {
     } else if (dias <= 3) {
       if (
         await avisar(f, `prueba-3:${f.prueba_hasta}`, "Te quedan 3 días de prueba en Wake Parts", () =>
-          `Tu prueba con todo incluido termina el ${dia(f.prueba_hasta!)}. Desde Taller › Suscripción podés elegir Arranque, Avance o Pleno, al mes o al año (dos meses gratis).`,
+          `Tu prueba con todo incluido termina el ${dia(f.prueba_hasta!)}. Desde el módulo Suscripción podés elegir Arranque, Avance o Pleno, al mes o al año (dos meses gratis).`,
         )
       )
         resumen.correos++;
@@ -125,7 +125,7 @@ async function procesar() {
           await cambiarEstadoSuscripcion(f.id_empresa, "vencida", { periodoFin });
           if (
             await avisar(f, `pago-vencido:${periodoFin ?? f.periodo_fin}`, "No pudimos cobrar tu plan de Wake Parts", () =>
-              "El cobro de tu suscripción no pasó. Revisá tu tarjeta en Taller › Suscripción: en 3 días el taller pasa al plan Gratis (sin perder datos).",
+              "El cobro de tu suscripción no pasó. Revisá tu tarjeta en el módulo Suscripción: en 3 días el taller pasa al plan Gratis (sin perder datos).",
             )
           )
             resumen.correos++;
@@ -151,7 +151,7 @@ async function procesar() {
     if (new Date(f.periodo_fin!).getTime() + gracia > ahora) continue;
     if (
       await avisar(f, `a-gratis:${f.periodo_fin}`, "Tu taller pasó al plan Gratis", () =>
-        "Terminó el periodo de tu plan. El taller sigue funcionando con el plan Gratis y todos tus datos; cuando quieras, elegí un plan en Taller › Suscripción.",
+        "Terminó el periodo de tu plan. El taller sigue funcionando con el plan Gratis y todos tus datos; cuando quieras, elegí un plan en el módulo Suscripción.",
       )
     )
       resumen.correos++;

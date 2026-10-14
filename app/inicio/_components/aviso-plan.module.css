@@ -1,0 +1,103 @@
+/* Testigo del plan: una luz del tablero que pide atención, sin gritar. */
+
+.aviso {
+  position: relative;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: min(760px, calc(100% - 2rem));
+  margin: 0.6rem auto 0;
+  padding: 0.45rem 0.45rem 0.45rem 0.85rem;
+  border-radius: 12px;
+  background: linear-gradient(180deg, var(--wp-panel), var(--wp-panel-2));
+  box-shadow:
+    inset 0 1px 0 var(--wp-bevel-light),
+    0 0 0 1px var(--wp-line),
+    0 10px 24px -18px rgb(0 0 0 / 0.7);
+  animation: bajar 320ms var(--ease-expo) both;
+}
+
+.led {
+  flex: none;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--wp-aviso);
+  box-shadow: 0 0 6px color-mix(in oklab, var(--wp-aviso) 70%, transparent);
+}
+
+.aviso[data-caso="vencida"] .led {
+  background: var(--wp-accent-hi);
+  box-shadow: 0 0 6px color-mix(in oklab, var(--wp-accent) 70%, transparent);
+}
+
+.texto {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.8rem;
+  line-height: 1.4;
+  color: var(--wp-ink);
+}
+
+.nota {
+  color: var(--wp-ink-3);
+}
+
+.cerrar {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 8px;
+  color: var(--wp-ink-3);
+  background: transparent;
+  cursor: pointer;
+  transition:
+    color 160ms var(--ease-quart),
+    background-color 160ms var(--ease-quart);
+}
+
+.cerrar:hover {
+  color: var(--wp-ink);
+  background: var(--wp-hover);
+}
+
+.cerrar:focus-visible {
+  outline: 2px solid var(--wp-accent-hi);
+  outline-offset: 2px;
+}
+
+.cerrar svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+}
+
+@keyframes bajar {
+  from {
+    opacity: 0;
+    transform: translate3d(0, -6px, 0);
+  }
+}
+
+@media (max-width: 560px) {
+  .aviso {
+    flex-wrap: wrap;
+  }
+
+  .texto {
+    flex-basis: calc(100% - 3rem);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .aviso {
+    animation: none;
+  }
+}

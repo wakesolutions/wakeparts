@@ -11,6 +11,7 @@ Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 - **Plan efectivo al vuelo** (`plan_de_empresa()`): si el cron falla, la prueba igual vence y la cancelación igual respeta el fin de periodo. El cron solo avisa y ordena.
 - **Cambio de plan** = suscripción nueva + cancelar la anterior en n1co, sin prorrateo (lo restante no se reembolsa; se avisa antes de pagar). A revisar con el socio si se quiere prorrateo.
 - Los precios que cobra n1co salen del plan creado en n1co: deben coincidir con los de `planes` (se avisa en el editor).
+- Ajustes del usuario (mismo día): la suscripción pasó de una pestaña de Taller a su **propio módulo** en el dock (dueño y admin; no depende del plan); los planes se muestran **mensuales por defecto**; con el plan Gratis (o a 3 días o menos del fin de la prueba) aparece un **testigo** bajo la barra de menú que lleva al módulo. Se puede ocultar por 3 días en ese navegador (`localStorage`, conveniencia por persona).
 
 ## 2026-10-13 · Planes, límites y permisos por rol (0023)
 

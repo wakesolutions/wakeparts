@@ -10,6 +10,7 @@ import { VentanasProvider, useVentanas } from "@/components/ventanas/contexto";
 import { IDENTIDAD_VACIA } from "@/lib/identidad";
 import { aplicarPaleta, paletaActual } from "@/lib/paletas-cliente";
 import type { Sesion } from "@/lib/sesion";
+import { AvisoPlan } from "./aviso-plan";
 import { BarraMenu } from "./barra-menu";
 import { Dock } from "./dock";
 import { MODULOS } from "./modulos";
@@ -46,6 +47,7 @@ export function Escritorio({
               <div className="wp-carbono flex min-h-dvh flex-col">
                 <AmbienteEmpresa />
                 <BarraMenu />
+                <AvisoPlan />
                 {children}
                 <CapaVentanas />
                 {abrir && <AbrirAlCargar id={abrir} />}

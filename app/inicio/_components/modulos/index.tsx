@@ -18,6 +18,7 @@ import {
   IconoPlanes,
   IconoSeguimiento,
   IconoSitio,
+  IconoSuscripcion,
   IconoTaller,
   IconoToma,
   IconoVentas,
@@ -33,6 +34,7 @@ import { ModuloNotas } from "./notas";
 import { ModuloPlanes } from "./planes";
 import { ModuloSeguimiento } from "./seguimiento";
 import { ModuloSitioWeb } from "./sitio-web";
+import { ModuloSuscripcion } from "./suscripcion";
 import { ModuloMantenimiento, ModuloUsuarios } from "./tablas";
 import { ModuloTaller } from "./taller";
 import { TomaRapida } from "@/components/inventario/toma-rapida";
@@ -168,6 +170,16 @@ export const MODULOS: ModuloEscritorio[] = [
     componente: ModuloPlanes,
     tamano: { w: 1180, h: 780 },
     visible: (s) => s.usuario.esAdminPlataforma,
+  },
+  {
+    // Plan, consumo, pago con n1co y cancelación (0024). No depende del plan:
+    // siempre está para dueño y administradores (solo el dueño paga o cancela).
+    id: "suscripcion",
+    nombre: "Suscripción",
+    icono: <IconoSuscripcion />,
+    componente: ModuloSuscripcion,
+    tamano: { w: 1080, h: 800 },
+    visible: (s) => s.rol === "dueno" || s.rol === "admin",
   },
   {
     id: "taller",
