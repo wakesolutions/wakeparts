@@ -2801,7 +2801,7 @@ const PLANES_DEMO: DatosSuscripcion["planes"] = [
   {
     codigo: "pleno", nombre: "Pleno", descripcion: null, etiqueta: "Ideal para cadenas, grupos o negocios grandes.",
     precio_mensual: 100, precio_anual: 1000, orden: 3, modulos: [], limites: { almacenamiento_mb: 51200 },
-    caracteristicas: ["Todo lo de Avance", "Catálogo web con dominio propio", "Soporte prioritario: respondemos en menos de 1 día"],
+    caracteristicas: ["Todo lo de Avance", "Catálogo web con dominio propio, bajo petición a soporte", "Soporte prioritario: respondemos en menos de 1 día"],
     mensual_disponible: true, anual_disponible: true, solo_admins: false,
   },
 ];
