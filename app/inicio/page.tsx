@@ -5,6 +5,10 @@ import { LogoEmpresa } from "@/components/identidad/logo-empresa";
 import { aceptarInvitaciones, obtenerSesion } from "@/lib/sesion";
 import { Escritorio } from "./_components/escritorio";
 
+// Las Server Actions de la página (p. ej. el cobro con n1co tras el 3D Secure:
+// token + suscripción, hasta 20 s cada una) no deben cortarse a medio cobro.
+export const maxDuration = 60;
+
 export const metadata: Metadata = { title: "Inicio", robots: { index: false, follow: false } };
 
 function saludo() {

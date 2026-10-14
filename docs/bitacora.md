@@ -2,6 +2,12 @@
 
 Entradas nuevas arriba. Formato: fecha, decisión, por qué.
 
+## 2026-10-14 · El cobro se quedaba en el 3D Secure
+
+- **Síntoma** (producción, plan Prueba): tras confirmar el 3DS, el panel decía «Ya estamos procesando este pago» y nunca cobraba; el intento quedó en `autenticacion` y no había nada en Actividad. Pasaba igual en wakehealth (mismo código de origen).
+- **Causa**: el iframe de n1co manda `authentication.complete` con `Status: PENDING` mientras el banco verifica, y luego con `SUCCESS`. Continuábamos con cualquier `authentication.complete` (también PENDING): el segundo POST a n1co salía antes de que el banco terminara, y los avisos repetidos chocaban con el candado, que se mostraba como error y escondía el resultado real.
+- **Arreglo**: solo se continúa con `authentication.complete` + `SUCCESS` (doc de n1co › Autenticación 3D Secure), una vez por `AuthenticationId`; `EXPIRED` pide empezar de nuevo. Si el candado está tomado, el servidor responde `procesando` y el navegador pregunta con `estadoPago()` hasta 90 s en vez de mostrar un error. Cada respuesta de n1co queda en Actividad (`suscripcion.n1co`: estado, código y mensaje, sin datos de tarjeta). `maxDuration = 60` en `/inicio` para que la acción no se corte a medio cobro.
+
 ## 2026-10-14 · Búsqueda global (Ctrl/⌘ F, sin migración)
 
 - **Pedido del usuario**: una barra de búsqueda global para llegar rápido a módulos y encontrar facturas, notas, productos, «para todo», con Ctrl+F / ⌘F.

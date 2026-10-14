@@ -2832,6 +2832,7 @@ const suscripcion: Apis["suscripcion"] = {
       300,
     ),
   pagar: async () => espera({ ok: false as const, error: "En la demo no se cobra. Creá tu cuenta para elegir un plan." }, 600),
+  estadoPago: async () => espera({ ok: false as const, error: "En la demo no se cobra." }),
   cancelar: async () => espera({ ok: false as const, error: "En la demo no hay suscripción que cancelar." }),
   sincronizar: async () => espera({ ok: true as const, mensaje: "En la demo todo está al día." }),
 };

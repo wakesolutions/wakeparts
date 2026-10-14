@@ -85,6 +85,8 @@ export type ResultadoPago =
   | { ok: true; estado: "exitoso"; mensaje: string }
   | { ok: true; estado: "autenticacion"; intento: string; url: string; mensaje: string }
   | { ok: true; estado: "facturacion"; intento: string; mensaje: string }
+  /** Otra petición ya está cobrando este intento: el navegador espera con `estadoPago`. */
+  | { ok: true; estado: "procesando"; intento: string; mensaje: string }
   | { ok: false; error: string; campo?: string };
 
 export const soloDigitos = (v: string) => v.replace(/\D/g, "");

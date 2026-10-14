@@ -546,10 +546,38 @@ function Pago({
   const [intentoFacturacion, setIntentoFacturacion] = useState<string | null>(null);
   const enCurso = useRef(false);
   const urlRef = useRef<string | null>(null);
+  /** Autenticaciones ya enviadas: el iframe puede avisar más de una vez. */
+  const enviadas = useRef(new Set<string>());
+  const [esperando, setEsperando] = useState(false);
 
   const cambiar = (k: keyof typeof f, v: string) => setF((x) => ({ ...x, [k]: v }));
   const pideDireccion = ["US", "CA"].includes(f.pais);
   const anios = Array.from({ length: 12 }, (_, i) => String(new Date().getFullYear() + i));
+
+  // Otra petición ya está cobrando: se pregunta el resultado en vez de mostrar un error.
+  const esperar = useCallback(async (intento: string) => {
+    setTresDs(null);
+    urlRef.current = null;
+    setEsperando(true);
+    const limite = Date.now() + 90_000;
+    while (Date.now() < limite) {
+      await new Promise((ok) => setTimeout(ok, 2500));
+      const r: ResultadoPago = await api.estadoPago(intento).catch(() => ({ ok: true as const, estado: "procesando" as const, intento, mensaje: "" }));
+      if (r.ok && r.estado === "procesando") continue;
+      setEsperando(false);
+      if (!r.ok) return setError({ texto: r.error });
+      if (r.estado === "exitoso") {
+        setF((x) => ({ ...x, numero: "", cvv: "", mes: "", anio: "" }));
+        return onPagado(r.mensaje);
+      }
+      return;
+    }
+    setEsperando(false);
+    setError({
+      texto:
+        "Tu banco está tardando en responder. Si el cobro pasa, tu plan se activa solo en unos minutos; revisá con «Sincronizar» antes de intentar de nuevo.",
+    });
+  }, [api, onPagado]);
 
   const enviar = useCallback(
     async (p: PeticionPago) => {
@@ -570,6 +598,7 @@ function Pago({
         setF((x) => ({ ...x, numero: "", cvv: "", mes: "", anio: "" }));
         return onPagado(r.mensaje);
       }
+      if (r.estado === "procesando") return esperar(r.intento);
       if (r.estado === "autenticacion") {
         urlRef.current = r.url;
         setTresDs({ intento: r.intento, url: r.url });
@@ -580,8 +609,9 @@ function Pago({
       setF((x) => ({ ...x, numero: "", cvv: "", pais: "US" }));
       setError({ texto: r.mensaje, campo: "estado" });
     },
-    [api, onPagado],
+    [api, onPagado, esperar],
   );
+
 
   const base = (): Omit<PeticionPago, "tarjeta"> => ({
     plan: plan.codigo,
@@ -599,11 +629,21 @@ function Pago({
       if (m.tipo === "authentication.failed" || ["FAILED", "EXPIRED", "ERROR"].includes(m.estado)) {
         setTresDs(null);
         urlRef.current = null;
-        setError({ texto: "Tu banco no confirmó el pago. Probá de nuevo o con otra tarjeta." });
+        setError({
+          texto:
+            m.estado === "EXPIRED"
+              ? "La verificación de tu banco venció. Volvé a ingresar la tarjeta."
+              : "Tu banco no confirmó el pago. Probá de nuevo o con otra tarjeta.",
+        });
         return;
       }
-      if (m.estado === "SUCCESS" || m.tipo === "authentication.complete")
-        void enviar({ ...base(), intento: tresDs.intento, autenticacion: m.id });
+      // n1co avisa PENDING mientras el banco verifica: solo se cobra con
+      // «authentication.complete» + SUCCESS, y una sola vez por autenticación.
+      if (m.tipo !== "authentication.complete" || m.estado !== "SUCCESS") return;
+      const clave = m.id ?? tresDs.intento;
+      if (enviadas.current.has(clave)) return;
+      enviadas.current.add(clave);
+      void enviar({ ...base(), intento: tresDs.intento, autenticacion: m.id });
     }
     window.addEventListener("message", alRecibir);
     return () => window.removeEventListener("message", alRecibir);
@@ -630,7 +670,7 @@ function Pago({
       tamano={{ w: 560, h: tresDs ? 720 : 760 }}
       foco={plan.codigo}
       onCerrar={() => {
-        if (!enCurso.current) onCerrar();
+        if (!enCurso.current && !esperando) onCerrar();
       }}
     >
       <div className={styles.pago}>
@@ -651,7 +691,12 @@ function Pago({
           </p>
         )}
 
-        {tresDs ? (
+        {esperando ? (
+          <div className={styles.tresDs} role="status">
+            <div className={styles.cargando} style={{ height: 72 }} aria-hidden="true" />
+            <p className={styles.nota}>Estamos confirmando el pago con tu banco. No cierres esta ventana.</p>
+          </div>
+        ) : tresDs ? (
           <div className={styles.tresDs}>
             <p className={styles.nota}>
               Tu banco pide confirmar el pago. Completá la verificación abajo; si no avanza solo al terminar, tocá

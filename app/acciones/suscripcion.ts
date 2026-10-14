@@ -192,7 +192,8 @@ export async function pagarSuscripcion(p: PeticionPago): Promise<ResultadoPago> 
       .eq("id", fila.id)
       .eq("estado", fila.estado)
       .select("id");
-    if (!tomado?.length) return { ok: false, error: "Ya estamos procesando este pago. Esperá unos segundos." };
+    if (!tomado?.length)
+      return { ok: true, estado: "procesando", intento: fila.id, mensaje: "Estamos confirmando el pago con tu banco…" };
   } else {
     const desde = new Date(Date.now() - VENTANA_INTENTOS_MIN * 60_000).toISOString();
     const { count } = await db
@@ -254,6 +255,27 @@ export async function pagarSuscripcion(p: PeticionPago): Promise<ResultadoPago> 
       metodoPago: intento.metodo!,
       autenticacion,
       facturacion,
+    });
+
+    // Rastro de cada respuesta de n1co (sin datos de la tarjeta): sin esto, un cobro
+    // que se queda a medias no deja nada que revisar en Actividad.
+    await registrar({
+      tipo: "accion",
+      nivel: r.status === "SUCCEEDED" ? "info" : "aviso",
+      evento: "suscripcion.n1co",
+      mensaje: `${autenticacion ? "Continuación tras 3DS" : "Creación"}: ${r.status ?? "sin estado"}`,
+      id_usuario: sesion.usuario.id,
+      correo: sesion.usuario.correo,
+      id_empresa: empresa.id,
+      datos: {
+        intento: intento.id,
+        plan: plan.codigo,
+        con_autenticacion: Boolean(autenticacion),
+        estado: r.status ?? null,
+        codigo: r.error?.code ?? null,
+        mensaje: (r.error?.message ?? r.error?.detail ?? r.message ?? "").slice(0, 200) || null,
+        suscripcion: r.subscription?.subscriptionId ?? null,
+      },
     });
 
     if (r.status === "AUTHENTICATION_REQUIRED") {
@@ -365,6 +387,31 @@ export async function pagarSuscripcion(p: PeticionPago): Promise<ResultadoPago> 
     await registrarFallo(empresa.id, sesion.usuario.correo, sesion.usuario.id, "crear", e);
     return { ok: false, error: mensajeN1co(e) };
   }
+}
+
+/**
+ * Estado de un intento mientras otra petición lo cobra (el navegador pregunta
+ * cada pocos segundos). Solo lee lo que dejó el servidor; nunca cobra.
+ */
+export async function estadoPago(intentoId: string): Promise<ResultadoPago> {
+  const d = await dueno();
+  if ("error" in d) return { ok: false, error: d.error! };
+  const { data: fila } = await clienteServicio()
+    .from("suscripciones_checkout")
+    .select("id, plan, estado")
+    .eq("id", String(intentoId ?? ""))
+    .eq("id_empresa", d.empresa.id)
+    .maybeSingle();
+  if (!fila) return { ok: false, error: "No encontramos ese intento de pago. Empezá de nuevo." };
+  if (fila.estado === "procesando")
+    return { ok: true, estado: "procesando", intento: fila.id, mensaje: "Estamos confirmando el pago con tu banco…" };
+  if (fila.estado === "exitoso") {
+    const plan = await leerPlanCobro(String(fila.plan));
+    return { ok: true, estado: "exitoso", mensaje: `¡Listo! Tu taller ya tiene el plan ${plan?.nombre ?? fila.plan}.` };
+  }
+  if (fila.estado === "autenticacion")
+    return { ok: false, error: "Tu banco pidió verificar otra vez. Volvé a ingresar la tarjeta para intentarlo de nuevo." };
+  return { ok: false, error: "El pago no pasó. Revisá los datos o probá con otra tarjeta." };
 }
 
 export async function cancelarSuscripcion(motivo: string): Promise<Resultado<{ mensaje: string }>> {

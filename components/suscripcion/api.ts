@@ -1,5 +1,6 @@
 import {
   cancelarSuscripcion,
+  estadoPago,
   leerSuscripcion,
   pagarSuscripcion,
   sincronizarSuscripcion,
@@ -12,6 +13,7 @@ type Resultado<T = object> = ({ ok: true } & T) | { ok: false; error: string };
 export type ApiSuscripcion = {
   leer(): Promise<Resultado<{ datos: DatosSuscripcion }>>;
   pagar(p: PeticionPago): Promise<ResultadoPago>;
+  estadoPago(intento: string): Promise<ResultadoPago>;
   cancelar(motivo: string): Promise<Resultado<{ mensaje: string }>>;
   sincronizar(): Promise<Resultado<{ mensaje: string }>>;
 };
@@ -19,6 +21,7 @@ export type ApiSuscripcion = {
 export const apiSuscripcion: ApiSuscripcion = {
   leer: leerSuscripcion,
   pagar: pagarSuscripcion,
+  estadoPago,
   cancelar: cancelarSuscripcion,
   sincronizar: sincronizarSuscripcion,
 };
