@@ -183,12 +183,21 @@ export function crearSuscripcionN1co(e: {
   });
 }
 
-/** Estado de n1co → estado de `empresas_planes`. */
-export function estadoDesdeN1co(estado?: string): "activa" | "vencida" | "cancelada" {
+/**
+ * Estado de n1co → estado de `empresas_planes`. Estados documentados (ciclo de
+ * vida de suscripciones): Inicio, Activa, Pendiente, Bloqueada, Inactiva, Error.
+ * - Activa → activa · Pendiente (cobro recurrente fallido, reintentando) y
+ *   Bloqueada (por el comercio) → vencida · Inactiva (cancelada, sin pago tras
+ *   3 intentos o enlace inválido) → cancelada.
+ * - Inicio, Error o cualquier otro → null: **no se toca nada** (un estado que no
+ *   conocemos nunca debe cancelar el plan de un taller que pagó).
+ */
+export function estadoDesdeN1co(estado?: string): "activa" | "vencida" | "cancelada" | null {
   const s = (estado ?? "").trim().toLowerCase();
   if (s === "activa" || s === "active") return "activa";
   if (s === "pendiente" || s === "pending" || s === "bloqueada" || s === "blocked") return "vencida";
-  return "cancelada";
+  if (["inactiva", "inactive", "cancelada", "cancelled", "canceled"].includes(s)) return "cancelada";
+  return null;
 }
 
 export function fechaN1co(valor?: string | null) {

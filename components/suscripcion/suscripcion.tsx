@@ -595,7 +595,7 @@ function Pago({
     setEsperando(false);
     setError({
       texto:
-        "Tu banco está tardando en responder. Si el cobro pasa, tu plan se activa solo en unos minutos; revisá con «Sincronizar» antes de intentar de nuevo.",
+        "n1co todavía no confirma. No repitas el pago: si el cobro pasó, tu plan se activa solo en unos minutos (n1co nos avisa). Si en 30 minutos no aparece, escribinos.",
     });
   }, [api, onPagado]);
 

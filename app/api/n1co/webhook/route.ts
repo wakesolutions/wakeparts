@@ -108,6 +108,13 @@ export async function POST(request: Request) {
     const periodoFin = fechaN1co(sub.currentPeriodEnd);
     if (estado === "activa" && cobrado) {
       await activarSuscripcion({ idEmpresa, plan: cobrado.plan.codigo, ciclo: cobrado.ciclo, n1coId, periodoFin });
+      // Un cobro que quedó «por confirmar» (respuesta perdida o incierta) queda resuelto.
+      await clienteServicio()
+        .from("suscripciones_checkout")
+        .update({ estado: "exitoso" })
+        .eq("id_empresa", idEmpresa)
+        .eq("plan", cobrado.plan.codigo)
+        .in("estado", ["procesando", "autenticacion"]);
     } else if (estado === "vencida") {
       await cambiarEstadoSuscripcion(idEmpresa, "vencida", { periodoFin });
       const dueno = await duenoDeEmpresa(idEmpresa);

@@ -51,6 +51,10 @@ type Resultado<T = object> = ({ ok: true } & T) | { ok: false; error: string };
 
 const FALTA_MIGRACION = "Falta ejecutar la migración 0024 (suscripciones).";
 const MAX_INTENTOS = 6;
+/** Mientras un cobro está «por confirmar», no se abre otro (evita cobrar dos veces). */
+const ESPERA_POR_CONFIRMAR_MIN = 30;
+const MENSAJE_POR_CONFIRMAR =
+  "Tu banco o el procesador no dieron una respuesta clara. No repitas el pago: si el cobro pasó, tu plan se activa solo en unos minutos (n1co nos avisa).";
 const VENTANA_INTENTOS_MIN = 15;
 /** Solo se abre en el iframe un 3D Secure de n1co o de su procesador. */
 const HOST_3DS = /(^|\.)(n1co\.com|n1co\.shop|h4b\.dev)$/i;
@@ -209,15 +213,40 @@ export async function pagarSuscripcion(p: PeticionPago): Promise<ResultadoPago> 
     }
     intento = { id: fila.id, metodo: fila.n1co_metodo_pago };
     // Candado: si llegan dos continuaciones (mensaje del iframe + botón), solo una cobra.
-    const { data: tomado } = await db
+    const { data: tomado, error: errorCandado } = await db
       .from("suscripciones_checkout")
       .update({ estado: "procesando" })
       .eq("id", fila.id)
       .eq("estado", fila.estado)
       .select("id");
+    // Un error de la base NO es «otro proceso cobrando»: se dice y queda registrado
+    // (así se escondió la restricción vieja sin «procesando», ver 0025).
+    if (errorCandado)
+      return rechazar(
+        `candado: ${errorCandado.code ?? "?"} ${errorCandado.message ?? ""}`.slice(0, 200),
+        errorCandado.code === "23514"
+          ? "Falta ejecutar la migración 0025 para poder cobrar. No se hizo ningún cargo."
+          : "No pudimos preparar el cobro. No se hizo ningún cargo; intentá de nuevo en un momento.",
+      );
     if (!tomado?.length)
       return { ok: true, estado: "procesando", intento: fila.id, mensaje: "Estamos confirmando el pago con tu banco…" };
   } else {
+    // Un cobro anterior quedó sin respuesta clara: n1co pudo haber cobrado. Hasta
+    // que su webhook lo resuelva (o pase el plazo), no se intenta otro.
+    const { data: dudoso } = await db
+      .from("suscripciones_checkout")
+      .select("id")
+      .eq("id_empresa", empresa.id)
+      .eq("estado", "procesando")
+      .gte("creado_en", new Date(Date.now() - ESPERA_POR_CONFIRMAR_MIN * 60_000).toISOString())
+      .limit(1)
+      .maybeSingle();
+    if (dudoso)
+      return {
+        ok: false,
+        error: `Hay un cobro esperando confirmación de n1co. Esperá unos minutos antes de intentar de nuevo (máximo ${ESPERA_POR_CONFIRMAR_MIN}); si pasó, tu plan se activa solo.`,
+      };
+
     const desde = new Date(Date.now() - VENTANA_INTENTOS_MIN * 60_000).toISOString();
     const { count } = await db
       .from("suscripciones_checkout")
@@ -269,6 +298,21 @@ export async function pagarSuscripcion(p: PeticionPago): Promise<ResultadoPago> 
       return { ok: false, error: mensajeN1co(e) };
     }
   }
+
+  // Resultado incierto: el intento queda «procesando» (bloquea otro cobro) y se
+  // registra; el navegador espera y el webhook de n1co lo activa si cobró.
+  const porConfirmar = async (motivo: string): Promise<ResultadoPago> => {
+    await db.from("suscripciones_checkout").update({ estado: "procesando" }).eq("id", intento.id);
+    await registrarEventoSuscripcion({
+      idEmpresa: empresa.id,
+      origen: "checkout",
+      tipo: "pago_por_confirmar",
+      plan: plan.codigo,
+      ciclo: p.ciclo,
+      mensaje: motivo.slice(0, 200),
+    });
+    return { ok: true, estado: "procesando", intento: intento.id, mensaje: MENSAJE_POR_CONFIRMAR };
+  };
 
   // 3) Crear la suscripción en n1co.
   try {
@@ -414,6 +458,11 @@ export async function pagarSuscripcion(p: PeticionPago): Promise<ResultadoPago> 
       return { ok: true, estado: "exitoso", mensaje: `¡Listo! Tu taller ya tiene el plan ${plan.nombre}.` };
     }
 
+    // Solo FAILED es un rechazo seguro. Cualquier otra cosa (un estado nuevo como
+    // «PROCESSING», o SUCCEEDED sin suscripción) puede haber cobrado: queda por
+    // confirmar y lo resuelve el webhook de n1co (SubscriptionConfirmation).
+    if (r.status !== "FAILED") return porConfirmar(`respuesta ${r.status ?? "sin estado"}`);
+
     await db.from("suscripciones_checkout").update({ estado: "fallido" }).eq("id", intento.id);
     await registrarEventoSuscripcion({
       idEmpresa: empresa.id,
@@ -427,8 +476,12 @@ export async function pagarSuscripcion(p: PeticionPago): Promise<ResultadoPago> 
     const motivo = (r.error?.message ?? r.message ?? "").trim().slice(0, 160);
     return { ok: false, error: motivo ? `El pago no pasó: ${motivo}` : "El pago no pasó. Probá con otra tarjeta." };
   } catch (e) {
-    await db.from("suscripciones_checkout").update({ estado: "fallido" }).eq("id", intento.id);
     await registrarFallo(empresa.id, sesion.usuario.correo, sesion.usuario.id, "crear", e);
+    // n1co respondió que no (4xx): no hubo cobro. Tiempo agotado, red o 5xx: no
+    // sabemos si cobró, así que no se invita a repetir.
+    const rechazoSeguro = e instanceof ErrorN1co && e.estado >= 400 && e.estado < 500;
+    if (!rechazoSeguro) return porConfirmar(e instanceof ErrorN1co ? `n1co ${e.estado}` : "sin respuesta de n1co");
+    await db.from("suscripciones_checkout").update({ estado: "fallido" }).eq("id", intento.id);
     return { ok: false, error: mensajeN1co(e) };
   }
 }
@@ -448,7 +501,7 @@ export async function estadoPago(intentoId: string): Promise<ResultadoPago> {
     .maybeSingle();
   if (!fila) return { ok: false, error: "No encontramos ese intento de pago. Empezá de nuevo." };
   if (fila.estado === "procesando")
-    return { ok: true, estado: "procesando", intento: fila.id, mensaje: "Estamos confirmando el pago con tu banco…" };
+    return { ok: true, estado: "procesando", intento: fila.id, mensaje: MENSAJE_POR_CONFIRMAR };
   if (fila.estado === "exitoso") {
     const plan = await leerPlanCobro(String(fila.plan));
     return { ok: true, estado: "exitoso", mensaje: `¡Listo! Tu taller ya tiene el plan ${plan?.nombre ?? fila.plan}.` };
@@ -548,7 +601,7 @@ export async function sincronizarSuscripcion(): Promise<Resultado<{ mensaje: str
         n1coId: String(sub.subscriptionId),
         periodoFin: fechaN1co(sub.currentPeriodEnd),
       });
-    else if (estado !== "activa" && fila.estado !== estado)
+    else if (estado && estado !== "activa" && fila.estado !== estado)
       await cambiarEstadoSuscripcion(empresa.id, estado, { periodoFin: fechaN1co(sub.currentPeriodEnd) });
     await registrarEventoSuscripcion({
       idEmpresa: empresa.id,
@@ -557,7 +610,15 @@ export async function sincronizarSuscripcion(): Promise<Resultado<{ mensaje: str
       n1coId: fila.n1co_suscripcion_id,
       mensaje: sub.subscriptionStatus ?? null,
     });
-    return { ok: true, mensaje: estado === "activa" ? "Tu suscripción está al día." : "Actualizamos el estado de tu suscripción." };
+    return {
+      ok: true,
+      mensaje:
+        estado === "activa"
+          ? "Tu suscripción está al día."
+          : estado
+            ? "Actualizamos el estado de tu suscripción."
+            : `n1co reporta «${sub.subscriptionStatus ?? "sin estado"}»: no cambiamos nada todavía.`,
+    };
   } catch (e) {
     await registrarFallo(empresa.id, sesion.usuario.correo, sesion.usuario.id, "sincronizar", e);
     return { ok: false, error: mensajeN1co(e) };

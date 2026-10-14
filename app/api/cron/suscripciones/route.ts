@@ -129,9 +129,10 @@ async function procesar() {
             )
           )
             resumen.correos++;
-        } else {
+        } else if (estado === "cancelada") {
           await cambiarEstadoSuscripcion(f.id_empresa, "cancelada", { periodoFin });
         }
+        // Otro estado (Inicio, Error, desconocido): no se toca; queda en el resumen.
         resumen.sincronizadas++;
       } catch {
         resumen.errores++;
